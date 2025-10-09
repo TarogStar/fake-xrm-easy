@@ -35,12 +35,30 @@ namespace FakeXrmEasy
 
         protected IPluginExecutionContext GetFakedPluginContext(XrmFakedPluginExecutionContext ctx)
         {
-            var context = A.Fake<IPluginExecutionContext>();
+            var context = A.Fake<IPluginExecutionContext4>();
 
             PopulateExecutionContextPropertiesFromFakedContext(context, ctx);
 
             A.CallTo(() => context.ParentContext).ReturnsLazily(() => ctx.ParentContext);
             A.CallTo(() => context.Stage).ReturnsLazily(() => ctx.Stage);
+
+            // IPluginExecutionContext2 properties
+            A.CallTo(() => context.InitiatingUserAzureActiveDirectoryObjectId)
+                .ReturnsLazily(() => ctx.InitiatingUserAzureActiveDirectoryObjectId);
+            A.CallTo(() => context.UserAzureActiveDirectoryObjectId)
+                .ReturnsLazily(() => ctx.UserAzureActiveDirectoryObjectId);
+            A.CallTo(() => context.InitiatingUserApplicationId)
+                .ReturnsLazily(() => ctx.InitiatingUserApplicationId);
+            A.CallTo(() => context.PortalsContactId)
+                .ReturnsLazily(() => ctx.PortalsContactId);
+            A.CallTo(() => context.IsPortalsClientCall)
+                .ReturnsLazily(() => ctx.IsPortalsClientCall);
+
+            // IPluginExecutionContext3 properties
+            A.CallTo(() => ((IPluginExecutionContext3)context).AuthenticatedUserId)
+                .ReturnsLazily(() => ctx.AuthenticatedUserId);
+            // Note: ParentContextProperties, IsTransactionIntegrationMessage, and image collections
+            // are on the concrete XrmFakedPluginExecutionContext class, not in the interface definitions
 
             return context;
         }
@@ -354,7 +372,10 @@ namespace FakeXrmEasy
                        return TracingService;
                    }
 
-                   if (t == typeof(IPluginExecutionContext))
+                   if (t == typeof(IPluginExecutionContext) ||
+                       t == typeof(IPluginExecutionContext2) ||
+                       t == typeof(IPluginExecutionContext3) ||
+                       t == typeof(IPluginExecutionContext4))
                    {
                        return GetFakedPluginContext(plugCtx);
                    }

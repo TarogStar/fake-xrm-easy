@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>FakeXrmEasy</id>
+    <version>2.0.0</version>
+    <title>FakeXrmEasy - Unit Testing for Dynamics 365</title>
+    <authors>FakeXrmEasy Community</authors>
+    <owners>FakeXrmEasy Community</owners>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/YOUR_ORG/fake-xrm-easy</projectUrl>
+    <repository type="git" url="https://github.com/YOUR_ORG/fake-xrm-easy.git" />
+    <icon>icon.png</icon>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>
+      A truly open-source testing framework for Dynamics 365 / Power Platform that makes unit testing plugins, workflows, and custom code simple and fast.
+
+      This modernized version focuses exclusively on Dynamics 365 v9.x and later (Power Platform / Common Data Service).
+    </description>
+    <summary>Unit testing framework for Dynamics 365 plugins, workflows, and custom code with in-memory mocking</summary>
+    <releaseNotes>
+      Version 2.0.0 - Modernized Release
+      - Removed support for legacy CRM versions (2011-2016)
+      - Focus exclusively on D365 v9.x and later
+      - Removed obsolete warnings and migration messages
+      - Simplified build and project structure
+      - Truly open-source and community-driven
+      - Updated to .NET Framework 4.6.2
+    </releaseNotes>
+    <copyright>Copyright © FakeXrmEasy Community</copyright>
+    <tags>Dynamics365 CRM CommonDataService PowerPlatform UnitTesting Mocking Testing Plugins Workflows FakeXrmEasy Dataverse</tags>
+    <dependencies>
+      <group targetFramework=".NETFramework4.6.2">
+        <dependency id="Microsoft.CrmSdk.CoreAssemblies" version="9.0.2.4" />
+        <dependency id="Microsoft.CrmSdk.Workflow" version="9.0.2.4" />
+        <dependency id="Microsoft.CrmSdk.XrmTooling.CoreAssembly" version="9.0.2.4" />
+        <dependency id="FakeItEasy" version="6.0.0" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="FakeXrmEasy\bin\Release\FakeXrmEasy.dll" target="lib\net462" />
+    <file src="FakeXrmEasy\bin\Release\FakeXrmEasy.xml" target="lib\net462" />
+    <file src="LICENSE.md" target="" />
+    <file src="README.md" target="" />
+  </files>
+</package>

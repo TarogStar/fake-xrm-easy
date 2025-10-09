@@ -1,99 +1,220 @@
-﻿Fake Xrm Easy: TDD for Dynamics CRM and Dynamics 365 (or now Common Data Service for Apps) made simple
-=================================================================================
+# FakeXrmEasy: Modern Unit Testing for Dynamics 365
 
-Follow me for updates on [Twitter](https://twitter.com/fakexrmeasy)!
------------------------------------------------------------------------
+A truly open-source testing framework for Dynamics 365 / Power Platform that makes unit testing plugins, workflows, and custom code simple and fast.
 
+[![Build Status](https://github.com/YOUR_ORG/fake-xrm-easy/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR_ORG/fake-xrm-easy/actions)
+[![NuGet](https://img.shields.io/nuget/v/FakeXrmEasy.svg)](https://www.nuget.org/packages/FakeXrmEasy)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**IMPORTANT**: FakeXrmEasy v1.x is no longer maintained and is officially read-only [Start planning your transition to the newer versions 2.x and 3.x now!](https://dynamicsvalue.github.io/fake-xrm-easy-docs/quickstart/migrating-from-1x/)
--------------------------------------------------------------------------------------------------------
+## 🎉 Version 2.0.1 - Now with SDK-Style Projects!
 
-**NEW ISSUE TRACKER**: The new repo lives at https://github.com/DynamicsValue/fake-xrm-easy   THANKS!
----------------------------------------
+This version features a complete modernization:
+- ✅ **SDK-style project format** - no more NuGet headaches!
+- ✅ **IPluginExecutionContext4 support** - full Azure AD integration
+- ✅ **Simplified project structure** - easier to maintain and contribute
+- ✅ **Better tooling support** - works great with VS 2019/2022
 
+See [MODERNIZATION.md](MODERNIZATION.md) and [SDK_STYLE_MIGRATION.md](SDK_STYLE_MIGRATION.md) for details.
 
+## What is FakeXrmEasy?
 
-|Build|Line Coverage|Branch Coverage|
-|-----------|-----|-----------------|
-|[![Build status](https://ci.appveyor.com/api/projects/status/2g8yc8jg817746du?svg=true)](https://ci.appveyor.com/project/Jordi/fake-xrm-easy)|[![Line coverage](https://cdn.rawgit.com/jordimontana82/fake-xrm-easy/master/test/reports/badge_linecoverage.svg?v=1.55.0)](https://cdn.rawgit.com/jordimontana82/fake-xrm-easy/master/test/reports/index.htm?v=1.55.0)|[![Branch coverage](https://cdn.rawgit.com/jordimontana82/fake-xrm-easy/master/test/reports/badge_branchcoverage.svg?v=1.55.0)](https://cdn.rawgit.com/jordimontana82/fake-xrm-easy/master/test/reports/index.htm?v=1.55.0)|
+FakeXrmEasy is a comprehensive mocking framework for Dynamics 365 that enables:
 
-<b>Streamline unit testing</b> in Dynamics CRM by faking the `IOrganizationService` to work with an in-memory context.
+- **Unit Testing Plugins**: Test your plugin logic without deploying to a real environment
+- **Workflow Testing**: Validate custom workflow activities with in-memory execution
+- **Fast Test Execution**: Run hundreds of tests in seconds with in-memory context
+- **No Server Required**: Test offline without connecting to Dynamics 365
+- **Early and Late Bound Support**: Works with generated entities or dynamic Entity objects
+- **Modern Project Format**: SDK-style projects with PackageReference (no more packages.config!)
 
-<b>Drive your development</b> by unit testing any plugin, code activity, or 3rd party app using the `OrganizationService` easier and faster than ever before.
+## Getting Started
 
-<b>Note: To keep up to date with client-side unit testing version of this framework, please [have a look at this repo](http://github.com/jordimontana82/fake-xrm-easy-js) and samples in this other [sample code repo](http://github.com/jordimontana82/fake-xrm-easy-js-samples) </b>
+### Installation
 
+```bash
+Install-Package FakeXrmEasy
+```
 
-|Version|Package Name|NuGet|
-|-----------|------|-----|
-|Dynamics v9 (>= 9.x)|FakeXrmEasy.9|[![Nuget](https://buildstats.info/nuget/fakexrmeasy.9?v=1.55.0)](https://www.nuget.org/packages/fakexrmeasy.9)|
-|Dynamics 365 (8.2.x)|FakeXrmEasy.365|[![Nuget](https://buildstats.info/nuget/fakexrmeasy.365?v=1.55.0)](https://www.nuget.org/packages/fakexrmeasy.365)|
-|Dynamics CRM 2016 ( >= 8.0 && <= 8.1)|FakeXrmEasy.2016|[![Nuget](https://buildstats.info/nuget/fakexrmeasy.2016?v=1.55.0)](https://www.nuget.org/packages/fakexrmeasy.2016)|
-|Dynamics CRM 2015 (7.x)|FakeXrmEasy.2015|[![Nuget](https://buildstats.info/nuget/fakexrmeasy.2015?v=1.55.0)](https://www.nuget.org/packages/fakexrmeasy.2015)|
-|Dynamics CRM 2013 (6.x)|FakeXrmEasy.2013|[![Nuget](https://buildstats.info/nuget/fakexrmeasy.2013?v=1.55.0)](https://www.nuget.org/packages/fakexrmeasy.2013)|
-|Dynamics CRM 2011 (5.x)|FakeXrmEasy|[![Nuget](https://buildstats.info/nuget/fakexrmeasy?v=1.55.0)](https://www.nuget.org/packages/fakexrmeasy)|
+Or via .NET CLI:
+```bash
+dotnet add package FakeXrmEasy
+```
 
-Supports Dynamics CRM 2011, 2013, 2015, 2016, and Dynamics 365 (8.x and 9.x). <b>NOTE:</b> With the release of Dynamics 365 v9 we are changing the naming convention for new packages to match the major version.
+### Quick Example
 
-## Semantic Versioning
+```csharp
+using FakeXrmEasy;
+using Microsoft.Xrm.Sdk;
+using Xunit;
 
-The NuGet packages use semantic versioning like this:
+public class AccountPluginTests
+{
+    [Fact]
+    public void When_Account_Created_Should_Set_AccountNumber()
+    {
+        // Arrange
+        var context = new XrmFakedContext();
+        var target = new Entity("account")
+        {
+            ["name"] = "Contoso"
+        };
 
-    x.y.z  => Major.Minor.Patch
-       
-x: stands for the major version. The package is very stable so that's why the major version didn't change yet.
+        // Act
+        context.ExecutePluginWithTarget<AccountNumberPlugin>(target);
 
-y: minor version. Any minor updates add new functionality without breaking changes. An example of these would be a new operator or a new fake message executor.
+        // Assert
+        Assert.True(target.Contains("accountnumber"));
+        Assert.NotNull(target["accountnumber"]);
+    }
+}
+```
 
-z: patch. Any update to this number means new bug fixes for the existing functionality. A new minor version might also include bug fixes too.
+### Testing with Early-Bound Entities
 
-## Support 
+```csharp
+var context = new XrmFakedContext();
+context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
 
-We believe in <b>sustainable</b> Open Source. The software is MIT licensed and provided to you for free but we encourage you (and by you, we mean the whole community) to extend it / improve it by yourselves, of course, with help from us. 
+var account = new Account
+{
+    Id = Guid.NewGuid(),
+    Name = "Test Account"
+};
 
-In programming terms: 
+context.Initialize(new List<Entity> { account });
+var service = context.GetOrganizationService();
 
-    Free Open Source !== Free Support. 
+// Test your code with the service
+```
 
-If you're a business entity who delivers solutions on top of the Power Platform and are using this project already, you can help make OSS sustainable while getting more visibility by becoming a sponsor. Please [reach out to me](jordi@dynamicsvalue.com) for sponsorship enquiries and to contribute and give back to this project.  
+### Testing Workflow Activities
 
-If you're an individual, feel free to check the Sponsorship tiers, any help is welcome and greatly appreciated.
+```csharp
+var context = new XrmFakedContext();
+var inputs = new Dictionary<string, object>
+{
+    { "Target", new EntityReference("account", Guid.NewGuid()) },
+    { "InputText", "Hello" }
+};
 
-For contributing, please see section below.
+var outputs = context.ExecuteCodeActivity<MyCustomActivity>(inputs);
+Assert.Equal("Hello World", outputs["OutputText"]);
+```
+
+## Features
+
+### Core Capabilities
+
+- ✅ **CRUD Operations**: Create, Read, Update, Delete with full relationship support
+- ✅ **Query Support**: QueryExpression, FetchXML, and LINQ queries
+- ✅ **Plugin Execution**: Full plugin pipeline simulation with pre/post images
+- ✅ **Workflow Activities**: Test custom workflow activities
+- ✅ **Metadata Support**: Automatic metadata inference from early-bound types
+- ✅ **Security Testing**: Test security roles and access rights
+- ✅ **ExecuteMultiple**: Batch operation support
+- ✅ **Associate/Disassociate**: N:N relationship testing
+
+### Supported Messages
+
+FakeXrmEasy supports 50+ standard CRM messages including:
+
+- Create, Update, Delete, Retrieve, RetrieveMultiple
+- Associate, Disassociate
+- Assign, GrantAccess, RevokeAccess, ModifyAccess
+- SetState, SetStateDynamicEntity
+- ExecuteMultiple, ExecuteTransaction
+- WhoAmI, RetrieveVersion
+- And many more...
+
+## Building from Source
+
+### Prerequisites
+
+- .NET Framework 4.6.2 or higher
+- Visual Studio 2017 or later (or MSBuild tools)
+
+### Build Commands
+
+```bash
+# Restore packages and build
+build.bat
+
+# Or individual commands
+build.bat clean      # Clean artifacts
+build.bat restore    # Restore NuGet packages
+build.bat build      # Build solution
+build.bat test       # Run tests
+build.bat pack       # Create NuGet package
+```
+
+## Project Structure
+
+```
+FakeXrmEasy/
+├── FakeXrmEasy/              # Main library project
+├── FakeXrmEasy.Shared/       # Shared implementation code
+├── FakeXrmEasy.Tests/        # Test project
+├── FakeXrmEasy.Tests.Shared/ # Shared test code
+└── build.bat                 # Build script
+```
+
+## Documentation
+
+For more detailed documentation, examples, and advanced scenarios, see:
+
+- **Troubleshooting**: [Common issues and solutions](TROUBLESHOOTING.md)
+- **IPluginExecutionContext4**: [New interface support](IPluginExecutionContext4_EXAMPLE.md)
+- **Examples**: Check the [FakeXrmEasy.Tests](FakeXrmEasy.Tests/) project for comprehensive examples
+- **Developer Guide**: See [CLAUDE.md](CLAUDE.md) for architecture and development guidelines
+
+## Target Platform
+
+**Dynamics 365 v9.x and later** (Power Platform / Common Data Service)
+
+This version focuses exclusively on modern Dynamics 365 Online. For older CRM versions, please use the legacy branches.
 
 ## Contributing
 
-Please consider the below guidelines for contributing to the project:
+We welcome contributions! This is a truly open-source project maintained by the community.
 
-* Priority: Given the overwhelming number of issues and pull requests, we'll review Pull Requests first, then any outstanding issues. We encourage you to resolve / extend issues by yourselves, as a community, and we'll prioritise those first because we know (as mantainers) the effort it takes. 
+### How to Contribute
 
-    Please do [fork](https://github.com/jordimontana82/fake-xrm-easy/fork) the project and submit a [pull request](https://github.com/jordimontana82/fake-xrm-easy/pulls)
-    
-    We'll thank you forever and ever. 
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Write tests for your changes
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
 
-    If you don't know how to resolve something or are not familiar with pull requests, don't worry, raise the issue anyway. Those will be revised next.
+### Contribution Guidelines
 
-* When raising an issue:
+- **Include Tests**: All new features and bug fixes must include unit tests
+- **Follow Conventions**: Match the existing code style
+- **Document Changes**: Update README and docs as needed
+- **One Feature Per PR**: Keep pull requests focused
 
-    * <u>**Please provide a sample unit test**</u> to reproduce any issues detected where possible. This will speed up the resolution.
-    * Attach all generated early bound typed entities required (if you're using early bound).
+## License
 
-* **If you're using the framework, please do [Star](https://github.com/jordimontana82/fake-xrm-easy/star) the project**, it'll give more visibility to the wider community to keep extending and improving it.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
+## Sponsorship
 
+If you or your organization uses FakeXrmEasy and finds it valuable, please consider sponsoring the project to support continued development and maintenance.
 
-## Roadmap
+[Become a Sponsor](https://github.com/sponsors/YOUR_ORG)
 
-*  TODO: We're working on a v2.x of this package which targets .net core. That new version has been developed for the last couple of months, and we're VERY close to make it public. In the meantime, PRs and issues will be on hold for the time being to keep track of "where we are" in order to be merged into both versions 1.x and 2.x. [More info here](https://github.com/jordimontana82/fake-xrm-easy/issues/504)
+## Community
 
-*  TODO:  Add support for date operators. See `ConditionOperator` implementation status [here](https://github.com/jordimontana82/fake-xrm-easy/blob/master/FakeXrmEasy.Tests.Shared/FakeContextTests/FetchXml/ConditionOperatorTests.cs#L19-L110). Feel free to add missing ones!
-*  TODO: Implement remaining CRM messages. To know which ones have been implemented so far, see `FakeMessageExecutor` implementation status [here](https://github.com/jordimontana82/fake-xrm-easy/tree/master/FakeXrmEasy.Shared/FakeMessageExecutors).
-*  TODO: Increase test coverage.
-*  **NEW!** I'm planning a 2.x version, this version will contain all the major improvements I always thought of adding but that will introduce considerable breaking changes. If you want to join a private preview list, let me know.
+- **Issues**: [Report bugs or request features](https://github.com/YOUR_ORG/fake-xrm-easy/issues)
+- **Discussions**: [Join the community discussions](https://github.com/YOUR_ORG/fake-xrm-easy/discussions)
+- **Twitter**: Follow [@fakexrmeasy](https://twitter.com/fakexrmeasy) for updates
 
+## Acknowledgments
 
+This project builds on the excellent foundation established by the original FakeXrmEasy v1.x. We're committed to keeping it truly open-source and community-driven.
 
-## Tests disappeared?
+Special thanks to all contributors who have helped make this project better!
 
-Try deleting anything under the VS test explorer cache: `%Temp%\VisualStudioTestExplorerExtensions`
+---
 
+**Made with ❤️ by the Dynamics 365 community**

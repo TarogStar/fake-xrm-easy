@@ -12,7 +12,7 @@ namespace FakeXrmEasy.Tests.XrmRealContextTests
 {
     public class XrmRealContextTests
     {
-        [Fact]
+        [Fact(Skip = "Integration test - requires valid CRM connection string configured")]
         public void Should_connect_to_CRM()
         {
             var ctx = new XrmRealContext();
@@ -27,7 +27,7 @@ namespace FakeXrmEasy.Tests.XrmRealContextTests
             Assert.Equal("myfirstconnectionstring", ctx.ConnectionStringName);
         }
 
-        [Fact]
+        [Fact(Skip = "Integration test - requires valid CRM connection string configured")]
         public void Should_connect_to_CRM_with_given_OrganizationService()
         {
             var ctx = new XrmRealContext();
