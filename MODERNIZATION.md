@@ -197,7 +197,22 @@ Suggested future improvements:
 6. Continue adding modern SDK features as they are released
 7. Consider multi-targeting (net462, net6.0, net8.0)
 
+### CalculateRollupFieldRequest Support (v1.0.1)
+
+Added support for testing rollup field calculations:
+
+**Changes:**
+- New `CalculateRollupFieldRequestExecutor` in `FakeXrmEasy.Shared\FakeMessageExecutors\`
+- Comprehensive test coverage in `FakeContextTestCalculateRollupField.cs`
+- Support for pre-populating rollup values in tests
+- Detailed documentation on testing approaches
+
+**Testing Approach:**
+The executor provides a pragmatic solution for unit testing by allowing tests to pre-populate rollup field values, enabling validation of plugin/workflow behavior that depends on rollup calculations without implementing full aggregation logic.
+
+See the executor documentation for details on extending with actual calculation logic if needed.
+
 ---
 
 **Date**: October 2025
-**Version**: 1.0.0 (FakeXrmEasy.Community)
+**Version**: 1.0.1 (FakeXrmEasy.Community)

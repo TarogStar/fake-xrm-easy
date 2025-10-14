@@ -191,7 +191,7 @@ The package will be created in the `nuget\` directory.
 
 **Package details**:
 - ID: FakeXrmEasy.Community
-- Version: 1.0.0
+- Version: 1.0.1
 - Target Framework: .NET Framework 4.6.2
 - Dependencies: D365 v9.x SDK assemblies, FakeItEasy 6.0.0
 

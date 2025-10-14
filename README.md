@@ -6,9 +6,12 @@ A truly open-source testing framework for Dynamics 365 / Power Platform that mak
 [![NuGet](https://img.shields.io/nuget/v/FakeXrmEasy.Community.svg)](https://www.nuget.org/packages/FakeXrmEasy.Community)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🎉 Version 1.0.0 - FakeXrmEasy.Community Edition!
+## 🎉 Version 1.0.1 - FakeXrmEasy.Community Edition!
+
+**Latest in v1.0.1**: Added support for `CalculateRollupFieldRequest`!
 
 This community edition features a complete modernization:
+- ✅ **CalculateRollupFieldRequest support** - test rollup field calculations
 - ✅ **SDK-style project format** - no more NuGet headaches!
 - ✅ **IPluginExecutionContext4 support** - full Azure AD integration
 - ✅ **Simplified project structure** - easier to maintain and contribute
