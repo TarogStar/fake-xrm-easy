@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
-    <id>FakeXrmEasy</id>
-    <version>2.0.0</version>
-    <title>FakeXrmEasy - Unit Testing for Dynamics 365</title>
-    <authors>FakeXrmEasy Community</authors>
+    <id>FakeXrmEasy.Community</id>
+    <version>1.0.0</version>
+    <title>FakeXrmEasy.Community - Unit Testing for Dynamics 365</title>
+    <authors>FakeXrmEasy Community Contributors</authors>
     <owners>FakeXrmEasy Community</owners>
     <license type="expression">MIT</license>
     <projectUrl>https://github.com/YOUR_ORG/fake-xrm-easy</projectUrl>
@@ -18,13 +18,14 @@
     </description>
     <summary>Unit testing framework for Dynamics 365 plugins, workflows, and custom code with in-memory mocking</summary>
     <releaseNotes>
-      Version 2.0.0 - Modernized Release
+      Version 1.0.0 - FakeXrmEasy.Community Initial Release
+      - Truly open-source and community-driven fork
+      - Focus exclusively on D365 v9.x and later (Power Platform / Dataverse)
+      - Support for CalculateRollupFieldRequest
       - Removed support for legacy CRM versions (2011-2016)
-      - Focus exclusively on D365 v9.x and later
-      - Removed obsolete warnings and migration messages
       - Simplified build and project structure
-      - Truly open-source and community-driven
       - Updated to .NET Framework 4.6.2
+      - No paid license requirements
     </releaseNotes>
     <copyright>Copyright © FakeXrmEasy Community</copyright>
     <tags>Dynamics365 CRM CommonDataService PowerPlatform UnitTesting Mocking Testing Plugins Workflows FakeXrmEasy Dataverse</tags>

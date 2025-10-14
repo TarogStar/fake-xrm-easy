@@ -107,8 +107,9 @@ The modernized version **only supports**:
 
 ## Version Number
 
-The modernized version is designated as **v2.0.0** to indicate:
-- Major breaking change (removed legacy version support)
+The community edition is designated as **v1.0.0** to indicate:
+- First release of FakeXrmEasy.Community
+- Major breaking change from original (removed legacy version support)
 - Clean slate for truly open-source development
 - Focus on modern Dynamics 365
 
@@ -138,7 +139,7 @@ For users still on legacy CRM versions (2011-2016):
 
 ## New Features Added Post-Modernization
 
-### SDK-Style Project Migration (v2.0.1) 🎉
+### SDK-Style Project Migration (v1.0.0) 🎉
 
 **MAJOR IMPROVEMENT**: Converted from old-style .NET Framework projects to modern SDK-style projects.
 
@@ -165,7 +166,7 @@ For users still on legacy CRM versions (2011-2016):
 
 See [SDK_STYLE_MIGRATION.md](SDK_STYLE_MIGRATION.md) for complete details.
 
-### IPluginExecutionContext4 Support (v2.0.1)
+### IPluginExecutionContext4 Support (v1.0.0)
 
 Added full support for `IPluginExecutionContext4` and all predecessor interfaces:
 
@@ -199,4 +200,4 @@ Suggested future improvements:
 ---
 
 **Date**: October 2025
-**Version**: 2.0.1
+**Version**: 1.0.0 (FakeXrmEasy.Community)

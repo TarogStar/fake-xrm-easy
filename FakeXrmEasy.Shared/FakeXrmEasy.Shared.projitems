@@ -25,6 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FakeMessageExecutors\FetchXmlToQueryExpressionRequestExecutor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FakeMessageExecutors\RetrieveExchangeRateRequest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FakeMessageExecutors\BulkDeleteRequestExecutor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FakeMessageExecutors\CalculateRollupFieldRequestExecutor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FakeMessageExecutors\RemoveMembersTeamRequestExecutor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FakeMessageExecutors\AddMembersTeamRequestExecutor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FakeMessageExecutors\AddMemberListRequestExecutor.cs" />

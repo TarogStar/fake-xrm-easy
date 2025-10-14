@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**FakeXrmEasy** is a modern, open-source testing framework for Dynamics 365 / Power Platform that enables unit testing of plugins, code activities, and applications by mocking the `IOrganizationService` with an in-memory context.
+**FakeXrmEasy.Community** is a modern, open-source testing framework for Dynamics 365 / Power Platform that enables unit testing of plugins, code activities, and applications by mocking the `IOrganizationService` with an in-memory context.
 
-This is the modernized v2.0+ version that focuses exclusively on **Dynamics 365 v9.x and later** (Power Platform / Common Data Service).
+This is the community edition v1.0+ that focuses exclusively on **Dynamics 365 v9.x and later** (Power Platform / Common Data Service / Dataverse).
 
 ## Architecture
 
@@ -190,13 +190,14 @@ build.bat pack
 The package will be created in the `nuget\` directory.
 
 **Package details**:
-- ID: FakeXrmEasy
+- ID: FakeXrmEasy.Community
+- Version: 1.0.0
 - Target Framework: .NET Framework 4.6.2
 - Dependencies: D365 v9.x SDK assemblies, FakeItEasy 6.0.0
 
 ## Target Platform
 
-This version **only** supports:
+This community edition **only** supports:
 - Dynamics 365 v9.x and later
 - Power Platform / Common Data Service
 - Dataverse

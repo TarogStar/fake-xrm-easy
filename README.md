@@ -3,12 +3,12 @@
 A truly open-source testing framework for Dynamics 365 / Power Platform that makes unit testing plugins, workflows, and custom code simple and fast.
 
 [![Build Status](https://github.com/YOUR_ORG/fake-xrm-easy/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR_ORG/fake-xrm-easy/actions)
-[![NuGet](https://img.shields.io/nuget/v/FakeXrmEasy.svg)](https://www.nuget.org/packages/FakeXrmEasy)
+[![NuGet](https://img.shields.io/nuget/v/FakeXrmEasy.Community.svg)](https://www.nuget.org/packages/FakeXrmEasy.Community)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🎉 Version 2.0.1 - Now with SDK-Style Projects!
+## 🎉 Version 1.0.0 - FakeXrmEasy.Community Edition!
 
-This version features a complete modernization:
+This community edition features a complete modernization:
 - ✅ **SDK-style project format** - no more NuGet headaches!
 - ✅ **IPluginExecutionContext4 support** - full Azure AD integration
 - ✅ **Simplified project structure** - easier to maintain and contribute
@@ -32,12 +32,12 @@ FakeXrmEasy is a comprehensive mocking framework for Dynamics 365 that enables:
 ### Installation
 
 ```bash
-Install-Package FakeXrmEasy
+Install-Package FakeXrmEasy.Community
 ```
 
 Or via .NET CLI:
 ```bash
-dotnet add package FakeXrmEasy
+dotnet add package FakeXrmEasy.Community
 ```
 
 ### Quick Example
@@ -171,7 +171,7 @@ For more detailed documentation, examples, and advanced scenarios, see:
 
 **Dynamics 365 v9.x and later** (Power Platform / Common Data Service)
 
-This version focuses exclusively on modern Dynamics 365 Online. For older CRM versions, please use the legacy branches.
+This community edition focuses exclusively on modern Dynamics 365 Online. For older CRM versions, please use the legacy branches.
 
 ## Contributing
 
