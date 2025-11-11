@@ -129,6 +129,7 @@ namespace FakeXrmEasy.FakeMessageExecutors
 
             recordsToReturn.ForEach(e => e.ApplyDateBehaviour(ctx));
             recordsToReturn.ForEach(e => PopulateFormattedValues(e));
+            recordsToReturn.ForEach(e => PopulateEntityReferenceNames(e, ctx));
 
             var response = new RetrieveMultipleResponse
             {
@@ -196,6 +197,46 @@ namespace FakeXrmEasy.FakeMessageExecutors
         public Type GetResponsibleRequestType()
         {
             return typeof(RetrieveMultipleRequest);
+        }
+
+        /// <summary>
+        /// Populates the Name property of EntityReference attributes by looking up the referenced entity's primary name attribute
+        /// Resolves upstream issue #555
+        /// </summary>
+        private void PopulateEntityReferenceNames(Entity entity, XrmFakedContext context)
+        {
+            if (entity == null || context == null)
+                return;
+
+            foreach (var attribute in entity.Attributes.ToList())
+            {
+                if (attribute.Value is EntityReference entityRef)
+                {
+                    // Only populate if Name is not already set
+                    if (string.IsNullOrEmpty(entityRef.Name) &&
+                        !string.IsNullOrEmpty(entityRef.LogicalName) &&
+                        entityRef.Id != Guid.Empty)
+                    {
+                        // Check if metadata exists for this entity
+                        if (context.EntityMetadata.ContainsKey(entityRef.LogicalName) &&
+                            !string.IsNullOrEmpty(context.EntityMetadata[entityRef.LogicalName].PrimaryNameAttribute))
+                        {
+                            var primaryNameAttribute = context.EntityMetadata[entityRef.LogicalName].PrimaryNameAttribute;
+
+                            // Check if the referenced entity exists in the context
+                            if (context.Data.ContainsKey(entityRef.LogicalName) &&
+                                context.Data[entityRef.LogicalName].ContainsKey(entityRef.Id))
+                            {
+                                var referencedEntity = context.Data[entityRef.LogicalName][entityRef.Id];
+                                if (referencedEntity.Contains(primaryNameAttribute))
+                                {
+                                    entityRef.Name = referencedEntity.GetAttributeValue<string>(primaryNameAttribute);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private static List<Entity> GetDistinctEntities(IEnumerable<Entity> input)

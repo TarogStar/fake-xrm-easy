@@ -1440,6 +1440,12 @@ namespace FakeXrmEasy
         {
             var c = tc.CondExpression;
 
+            // Defensive null checks (resolves upstream issue #607)
+            if (c.Values == null || c.Values.Count == 0)
+            {
+                return Expression.Constant(false);
+            }
+
             BinaryExpression expOrValues = Expression.Or(Expression.Constant(false), Expression.Constant(false));
 
 #if FAKE_XRM_EASY_9
@@ -1858,8 +1864,15 @@ namespace FakeXrmEasy
         {
             var c = tc.CondExpression;
 
+            // Defensive null checks (resolves upstream issue #607)
+            if (c.Values == null || c.Values.Count == 0)
+            {
+                return Expression.Constant(false);
+            }
+
             //Append a ´%´at the end of each condition value
-            var computedCondition = new ConditionExpression(c.AttributeName, c.Operator, c.Values.Select(x => "%" + x.ToString()).ToList());
+            var computedCondition = new ConditionExpression(c.AttributeName, c.Operator,
+                c.Values.Where(x => x != null).Select(x => "%" + x.ToString()).ToList());
             var typedComputedCondition = new TypedConditionExpression(computedCondition);
             typedComputedCondition.AttributeType = tc.AttributeType;
 
@@ -1880,6 +1893,12 @@ namespace FakeXrmEasy
         {
             var c = tc.CondExpression;
 
+            // Defensive null checks (resolves upstream issue #608)
+            if (c.Values == null || c.Values.Count == 0)
+            {
+                return Expression.Constant(false);
+            }
+
             BinaryExpression expOrValues = Expression.Or(Expression.Constant(false), Expression.Constant(false));
             Expression convertedValueToStr = Expression.Convert(GetAppropiateCastExpressionBasedOnType(tc.AttributeType, getAttributeValueExpr, c.Values[0]), typeof(string));
 
@@ -1888,6 +1907,10 @@ namespace FakeXrmEasy
             string sLikeOperator = "%";
             foreach (object value in c.Values)
             {
+                // Skip null values to prevent NullReferenceException
+                if (value == null)
+                    continue;
+
                 var strValue = value.ToString();
                 string sMethod = "";
 
@@ -1916,8 +1939,15 @@ namespace FakeXrmEasy
         {
             var c = tc.CondExpression;
 
+            // Defensive null checks (resolves upstream issue #607)
+            if (c.Values == null || c.Values.Count == 0)
+            {
+                return Expression.Constant(false);
+            }
+
             //Append a ´%´at the end of each condition value
-            var computedCondition = new ConditionExpression(c.AttributeName, c.Operator, c.Values.Select(x => "%" + x.ToString() + "%").ToList());
+            var computedCondition = new ConditionExpression(c.AttributeName, c.Operator,
+                c.Values.Where(x => x != null).Select(x => "%" + x.ToString() + "%").ToList());
             var computedTypedCondition = new TypedConditionExpression(computedCondition);
             computedTypedCondition.AttributeType = tc.AttributeType;
 
