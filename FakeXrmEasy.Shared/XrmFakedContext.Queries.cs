@@ -1703,49 +1703,50 @@ namespace FakeXrmEasy
             {
                 case ConditionOperator.ThisYear: // From first day of this year to last day of this year
                     fromDate = new DateTime(thisYear, 1, 1);
-                    toDate = new DateTime(thisYear, 12, 31);
+                    toDate = new DateTime(thisYear, 12, 31, 23, 59, 59, 999);
                     break;
                 case ConditionOperator.LastYear: // From first day of last year to last day of last year
                     fromDate = new DateTime(thisYear - 1, 1, 1);
-                    toDate = new DateTime(thisYear - 1, 12, 31);
+                    toDate = new DateTime(thisYear - 1, 12, 31, 23, 59, 59, 999);
                     break;
                 case ConditionOperator.NextYear: // From first day of next year to last day of next year
                     fromDate = new DateTime(thisYear + 1, 1, 1);
-                    toDate = new DateTime(thisYear + 1, 12, 31);
+                    toDate = new DateTime(thisYear + 1, 12, 31, 23, 59, 59, 999);
                     break;
-                case ConditionOperator.ThisMonth: // From first day of this month to last day of this month                    
+                case ConditionOperator.ThisMonth: // From first day of this month to last day of this month
                     fromDate = new DateTime(thisYear, thisMonth, 1);
-                    // Last day of this month: Add one month to the first of this month, and then remove one day
-                    toDate = new DateTime(thisYear, thisMonth, 1).AddMonths(1).AddDays(-1);
+                    // Last day of this month: Add one month to the first of this month, then remove one day, include full day
+                    toDate = new DateTime(thisYear, thisMonth, 1).AddMonths(1).AddDays(-1).AddHours(23).AddMinutes(59).AddSeconds(59).AddMilliseconds(999);
                     break;
-                case ConditionOperator.LastMonth: // From first day of last month to last day of last month                    
+                case ConditionOperator.LastMonth: // From first day of last month to last day of last month
                     fromDate = new DateTime(thisYear, thisMonth, 1).AddMonths(-1);
-                    // Last day of last month: One day before the first of this month
-                    toDate = new DateTime(thisYear, thisMonth, 1).AddDays(-1);
+                    // Last day of last month: One day before the first of this month, include full day
+                    toDate = new DateTime(thisYear, thisMonth, 1).AddDays(-1).AddHours(23).AddMinutes(59).AddSeconds(59).AddMilliseconds(999);
                     break;
                 case ConditionOperator.NextMonth: // From first day of next month to last day of next month
                     fromDate = new DateTime(thisYear, thisMonth, 1).AddMonths(1);
-                    // LAst day of Next Month: Add two months to the first of this month, and then go back one day
-                    toDate = new DateTime(thisYear, thisMonth, 1).AddMonths(2).AddDays(-1);
+                    // Last day of Next Month: Add two months to the first of this month, then go back one day, include full day
+                    toDate = new DateTime(thisYear, thisMonth, 1).AddMonths(2).AddDays(-1).AddHours(23).AddMinutes(59).AddSeconds(59).AddMilliseconds(999);
                     break;
                 case ConditionOperator.ThisWeek:
                     fromDate = today.ToFirstDayOfDeltaWeek();
-                    toDate = today.ToLastDayOfDeltaWeek().AddDays(1);
+                    // Include full end day by going to end of the previous day, then adding full day
+                    toDate = today.ToLastDayOfDeltaWeek().AddDays(1).AddMilliseconds(-1);
                     break;
                 case ConditionOperator.LastWeek:
                     fromDate = today.ToFirstDayOfDeltaWeek(-1);
-                    toDate = today.ToLastDayOfDeltaWeek(-1).AddDays(1);
+                    toDate = today.ToLastDayOfDeltaWeek(-1).AddDays(1).AddMilliseconds(-1);
                     break;
                 case ConditionOperator.NextWeek:
                     fromDate = today.ToFirstDayOfDeltaWeek(1);
-                    toDate = today.ToLastDayOfDeltaWeek(1).AddDays(1);
+                    toDate = today.ToLastDayOfDeltaWeek(1).AddDays(1).AddMilliseconds(-1);
                     break;
                 case ConditionOperator.InFiscalYear:
                     var fiscalYear = (int)c.Values[0];
                     c.Values.Clear();
                     var fiscalYearDate = context.FiscalYearSettings?.StartDate ?? new DateTime(fiscalYear, 4, 1);
                     fromDate = fiscalYearDate;
-                    toDate = fiscalYearDate.AddYears(1).AddDays(-1);
+                    toDate = fiscalYearDate.AddYears(1).AddDays(-1).AddHours(23).AddMinutes(59).AddSeconds(59).AddMilliseconds(999);
                     break;
             }
 
