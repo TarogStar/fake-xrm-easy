@@ -198,14 +198,16 @@ namespace FakeXrmEasy.Extensions
                 var original = (attributeValue as EntityReference);
                 var clone = new EntityReference(original.LogicalName, original.Id);
 
-                if (context != null && !string.IsNullOrEmpty(original.LogicalName) && context.EntityMetadata.ContainsKey(original.LogicalName) && !string.IsNullOrEmpty(context.EntityMetadata[original.LogicalName].PrimaryNameAttribute) &&
+                // Preserve pre-existing Name if it's already set (resolves test failures)
+                if (!string.IsNullOrEmpty(original.Name))
+                {
+                    clone.Name = original.Name;
+                }
+                // Only auto-populate from metadata if Name is not already set
+                else if (context != null && !string.IsNullOrEmpty(original.LogicalName) && context.EntityMetadata.ContainsKey(original.LogicalName) && !string.IsNullOrEmpty(context.EntityMetadata[original.LogicalName].PrimaryNameAttribute) &&
                     context.Data.ContainsKey(original.LogicalName) && context.Data[original.LogicalName].ContainsKey(original.Id))
                 {
                     clone.Name = context.Data[original.LogicalName][original.Id].GetAttributeValue<string>(context.EntityMetadata[original.LogicalName].PrimaryNameAttribute);
-                }
-                else
-                {
-                    clone.Name = CloneAttribute(original.Name) as string;
                 }
 
 #if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013 && !FAKE_XRM_EASY_2015
