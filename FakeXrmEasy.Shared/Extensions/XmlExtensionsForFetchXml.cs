@@ -216,12 +216,28 @@ namespace FakeXrmEasy.Extensions.FetchXml
 
         public static FilterExpression ToCriteria(this XDocument xlDoc, XrmFakedContext ctx)
         {
-            return xlDoc.Elements()   //fetch
+            var filters = xlDoc.Elements()   //fetch
                     .Elements()     //entity
                     .Elements()     //child nodes of entity
                     .Where(el => el.Name.LocalName.Equals("filter"))
                     .Select(el => el.ToFilterExpression(ctx))
-                    .FirstOrDefault();
+                    .ToList();
+
+            // Handle multiple filter elements (resolves upstream issue #507)
+            if (filters.Count == 0)
+                return null;
+
+            if (filters.Count == 1)
+                return filters[0];
+
+            // Multiple filters at the same level are combined with AND logic
+            var combinedFilter = new FilterExpression(LogicalOperator.And);
+            foreach (var filter in filters)
+            {
+                combinedFilter.AddFilter(filter);
+            }
+
+            return combinedFilter;
         }
 
         public static string GetAssociatedEntityNameForConditionExpression(this XElement el)
@@ -283,11 +299,26 @@ namespace FakeXrmEasy.Extensions.FetchXml
             //Process column sets
             linkEntity.Columns = el.ToColumnSet();
 
-            //Process filter
-            linkEntity.LinkCriteria = el.Elements()
-                                        .Where(e => e.Name.LocalName.Equals("filter"))
-                                        .Select(e => e.ToFilterExpression(ctx))
-                                        .FirstOrDefault();
+            //Process filter - handle multiple filters (resolves upstream issue #507)
+            var linkFilters = el.Elements()
+                                .Where(e => e.Name.LocalName.Equals("filter"))
+                                .Select(e => e.ToFilterExpression(ctx))
+                                .ToList();
+
+            if (linkFilters.Count == 1)
+            {
+                linkEntity.LinkCriteria = linkFilters[0];
+            }
+            else if (linkFilters.Count > 1)
+            {
+                // Multiple filters at the same level are combined with AND logic
+                var combinedFilter = new FilterExpression(LogicalOperator.And);
+                foreach (var filter in linkFilters)
+                {
+                    combinedFilter.AddFilter(filter);
+                }
+                linkEntity.LinkCriteria = combinedFilter;
+            }
 
             return linkEntity;
         }

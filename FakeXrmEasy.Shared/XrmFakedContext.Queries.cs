@@ -343,6 +343,12 @@ namespace FakeXrmEasy
                     ColumnSet = new ColumnSet(true)
                 };
 
+                // Include nested linked entities (resolves upstream issue #503)
+                foreach (var nestedLinkedEntity in le.LinkEntities)
+                {
+                    outerQueryExpression.LinkEntities.Add(nestedLinkedEntity);
+                }
+
                 var outerQuery = TranslateQueryExpressionToLinq(context, outerQueryExpression);
                 inner = outerQuery;
 
@@ -394,19 +400,23 @@ namespace FakeXrmEasy
             }
 
             // Process nested linked entities recursively
-            foreach (var nestedLinkedEntity in le.LinkEntities)
+            // For LeftOuter joins, nested entities are already processed in the inner query (resolves upstream issue #503)
+            if (le.JoinOperator != JoinOperator.LeftOuter)
             {
-                if (string.IsNullOrWhiteSpace(le.EntityAlias))
+                foreach (var nestedLinkedEntity in le.LinkEntities)
                 {
-                    le.EntityAlias = le.LinkToEntityName;
-                }
+                    if (string.IsNullOrWhiteSpace(le.EntityAlias))
+                    {
+                        le.EntityAlias = le.LinkToEntityName;
+                    }
 
-                if (string.IsNullOrWhiteSpace(nestedLinkedEntity.EntityAlias))
-                {
-                    nestedLinkedEntity.EntityAlias = EnsureUniqueLinkedEntityAlias(linkedEntities, nestedLinkedEntity.LinkToEntityName);
-                }
+                    if (string.IsNullOrWhiteSpace(nestedLinkedEntity.EntityAlias))
+                    {
+                        nestedLinkedEntity.EntityAlias = EnsureUniqueLinkedEntityAlias(linkedEntities, nestedLinkedEntity.LinkToEntityName);
+                    }
 
-                query = TranslateLinkedEntityToLinq(context, nestedLinkedEntity, query, le.Columns, linkedEntities, le.EntityAlias, le.LinkToEntityName);
+                    query = TranslateLinkedEntityToLinq(context, nestedLinkedEntity, query, le.Columns, linkedEntities, le.EntityAlias, le.LinkToEntityName);
+                }
             }
 
             return query;
