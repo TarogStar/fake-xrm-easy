@@ -263,9 +263,23 @@ namespace FakeXrmEasy.Tests
 
             var results = service.RetrieveMultiple(query);
 
-            // Assert - Should only return accounts with active contacts
-            Assert.Single(results.Entities);
-            Assert.Equal("Account 1", results.Entities[0].GetAttributeValue<string>("name"));
+            // Assert - Left outer join should return BOTH accounts
+            // Account 1 should have contact data (active contact matches filter)
+            // Account 2 should have no contact data (inactive contact filtered out, but account still included)
+            Assert.Equal(2, results.Entities.Count);
+
+            var account1 = results.Entities.FirstOrDefault(e => e.GetAttributeValue<string>("name") == "Account 1");
+            var account2 = results.Entities.FirstOrDefault(e => e.GetAttributeValue<string>("name") == "Account 2");
+
+            Assert.NotNull(account1);
+            Assert.NotNull(account2);
+
+            // Account 1 should have contact data because contact matched the filter
+            Assert.True(account1.Contains("contact.fullname"));
+            Assert.Equal("Active Contact", ((AliasedValue)account1["contact.fullname"]).Value);
+
+            // Account 2 should NOT have contact data because contact didn't match filter
+            Assert.False(account2.Contains("contact.fullname"));
         }
 
         [Fact]
