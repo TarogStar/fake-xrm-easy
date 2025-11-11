@@ -21,7 +21,7 @@ namespace FakeXrmEasy.Tests
             var target = new Entity("contact") { Id = guid1 };
 
             //Execute our plugin against the selected target
-            var fakedPlugin = fakedContext.ExecutePluginWithTarget<RetrieveServicesPlugin>(target);
+            var fakedPlugin = fakedContext.ExecutePluginWithTarget<RetrieveServicesPlugin>(target, "Create", 40);
 
             //Assert that the plugin was executed
             A.CallTo(() => fakedPlugin.Execute(A<IServiceProvider>._))
@@ -37,7 +37,7 @@ namespace FakeXrmEasy.Tests
             var target = new Entity("account") { Id = guid1 };
 
             //Execute our plugin against a target that doesn't contains the accountnumber attribute
-            var fakedPlugin = fakedContext.ExecutePluginWithTarget<AccountNumberPlugin>(target);
+            var fakedPlugin = fakedContext.ExecutePluginWithTarget<AccountNumberPlugin>(target, "Create", 40, null, null, "PreImage", "PostImage");
 
             //Assert that the target contains a new attribute
             Assert.True(target.Attributes.ContainsKey("accountnumber"));
@@ -52,8 +52,8 @@ namespace FakeXrmEasy.Tests
             var target = new Entity("account") { Id = guid1 };
             target["accountnumber"] = 69;
 
-            //Execute our plugin against a target thatcontains the accountnumber attribute will throw exception
-            Assert.Throws<InvalidPluginExecutionException>(() => fakedContext.ExecutePluginWithTarget<AccountNumberPlugin>(target));
+            //Execute our plugin against a target that contains the accountnumber attribute will throw exception
+            Assert.Throws<InvalidPluginExecutionException>(() => fakedContext.ExecutePluginWithTarget<AccountNumberPlugin>(target, "Create", 40, null, null, "PreImage", "PostImage"));
         }
 
         [Fact]
@@ -65,7 +65,8 @@ namespace FakeXrmEasy.Tests
             var guid1 = Guid.NewGuid();
             var target = new Entity("account") { Id = guid1 };
 
-            fakedContext.ExecutePluginWithTarget<FollowupPlugin>(target);
+            // Specify all parameters to resolve ambiguity
+            fakedContext.ExecutePluginWithTarget<FollowupPlugin>(target, "Create", 40, null, null, "PreImage", "PostImage");
 
             //The plugin creates a followup activity, check that that one exists
             var tasks = (from t in fakedContext.CreateQuery<Task>()
@@ -97,7 +98,7 @@ namespace FakeXrmEasy.Tests
                          select t).ToList();
 
             Assert.True(tasks.Count == 1);
-            Assert.True(tasks[0].Subject.Equals("Send e-mail to the new customer."));
+            Assert.Equal("Send e-mail to the new customer.", tasks[0].Subject);
             Assert.True(tasks[0].RegardingObjectId != null && tasks[0].RegardingObjectId.Id.Equals(guid1));
         }
 
@@ -261,7 +262,7 @@ namespace FakeXrmEasy.Tests
         public void When_executing_a_plugin_which_inherits_from_iplugin_it_does_compile()
         {
             var fakedContext = new XrmFakedContext();
-            var fakedPlugin = fakedContext.ExecutePluginWithTarget<MyPlugin>(new Entity());
+            var fakedPlugin = fakedContext.ExecutePluginWithTarget<MyPlugin>(new Entity(), "Create", 40);
         }
 
         [Fact]
@@ -312,18 +313,23 @@ namespace FakeXrmEasy.Tests
             preEntityImages.Add("PreImage", new Entity());
 
             // act
-            context.ExecutePluginWithTargetAndPreEntityImages<EntityImagesPlugin>(target, preEntityImages);
+            var inputParams = new ParameterCollection { { "Target", target } };
+            context.ExecutePluginWith<EntityImagesPlugin>(
+                inputParams,
+                new ParameterCollection(),
+                preEntityImages,
+                null
+            );
 
-            // assert
-            EntityImageCollection postImagesReturned = target["PostEntityImages"] as EntityImageCollection;
+      // assert
 
-            if (postImagesReturned.Count > 0)
-                throw new Exception("PostEntityImages should not be set.");
+      if (target["PostEntityImages"] is EntityImageCollection postImagesReturned && postImagesReturned.Count > 0)
+        throw new Exception("PostEntityImages should not be set.");
 
-            EntityImageCollection preImagesReturned = target["PreEntityImages"] as EntityImageCollection;
+      EntityImageCollection preImagesReturned = target["PreEntityImages"] as EntityImageCollection;
 
             Assert.Equal(1, preImagesReturned?.Count);
-            Assert.IsType(typeof(Entity), preImagesReturned["PreImage"]);
+            Assert.IsType<Entity>(preImagesReturned["PreImage"]);
         }
 
         [Fact]
@@ -337,7 +343,13 @@ namespace FakeXrmEasy.Tests
             postEntityImages.Add("PostImage", new Entity());
 
             // act
-            context.ExecutePluginWithTargetAndPostEntityImages<EntityImagesPlugin>(target, postEntityImages);
+            var inputParams = new ParameterCollection { { "Target", target } };
+            context.ExecutePluginWith<EntityImagesPlugin>(
+                inputParams,
+                new ParameterCollection(),
+                null,
+                postEntityImages
+            );
 
             // assert
             EntityImageCollection preImagesReturned = target["PreEntityImages"] as EntityImageCollection;
@@ -348,7 +360,7 @@ namespace FakeXrmEasy.Tests
             EntityImageCollection postImagesReturned = target["PostEntityImages"] as EntityImageCollection;
 
             Assert.Equal(1, postImagesReturned?.Count);
-            Assert.IsType(typeof(Entity), postImagesReturned["PostImage"]);
+            Assert.IsType<Entity>(postImagesReturned["PostImage"]);
         }
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Linq;
 using System.ServiceModel;
 
 namespace FakeXrmEasy.FakeMessageExecutors

@@ -18,14 +18,14 @@ namespace FakeXrmEasy.Tests.Tracing
             var target = new Entity("account") { Id = guid1 };
 
             //Execute our plugin against a target that doesn't contains the accountnumber attribute
-            var fakedPlugin = fakedContext.ExecutePluginWithTarget<AccountNumberPlugin>(target);
+            var fakedPlugin = fakedContext.ExecutePluginWithTarget<AccountNumberPlugin>(target, "Create", 40, null, null, "PreImage", "PostImage");
 
             //Get tracing service
             var fakeTracingService = fakedContext.GetFakeTracingService();
             var log = fakeTracingService.DumpTrace();
 
             //Assert that the target contains a new attribute
-            Assert.Equal(log, "Contains target\r\nIs Account\r\n");
+            Assert.Equal("Contains target\r\nIs Account\r\n", log);
         }
 
         [Fact]
