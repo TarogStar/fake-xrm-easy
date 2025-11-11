@@ -332,22 +332,15 @@ namespace FakeXrmEasy
             IQueryable<Entity> inner = null;
             if (le.JoinOperator == JoinOperator.LeftOuter)
             {
-                //inner = context.CreateQuery<Entity>(le.LinkToEntityName);
-
-
                 //filters are applied in the inner query and then ignored during filter evaluation
+                // NOTE: We only pre-apply LinkCriteria filters here, NOT nested LinkEntities
+                // Nested entities are processed recursively later to maintain flat alias structure
                 var outerQueryExpression = new QueryExpression()
                 {
                     EntityName = le.LinkToEntityName,
                     Criteria = le.LinkCriteria,
                     ColumnSet = new ColumnSet(true)
                 };
-
-                // Include nested linked entities (resolves upstream issue #503)
-                foreach (var nestedLinkedEntity in le.LinkEntities)
-                {
-                    outerQueryExpression.LinkEntities.Add(nestedLinkedEntity);
-                }
 
                 var outerQuery = TranslateQueryExpressionToLinq(context, outerQueryExpression);
                 inner = outerQuery;
@@ -400,23 +393,20 @@ namespace FakeXrmEasy
             }
 
             // Process nested linked entities recursively
-            // For LeftOuter joins, nested entities are already processed in the inner query (resolves upstream issue #503)
-            if (le.JoinOperator != JoinOperator.LeftOuter)
+            // This maintains flat alias structure (e.g., pet1.childid, not child1.pet1.childid)
+            foreach (var nestedLinkedEntity in le.LinkEntities)
             {
-                foreach (var nestedLinkedEntity in le.LinkEntities)
+                if (string.IsNullOrWhiteSpace(le.EntityAlias))
                 {
-                    if (string.IsNullOrWhiteSpace(le.EntityAlias))
-                    {
-                        le.EntityAlias = le.LinkToEntityName;
-                    }
-
-                    if (string.IsNullOrWhiteSpace(nestedLinkedEntity.EntityAlias))
-                    {
-                        nestedLinkedEntity.EntityAlias = EnsureUniqueLinkedEntityAlias(linkedEntities, nestedLinkedEntity.LinkToEntityName);
-                    }
-
-                    query = TranslateLinkedEntityToLinq(context, nestedLinkedEntity, query, le.Columns, linkedEntities, le.EntityAlias, le.LinkToEntityName);
+                    le.EntityAlias = le.LinkToEntityName;
                 }
+
+                if (string.IsNullOrWhiteSpace(nestedLinkedEntity.EntityAlias))
+                {
+                    nestedLinkedEntity.EntityAlias = EnsureUniqueLinkedEntityAlias(linkedEntities, nestedLinkedEntity.LinkToEntityName);
+                }
+
+                query = TranslateLinkedEntityToLinq(context, nestedLinkedEntity, query, le.Columns, linkedEntities, le.EntityAlias, le.LinkToEntityName);
             }
 
             return query;
