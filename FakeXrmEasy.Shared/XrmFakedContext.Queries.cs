@@ -1935,9 +1935,13 @@ namespace FakeXrmEasy
                 ));
             }
 
+            // Add null check for attribute value in the expression tree itself
+            // This prevents NullReferenceException when the attribute value is null
+            var nullCheck = Expression.NotEqual(convertedValueToStr, Expression.Constant(null, typeof(string)));
+
             return Expression.AndAlso(
                             containsAttributeExpr,
-                            expOrValues);
+                            Expression.AndAlso(nullCheck, expOrValues));
         }
 
         protected static Expression TranslateConditionExpressionContains(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
