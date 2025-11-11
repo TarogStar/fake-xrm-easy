@@ -23,14 +23,20 @@ namespace FakeXrmEasy.Tests
             // Set up metadata
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                PrimaryNameAttribute = "name"
+                LogicalName = "account"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(accountMetadata, "name", null);
+
             var contactMetadata = new EntityMetadata
             {
-                LogicalName = "contact",
-                PrimaryNameAttribute = "fullname"
+                LogicalName = "contact"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(contactMetadata, "fullname", null);
+
             context.InitializeMetadata(new[] { accountMetadata, contactMetadata });
 
             var contactId = Guid.NewGuid();
@@ -72,14 +78,20 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                PrimaryNameAttribute = "name"
+                LogicalName = "account"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(accountMetadata, "name", null);
+
             var contactMetadata = new EntityMetadata
             {
-                LogicalName = "contact",
-                PrimaryNameAttribute = "fullname"
+                LogicalName = "contact"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(contactMetadata, "fullname", null);
+
             context.InitializeMetadata(new[] { accountMetadata, contactMetadata });
 
             var contact1Id = Guid.NewGuid();
@@ -135,19 +147,28 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                PrimaryNameAttribute = "name"
+                LogicalName = "account"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(accountMetadata, "name", null);
+
             var contactMetadata = new EntityMetadata
             {
-                LogicalName = "contact",
-                PrimaryNameAttribute = "fullname"
+                LogicalName = "contact"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(contactMetadata, "fullname", null);
+
             var userMetadata = new EntityMetadata
             {
-                LogicalName = "systemuser",
-                PrimaryNameAttribute = "fullname"
+                LogicalName = "systemuser"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(userMetadata, "fullname", null);
+
             context.InitializeMetadata(new[] { accountMetadata, contactMetadata, userMetadata });
 
             var contactId = Guid.NewGuid();
@@ -189,14 +210,20 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                PrimaryNameAttribute = "name"
+                LogicalName = "account"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(accountMetadata, "name", null);
+
             var contactMetadata = new EntityMetadata
             {
-                LogicalName = "contact",
-                PrimaryNameAttribute = "fullname"
+                LogicalName = "contact"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(contactMetadata, "fullname", null);
+
             context.InitializeMetadata(new[] { accountMetadata, contactMetadata });
 
             var nonExistentContactId = Guid.NewGuid();
@@ -263,14 +290,20 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                PrimaryNameAttribute = "name"
+                LogicalName = "account"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(accountMetadata, "name", null);
+
             var contactMetadata = new EntityMetadata
             {
-                LogicalName = "contact",
-                PrimaryNameAttribute = "fullname"
+                LogicalName = "contact"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(contactMetadata, "fullname", null);
+
             context.InitializeMetadata(new[] { accountMetadata, contactMetadata });
 
             var contactId = Guid.NewGuid();
@@ -310,14 +343,20 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                PrimaryNameAttribute = "name"
+                LogicalName = "account"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(accountMetadata, "name", null);
+
             var contactMetadata = new EntityMetadata
             {
-                LogicalName = "contact",
-                PrimaryNameAttribute = "fullname"
+                LogicalName = "contact"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(contactMetadata, "fullname", null);
+
             context.InitializeMetadata(new[] { accountMetadata, contactMetadata });
 
             var contactId = Guid.NewGuid();
@@ -356,14 +395,20 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                PrimaryNameAttribute = "name"
+                LogicalName = "account"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(accountMetadata, "name", null);
+
             var contactMetadata = new EntityMetadata
             {
-                LogicalName = "contact",
-                PrimaryNameAttribute = "fullname"
+                LogicalName = "contact"
             };
+            typeof(EntityMetadata)
+                .GetProperty("PrimaryNameAttribute")
+                .SetValue(contactMetadata, "fullname", null);
+
             context.InitializeMetadata(new[] { accountMetadata, contactMetadata });
 
             var contactId = Guid.NewGuid();

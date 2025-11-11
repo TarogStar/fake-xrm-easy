@@ -106,7 +106,7 @@ namespace FakeXrmEasy.Tests
 
             var addressLink = contactLink.AddLink("customeraddress", "contactid", "parentid", JoinOperator.LeftOuter);
             addressLink.Columns = new ColumnSet("city");
-            addressLink.EntityAlias = "address");
+            addressLink.EntityAlias = "address";
 
             var results = service.RetrieveMultiple(query);
 

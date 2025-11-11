@@ -2,6 +2,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace FakeXrmEasy.Tests
@@ -19,8 +20,11 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                ManyToManyRelationships = new[]
+                LogicalName = "account"
+            };
+            typeof(EntityMetadata)
+                .GetProperty("ManyToManyRelationships")
+                .SetValue(accountMetadata, new[]
                 {
                     new ManyToManyRelationshipMetadata
                     {
@@ -31,8 +35,7 @@ namespace FakeXrmEasy.Tests
                         Entity2LogicalName = "contact",
                         Entity2IntersectAttribute = "contactid"
                     }
-                }
-            };
+                }, null);
 
             // Act
             context.InitializeMetadata(accountMetadata);
@@ -69,8 +72,11 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                OneToManyRelationships = new[]
+                LogicalName = "account"
+            };
+            typeof(EntityMetadata)
+                .GetProperty("OneToManyRelationships")
+                .SetValue(accountMetadata, new[]
                 {
                     new OneToManyRelationshipMetadata
                     {
@@ -80,8 +86,7 @@ namespace FakeXrmEasy.Tests
                         ReferencingEntity = "contact",
                         ReferencingAttribute = "parentcustomerid"
                     }
-                }
-            };
+                }, null);
 
             // Act
             context.InitializeMetadata(accountMetadata);
@@ -99,8 +104,11 @@ namespace FakeXrmEasy.Tests
 
             var contactMetadata = new EntityMetadata
             {
-                LogicalName = "contact",
-                ManyToOneRelationships = new[]
+                LogicalName = "contact"
+            };
+            typeof(EntityMetadata)
+                .GetProperty("ManyToOneRelationships")
+                .SetValue(contactMetadata, new[]
                 {
                     new OneToManyRelationshipMetadata
                     {
@@ -110,8 +118,7 @@ namespace FakeXrmEasy.Tests
                         ReferencingEntity = "contact",
                         ReferencingAttribute = "parentcustomerid"
                     }
-                }
-            };
+                }, null);
 
             // Act
             context.InitializeMetadata(contactMetadata);
@@ -128,8 +135,11 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                ManyToManyRelationships = new[]
+                LogicalName = "account"
+            };
+            typeof(EntityMetadata)
+                .GetProperty("ManyToManyRelationships")
+                .SetValue(accountMetadata, new[]
                 {
                     new ManyToManyRelationshipMetadata
                     {
@@ -140,13 +150,15 @@ namespace FakeXrmEasy.Tests
                         Entity2LogicalName = "contact",
                         Entity2IntersectAttribute = "contactid"
                     }
-                }
-            };
+                }, null);
 
             var contactMetadata = new EntityMetadata
             {
-                LogicalName = "contact",
-                ManyToManyRelationships = new[]
+                LogicalName = "contact"
+            };
+            typeof(EntityMetadata)
+                .GetProperty("ManyToManyRelationships")
+                .SetValue(contactMetadata, new[]
                 {
                     new ManyToManyRelationshipMetadata
                     {
@@ -157,8 +169,7 @@ namespace FakeXrmEasy.Tests
                         Entity2LogicalName = "opportunity",
                         Entity2IntersectAttribute = "opportunityid"
                     }
-                }
-            };
+                }, null);
 
             // Act
             context.InitializeMetadata(new[] { accountMetadata, contactMetadata });
@@ -195,8 +206,11 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                ManyToManyRelationships = new[]
+                LogicalName = "account"
+            };
+            typeof(EntityMetadata)
+                .GetProperty("ManyToManyRelationships")
+                .SetValue(accountMetadata, new[]
                 {
                     // Missing SchemaName
                     new ManyToManyRelationshipMetadata
@@ -221,8 +235,7 @@ namespace FakeXrmEasy.Tests
                         Entity2LogicalName = "contact",
                         Entity2IntersectAttribute = "contactid"
                     }
-                }
-            };
+                }, null);
 
             // Act - should not throw exception
             context.InitializeMetadata(accountMetadata);
@@ -264,8 +277,11 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                ManyToManyRelationships = new[]
+                LogicalName = "account"
+            };
+            typeof(EntityMetadata)
+                .GetProperty("ManyToManyRelationships")
+                .SetValue(accountMetadata, new[]
                 {
                     new ManyToManyRelationshipMetadata
                     {
@@ -276,8 +292,7 @@ namespace FakeXrmEasy.Tests
                         Entity2LogicalName = "contact",
                         Entity2IntersectAttribute = "contactid"
                     }
-                }
-            };
+                }, null);
 
             // Act - should not throw or duplicate
             context.InitializeMetadata(accountMetadata);
@@ -308,11 +323,17 @@ namespace FakeXrmEasy.Tests
 
             var accountMetadata = new EntityMetadata
             {
-                LogicalName = "account",
-                ManyToManyRelationships = null,
-                OneToManyRelationships = null,
-                ManyToOneRelationships = null
+                LogicalName = "account"
             };
+            typeof(EntityMetadata)
+                .GetProperty("ManyToManyRelationships")
+                .SetValue(accountMetadata, null, null);
+            typeof(EntityMetadata)
+                .GetProperty("OneToManyRelationships")
+                .SetValue(accountMetadata, null, null);
+            typeof(EntityMetadata)
+                .GetProperty("ManyToOneRelationships")
+                .SetValue(accountMetadata, null, null);
 
             // Act & Assert - should not throw
             context.InitializeMetadata(accountMetadata);

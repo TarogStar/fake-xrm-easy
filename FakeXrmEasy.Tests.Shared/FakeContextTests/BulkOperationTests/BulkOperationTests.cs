@@ -1,5 +1,6 @@
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Linq;
 using Xunit;
@@ -128,9 +129,9 @@ namespace FakeXrmEasy.Tests.BulkOperationTests
             Assert.NotNull(response);
 
             // Verify updates
-            var account1 = service.Retrieve("account", id1, new Query.ColumnSet(true));
-            var account2 = service.Retrieve("account", id2, new Query.ColumnSet(true));
-            var account3 = service.Retrieve("account", id3, new Query.ColumnSet(true));
+            var account1 = service.Retrieve("account", id1, new ColumnSet(true));
+            var account2 = service.Retrieve("account", id2, new ColumnSet(true));
+            var account3 = service.Retrieve("account", id3, new ColumnSet(true));
 
             Assert.Equal(15000, account1.GetAttributeValue<Money>("revenue").Value);
             Assert.Equal(25000, account2.GetAttributeValue<Money>("revenue").Value);
@@ -202,8 +203,8 @@ namespace FakeXrmEasy.Tests.BulkOperationTests
 
             var request = new DeleteMultipleRequest { Targets = targets };
 
-            // Act
-            var response = (DeleteMultipleResponse)service.Execute(request);
+            // Act - There is NO DeleteMultipleResponse, just execute
+            var response = service.Execute(request);
 
             // Assert
             Assert.NotNull(response);
@@ -268,7 +269,7 @@ namespace FakeXrmEasy.Tests.BulkOperationTests
             Assert.Equal(2, response.Results.Length);
             Assert.All(response.Results, result =>
             {
-                Assert.NotEqual(Guid.Empty, result.Id);
+                Assert.NotEqual(Guid.Empty, result.Target.Id);
                 Assert.True(result.RecordCreated);
             });
 
@@ -306,13 +307,13 @@ namespace FakeXrmEasy.Tests.BulkOperationTests
             Assert.Equal(2, response.Results.Length);
             Assert.All(response.Results, result =>
             {
-                Assert.NotEqual(Guid.Empty, result.Id);
+                Assert.NotEqual(Guid.Empty, result.Target.Id);
                 Assert.False(result.RecordCreated); // Should be updates
             });
 
             // Verify updates
-            var account1 = service.Retrieve("account", id1, new Query.ColumnSet(true));
-            var account2 = service.Retrieve("account", id2, new Query.ColumnSet(true));
+            var account1 = service.Retrieve("account", id1, new ColumnSet(true));
+            var account2 = service.Retrieve("account", id2, new ColumnSet(true));
 
             Assert.Equal("Updated 1", account1.GetAttributeValue<string>("name"));
             Assert.Equal("Updated 2", account2.GetAttributeValue<string>("name"));
@@ -343,8 +344,8 @@ namespace FakeXrmEasy.Tests.BulkOperationTests
             // Assert
             Assert.Equal(2, response.Results.Length);
 
-            var existingResult = response.Results.First(r => r.Id == existingId);
-            var newResult = response.Results.First(r => r.Id != existingId);
+            var existingResult = response.Results.First(r => r.Target.Id == existingId);
+            var newResult = response.Results.First(r => r.Target.Id != existingId);
 
             Assert.False(existingResult.RecordCreated); // Updated
             Assert.True(newResult.RecordCreated); // Created
@@ -420,7 +421,7 @@ namespace FakeXrmEasy.Tests.BulkOperationTests
 
             // Assert
             Assert.NotNull(response);
-            var account = service.Retrieve("account", id, new Query.ColumnSet(true));
+            var account = service.Retrieve("account", id, new ColumnSet(true));
             Assert.Equal("Updated", account.GetAttributeValue<string>("name"));
         }
 

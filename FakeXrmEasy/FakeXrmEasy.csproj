@@ -43,8 +43,8 @@
 
   <ItemGroup>
     <!-- Dynamics 365 SDK -->
-    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="9.0.2.59" />
-    <PackageReference Include="Microsoft.CrmSdk.Workflow" Version="9.0.2.59" />
+    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="9.0.2.60" />
+    <PackageReference Include="Microsoft.CrmSdk.Workflow" Version="9.0.2.60" />
     <PackageReference Include="Microsoft.CrmSdk.XrmTooling.CoreAssembly" Version="9.1.1.65" />
     <PackageReference Include="Microsoft.CrmSdk.Deployment" Version="9.0.2.34" />
 
