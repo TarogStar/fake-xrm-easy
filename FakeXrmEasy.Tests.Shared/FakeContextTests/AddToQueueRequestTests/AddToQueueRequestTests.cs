@@ -148,7 +148,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AddToQueueRequestTests
 
             executor.Execute(req, context);
 
-            Assert.Equal(1, context.Data[Crm.QueueItem.EntityLogicalName].Values.Count);
+            Assert.Single(context.Data[Crm.QueueItem.EntityLogicalName].Values);
 
             queueItem = context.Data[Crm.QueueItem.EntityLogicalName].Values.Single().ToEntity<QueueItem>();
 

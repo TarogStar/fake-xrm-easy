@@ -19,13 +19,13 @@ namespace FakeXrmEasy.Tests
             var service = context.GetOrganizationService();
 
             var ex = Assert.Throws<InvalidOperationException>(() => service.Retrieve(null, Guid.Empty, new ColumnSet()));
-            Assert.Equal(ex.Message, "The entity logical name must not be null or empty.");
+            Assert.Equal("The entity logical name must not be null or empty.", ex.Message);
 
             ex = Assert.Throws<InvalidOperationException>(() => service.Retrieve("", Guid.Empty, new ColumnSet()));
-            Assert.Equal(ex.Message, "The entity logical name must not be null or empty.");
+            Assert.Equal("The entity logical name must not be null or empty.", ex.Message);
 
             ex = Assert.Throws<InvalidOperationException>(() => service.Retrieve("     ", Guid.Empty, new ColumnSet()));
-            Assert.Equal(ex.Message, "The entity logical name must not be null or empty.");
+            Assert.Equal("The entity logical name must not be null or empty.", ex.Message);
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace FakeXrmEasy.Tests
             context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
 
             var ex = Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Retrieve("account", Guid.Empty, new ColumnSet(true)));
-            Assert.Equal(ex.Message, "account With Id = 00000000-0000-0000-0000-000000000000 Does Not Exist");
+            Assert.Equal("account With Id = 00000000-0000-0000-0000-000000000000 Does Not Exist", ex.Message);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace FakeXrmEasy.Tests
             var service = context.GetOrganizationService();
 
             var ex = Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Retrieve("account", Guid.NewGuid(), null));
-            Assert.Equal(ex.Message, "Required field 'ColumnSet' is missing");
+            Assert.Equal("Required field 'ColumnSet' is missing", ex.Message);
         }
 
         [Fact]
@@ -116,7 +116,7 @@ namespace FakeXrmEasy.Tests
 
             var result = service.Retrieve("account", guid, new ColumnSet(true));
             Assert.Equal(result.Id, data.FirstOrDefault().Id);
-            Assert.Equal(result.Attributes.Count, 7);
+            Assert.Equal(7, result.Attributes.Count);
         }
 
         [Fact]

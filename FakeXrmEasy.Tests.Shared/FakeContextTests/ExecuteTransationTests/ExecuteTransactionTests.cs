@@ -38,7 +38,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ExecuteTransationTests
 
             var response = executor.Execute(req, context) as ExecuteTransactionResponse;
             var contacts = context.CreateQuery("contact").ToList();
-            Assert.Equal(0, response.Responses.Count);
+            Assert.Empty(response.Responses);
             Assert.Equal(3, contacts.Count);
         }
 

@@ -421,7 +421,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
 
             var firstResultValue = (bool)results.Entities[0]["new_orderbyfield"];
 
-            Assert.Equal(false, firstResultValue);
+            Assert.False(firstResultValue);
         }
 
         [Fact]
@@ -498,12 +498,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             EntityCollection ec = service.RetrieveMultiple(query);
             var names = ec.Entities.Select(e => e.ToEntity<Account>().Name).ToList();
 
-            Assert.True(names[0].Equals("11"));
-            Assert.True(names[1].Equals("12"));
-            Assert.True(names[2].Equals("21"));
-            Assert.True(names[3].Equals("22"));
-            Assert.True(names[4].Equals("31"));
-            Assert.True(names[5].Equals("32"));
+            Assert.Equal("11", names[0]);
+            Assert.Equal("12", names[1]);
+            Assert.Equal("21", names[2]);
+            Assert.Equal("22", names[3]);
+            Assert.Equal("31", names[4]);
+            Assert.Equal("32", names[5]);
         }
 
         [Fact]
@@ -539,12 +539,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             EntityCollection ec = service.RetrieveMultiple(query);
             var names = ec.Entities.Select(e => e.ToEntity<Account>().Name).ToList();
 
-            Assert.True(names[0].Equals("32"));
-            Assert.True(names[1].Equals("31"));
-            Assert.True(names[2].Equals("22"));
-            Assert.True(names[3].Equals("21"));
-            Assert.True(names[4].Equals("12"));
-            Assert.True(names[5].Equals("11"));
+            Assert.Equal("32", names[0]);
+            Assert.Equal("31", names[1]);
+            Assert.Equal("22", names[2]);
+            Assert.Equal("21", names[3]);
+            Assert.Equal("12", names[4]);
+            Assert.Equal("11", names[5]);
         }
 
         [Fact]
@@ -580,12 +580,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             EntityCollection ec = service.RetrieveMultiple(query);
             var names = ec.Entities.Select(e => e.ToEntity<Account>().Name).ToList();
 
-            Assert.True(names[0].Equals("31"));
-            Assert.True(names[1].Equals("32"));
-            Assert.True(names[2].Equals("21"));
-            Assert.True(names[3].Equals("22"));
-            Assert.True(names[4].Equals("11"));
-            Assert.True(names[5].Equals("12"));
+            Assert.Equal("31", names[0]);
+            Assert.Equal("32", names[1]);
+            Assert.Equal("21", names[2]);
+            Assert.Equal("22", names[3]);
+            Assert.Equal("11", names[4]);
+            Assert.Equal("12", names[5]);
         }
 
         [Fact]

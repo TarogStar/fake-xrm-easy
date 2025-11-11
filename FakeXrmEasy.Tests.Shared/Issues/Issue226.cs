@@ -40,7 +40,7 @@ namespace FakeXrmEasy.Tests.Issues
             ctx.Initialize(new[] { contact1, contact2 });
             var collection = ctx.GetOrganizationService().RetrieveMultiple(new FetchExpression(fetchXml));
 
-            Assert.Equal(1, collection.Entities.Count);
+            Assert.Single(collection.Entities);
         }
     }
 }

@@ -78,7 +78,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.OptionSetValuesRequestTests
             Assert.True(ctx.OptionSetValuesMetadata.ContainsKey("GlobalOptionSet"));
 
             var option = ctx.OptionSetValuesMetadata["GlobalOptionSet"].Options.FirstOrDefault();
-            Assert.NotEqual(null, option);
+            Assert.NotNull(option);
             Assert.Equal("Yeah! This is a fake label!", option.Label.LocalizedLabels[0].Label);
         }
 
@@ -103,7 +103,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.OptionSetValuesRequestTests
             Assert.True(ctx.OptionSetValuesMetadata.ContainsKey(key));
 
             var option = ctx.OptionSetValuesMetadata[key].Options.FirstOrDefault();
-            Assert.NotEqual(null, option);
+            Assert.NotNull(option);
             Assert.Equal("Yeah! This is a fake label!", option.Label.LocalizedLabels[0].Label);
         }
     }

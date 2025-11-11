@@ -28,7 +28,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("2", entities[0]["firstname"]);
         }
 
@@ -50,7 +50,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("2", entities[0]["firstname"]);
         }
 
@@ -100,7 +100,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("2", entities[0]["firstname"]);
         }
 
@@ -194,7 +194,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("2", entities[0]["firstname"]);
         }
 
@@ -216,7 +216,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("2", entities[0]["firstname"]);
         }
 
@@ -266,7 +266,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("2", entities[0]["firstname"]);
         }
 
@@ -288,7 +288,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("2,3", entities[0]["firstname"]);
         }
 
@@ -310,7 +310,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("1,2,3", entities[0]["firstname"]);
         }
 
@@ -332,7 +332,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("1,2,3", entities[0]["firstname"]);
         }
 
@@ -354,7 +354,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("2,3", entities[0]["firstname"]);
         }
 
@@ -376,7 +376,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("2,3", entities[0]["firstname"]);
         }
 
@@ -398,7 +398,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("2,3", entities[0]["firstname"]);
         }
 
@@ -669,7 +669,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(1, entities.Count);
+            Assert.Single(entities);
             Assert.Equal("null", entities[0]["firstname"]);
         }
 

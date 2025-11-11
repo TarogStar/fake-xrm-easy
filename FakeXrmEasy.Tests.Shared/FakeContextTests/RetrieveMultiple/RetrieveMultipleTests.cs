@@ -52,7 +52,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
 
             foreach (Entity e in initialEntities)
             {
-                Assert.True(allRecords.Any(r => r.Id == e.Id));
+                Assert.Contains(allRecords, r => r.Id == e.Id);
             }
         }
 
@@ -83,7 +83,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
                             </fetch>";
             var query = new FetchExpression(fetchXml);
             EntityCollection result = service.RetrieveMultiple(query);
-            Assert.Equal(1, result.Entities.Count);
+            Assert.Single(result.Entities);
             Assert.False(result.MoreRecords);
         }
 
@@ -132,7 +132,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             QueryExpression query = new QueryExpression("entity");
             query.Criteria.AddCondition("retrieve", ConditionOperator.Equal, true);
             EntityCollection result = service.RetrieveMultiple(query);
-            Assert.Equal(0, result.Entities.Count);
+            Assert.Empty(result.Entities);
             Assert.False(result.MoreRecords);
         }
 
@@ -230,7 +230,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
 
             QueryExpression query = new QueryExpression("entity");
             query.PageInfo = new PagingInfo() { PageNumber = 2, Count = 20 };
-            Assert.Equal(0, service.RetrieveMultiple(query).Entities.Count);
+            Assert.Empty(service.RetrieveMultiple(query).Entities);
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
 
             query.LinkEntities.Add(link);
 
-            Assert.Equal(1, service.RetrieveMultiple(query).Entities.Count);
+            Assert.Single(service.RetrieveMultiple(query).Entities);
         }
 
         /// <summary>
@@ -542,7 +542,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             query.Criteria.AddCondition("contact", "retrieve", ConditionOperator.Equal, true);
             query.AddLink("contact", "contactid", "contactid");
             EntityCollection result = service.RetrieveMultiple(query);
-            Assert.Equal(1, result.Entities.Count);
+            Assert.Single(result.Entities);
         }
 
         [Fact]
@@ -569,7 +569,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             query.Criteria.AddCondition("mycontact", "retrieve", ConditionOperator.Equal, true);
             query.AddLink("contact", "contactid", "contactid").EntityAlias="mycontact";
             EntityCollection result = service.RetrieveMultiple(query);
-            Assert.Equal(1, result.Entities.Count);
+            Assert.Single(result.Entities);
         }
 #endif
 

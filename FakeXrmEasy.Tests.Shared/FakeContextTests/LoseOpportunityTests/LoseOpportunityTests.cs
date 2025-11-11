@@ -38,7 +38,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.LoseOpportunityTests
                        where op.Id == opportunity.Id
                        select op).FirstOrDefault();
 
-            Assert.Equal(opp.StatusCode.Value, (int)OpportunityState.Lost);
+            Assert.Equal((int)OpportunityState.Lost, opp.StatusCode.Value);
         }
     }
 }

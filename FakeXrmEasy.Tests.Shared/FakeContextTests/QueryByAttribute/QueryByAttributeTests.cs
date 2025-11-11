@@ -72,7 +72,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryByAttributeTests
             Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
 
             Assert.True(entityList.Count == 1);
-            Assert.Equal(entityList[0]["name"].ToString(), "Test");
+            Assert.Equal("Test", entityList[0]["name"].ToString());
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryByAttributeTests
             Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
 
             Assert.True(entityList.Count == 1);
-            Assert.Equal(entityList[0]["name"].ToString(), "Test");
+            Assert.Equal("Test", entityList[0]["name"].ToString());
         }
 
         [Fact]
@@ -213,7 +213,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryByAttributeTests
             };
             var results = fakedService.RetrieveMultiple(query);
 
-            Assert.Equal(1, results.Entities.Count);
+            Assert.Single(results.Entities);
             Assert.Equal(2, results.TotalRecordCount);
         }
     }

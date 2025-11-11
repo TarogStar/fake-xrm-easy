@@ -29,7 +29,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveOptionSetRequestTests
 
             var response = ((RetrieveOptionSetResponse)executor.Execute(req, context));
 
-            Assert.True(optionSet.Name.Equals(((Microsoft.Xrm.Sdk.Metadata.OptionSetMetadata)response.OptionSetMetadata).Name));
+            Assert.Equal(optionSet.Name, ((Microsoft.Xrm.Sdk.Metadata.OptionSetMetadata)response.OptionSetMetadata).Name);
         }
 
         [Fact]

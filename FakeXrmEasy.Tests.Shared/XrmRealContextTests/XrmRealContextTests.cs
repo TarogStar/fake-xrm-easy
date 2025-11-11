@@ -44,7 +44,7 @@ namespace FakeXrmEasy.Tests.XrmRealContextTests
             {
                 new Account { Id = Guid.NewGuid() }
             });
-            Assert.Equal(0, ctx.Data.Count);
+            Assert.Empty(ctx.Data);
         }
 
         [Fact]

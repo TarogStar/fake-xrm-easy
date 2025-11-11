@@ -247,7 +247,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             ctx.Initialize(new[] { contact1, contact2, contact3 });
             var collection = ctx.GetOrganizationService().RetrieveMultiple(new FetchExpression(fetchXml));
 
-            Assert.Equal(1, collection.Entities.Count);
+            Assert.Single(collection.Entities);
             Assert.Equal(contact2.Id, collection.Entities[0].Id);
         }
 

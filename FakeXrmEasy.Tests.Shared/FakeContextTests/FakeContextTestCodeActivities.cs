@@ -111,7 +111,7 @@ namespace FakeXrmEasy.Tests
 
             var result = fakedContext.ExecuteCodeActivity<CheckContextPropertyActivity>(wfContext, inputs, codeActivity);
 
-            Assert.True(((string)result["MessageName"]).Equals("Update"));
+            Assert.Equal("Update", ((string)result["MessageName"]));
         }
 
     }

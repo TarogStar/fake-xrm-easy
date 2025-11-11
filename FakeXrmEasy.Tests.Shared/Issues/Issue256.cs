@@ -84,7 +84,7 @@ namespace FakeXrmEasy.Tests.Issues
             var outerJoinContactsWithAccountIdNull = context.GetOrganizationService().RetrieveMultiple(query);
 
             // Should return our 1 contact who was not linked with account 5, instead it returns nothing
-            Assert.Equal(1, outerJoinContactsWithAccountIdNull.Entities.Count);
+            Assert.Single(outerJoinContactsWithAccountIdNull.Entities);
         }
     }
 }

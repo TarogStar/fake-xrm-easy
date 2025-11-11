@@ -55,14 +55,14 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.True(matches[0].FirstName.Equals("Jordi"));
+                Assert.Equal("Jordi", matches[0].FirstName);
 
                 matches = (from c in ctx.CreateQuery<Contact>()
                            where c.FirstName == "Jordi" //Using now equality operator
                            select c).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.True(matches[0].FirstName.Equals("Jordi"));
+                Assert.Equal("Jordi", matches[0].FirstName);
             }
         }
 
@@ -91,8 +91,8 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.True(matches[0].FirstName.Equals("Jordi"));
-                Assert.IsAssignableFrom(typeof(Contact), matches[0].CrmRecord);
+                Assert.Equal("Jordi", matches[0].FirstName);
+                Assert.IsAssignableFrom<Contact>(matches[0].CrmRecord);
                 Assert.True(matches[0].CrmRecord.GetType() == typeof(Contact));
             }
         }
@@ -123,7 +123,7 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.True(matches[0].FirstName.Equals("Jordi"));
+                Assert.Equal("Jordi", matches[0].FirstName);
             }
         }
 
@@ -148,14 +148,14 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.True(matches[0].FirstName.Equals("Jordi"));
+                Assert.Equal("Jordi", matches[0].FirstName);
 
                 matches = (from c in ctx.CreateQuery<Contact>()
                            where c.FirstName == "Jordi" //Using now equality operator
                            select c).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.True(matches[0].FirstName.Equals("Jordi"));
+                Assert.Equal("Jordi", matches[0].FirstName);
             }
         }
 
@@ -182,8 +182,8 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 2);
-                Assert.True(matches[0].FirstName.Equals("Jordi 1"));
-                Assert.True(matches[1].FirstName.Equals("Jordi 2"));
+                Assert.Equal("Jordi 1", matches[0].FirstName);
+                Assert.Equal("Jordi 2", matches[1].FirstName);
             }
         }
 
@@ -210,8 +210,8 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 2);
-                Assert.True(matches[0].FirstName.Equals("Jordi 2"));
-                Assert.True(matches[1].FirstName.Equals("Other"));
+                Assert.Equal("Jordi 2", matches[0].FirstName);
+                Assert.Equal("Other", matches[1].FirstName);
             }
         }
 
@@ -238,7 +238,7 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.True(matches[0].FirstName.Equals("Other"));
+                Assert.Equal("Other", matches[0].FirstName);
             }
         }
 
@@ -265,8 +265,8 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 2);
-                Assert.True(matches[0].FirstName.Equals("Jordi Garcia"));
-                Assert.True(matches[1].FirstName.Equals("Javi Garcia"));
+                Assert.Equal("Jordi Garcia", matches[0].FirstName);
+                Assert.Equal("Javi Garcia", matches[1].FirstName);
             }
         }
 
@@ -293,7 +293,7 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.True(matches[0].FirstName.Equals("Other"));
+                Assert.Equal("Other", matches[0].FirstName);
             }
         }
 
@@ -762,7 +762,7 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.Equal(matches[0].Name, "Chuck");
+                Assert.Equal("Chuck", matches[0].Name);
             }
         }
 
@@ -801,7 +801,7 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.Equal(matches[0].Contact.Attributes.Count, 7 + 1);
+                Assert.Equal(7 + 1, matches[0].Contact.Attributes.Count);
             }
         }
 
@@ -841,7 +841,7 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.Equal(matches[0].Contact.Attributes.Count, 7 + 1);
+                Assert.Equal(7 + 1, matches[0].Contact.Attributes.Count);
             }
         }
 
@@ -884,7 +884,7 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.Equal(matches[0].Account.Attributes.Count, 7 + 4); //7 = default attributes
+                Assert.Equal(7 + 4, matches[0].Account.Attributes.Count); //7 = default attributes
             }
         }
 
@@ -929,7 +929,7 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.Equal(matches[0].Account.Attributes.Count, 7 + 4); //7 = default attributes
+                Assert.Equal(7 + 4, matches[0].Account.Attributes.Count); //7 = default attributes
             }
         }
 
@@ -972,7 +972,7 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.Equal(matches[0].Account.Attributes.Count, 7 + 4); //6 = default attributes
+                Assert.Equal(7 + 4, matches[0].Account.Attributes.Count); //6 = default attributes
             }
         }
 

@@ -181,8 +181,8 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             //check that contacts are retrieved
             var resultRelatedRecordsList = resultAccount.contact_customer_accounts;
 
-            Assert.True(resultRelatedRecordsList.Any(x => x.Id == contact1.Id));
-            Assert.True(resultRelatedRecordsList.Any(x => x.Id == contact3.Id));
+            Assert.Contains(resultRelatedRecordsList, x => x.Id == contact1.Id);
+            Assert.Contains(resultRelatedRecordsList, x => x.Id == contact3.Id);
 
             //check contacts (optional check)
             Assert.Equal(contact1.FirstName, resultRelatedRecordsList.First(x => x.Id == contact1.Id).FirstName);
@@ -303,9 +303,9 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             //check that leads are retrieved
             var resultRelatedRecordsList = resultAccount.accountleads_association;
 
-            Assert.True(resultRelatedRecordsList.Any(x => x.Id == lead2.Id));
-            Assert.True(resultRelatedRecordsList.Any(x => x.Id == lead4.Id));
-            Assert.True(resultRelatedRecordsList.Any(x => x.Id == lead5.Id));
+            Assert.Contains(resultRelatedRecordsList, x => x.Id == lead2.Id);
+            Assert.Contains(resultRelatedRecordsList, x => x.Id == lead4.Id);
+            Assert.Contains(resultRelatedRecordsList, x => x.Id == lead5.Id);
 
             //check leads (optional check)
             Assert.Equal(lead2.Subject, resultRelatedRecordsList.First(x => x.Id == lead2.Id).Subject);
@@ -427,8 +427,8 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             //check that accounts are retrieved
             var resultRelatedRecordsList = resultLead.accountleads_association;
 
-            Assert.True(resultRelatedRecordsList.Any(x => x.Id == account2.Id));
-            Assert.True(resultRelatedRecordsList.Any(x => x.Id == account1.Id));
+            Assert.Contains(resultRelatedRecordsList, x => x.Id == account2.Id);
+            Assert.Contains(resultRelatedRecordsList, x => x.Id == account1.Id);
 
             //check accounts (optional check)
             Assert.Equal(account2.Name, resultRelatedRecordsList.First(x => x.Id == account2.Id).Name);
@@ -681,8 +681,8 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             var relatedEntities = relatedEntityCollection.Value.Entities;
             Assert.Equal(2, relatedEntities.Count);
 
-            Assert.True(relatedEntities.Any(x => x.Id == contact1.Id));
-            Assert.True(relatedEntities.Any(x => x.Id == contact3.Id));
+            Assert.Contains(relatedEntities, x => x.Id == contact1.Id);
+            Assert.Contains(relatedEntities, x => x.Id == contact3.Id);
 
             //check contacts (optional check)
             Assert.Equal(contact1["firstname"], relatedEntities.First(x => x.Id == contact1.Id)["firstname"]);
@@ -770,7 +770,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             Assert.Equal(account2.Id, resultAccount.Id);
 
             Assert.NotNull(resultAccount.contact_customer_accounts);
-            Assert.Equal(1, resultAccount.contact_customer_accounts.Count());
+            Assert.Single(resultAccount.contact_customer_accounts);
             Assert.Equal(contact3.Id, resultAccount.contact_customer_accounts.First().Id);
         }
 
@@ -875,7 +875,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             Assert.Equal(account2.Id, resultAccount.Id);
 
             Assert.NotNull(resultAccount.accountleads_association);
-            Assert.Equal(1, resultAccount.accountleads_association.Count());
+            Assert.Single(resultAccount.accountleads_association);
             Assert.Equal(lead3.Id, resultAccount.accountleads_association.First().Id);
         }
 

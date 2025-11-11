@@ -69,7 +69,7 @@ namespace FakeXrmEasy.Tests
             var contact = (from c in context.CreateQuery<Contact>()
                            select c).ToList();
 
-            Assert.Equal(contact.Count, 0);
+            Assert.Empty(contact);
         }
 
         [Fact]
@@ -83,7 +83,7 @@ namespace FakeXrmEasy.Tests
             var contact = (from c in context.CreateQuery("contact")
                            select c).ToList();
 
-            Assert.Equal(contact.Count, 0);
+            Assert.Empty(contact);
         }
 
         [Fact]
@@ -97,7 +97,7 @@ namespace FakeXrmEasy.Tests
             var contact = (from c in context.CreateQuery("contact")
                            select c).ToList();
 
-            Assert.Equal(contact.Count, 0);
+            Assert.Empty(contact);
         }
 
         [Fact]

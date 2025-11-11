@@ -29,7 +29,7 @@ namespace FakeXrmEasy.Tests
 
             var entities = fakedService.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(entities.Count, 1);
+            Assert.Single(entities);
         }
 
         [Fact]
@@ -53,7 +53,7 @@ namespace FakeXrmEasy.Tests
 
             var entities = fakedService.RetrieveMultiple(qe).Entities;
 
-            Assert.Equal(entities.Count, 0);
+            Assert.Empty(entities);
         }
     }
 }

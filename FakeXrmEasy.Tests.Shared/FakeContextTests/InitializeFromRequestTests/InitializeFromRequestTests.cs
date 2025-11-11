@@ -102,7 +102,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.InitializeFromRequestTests
             var result = (InitializeFromResponse)service.Execute(req);
             var contact = result.Entity.ToEntity<Contact>();
             Assert.Equal("Arjen", contact.FirstName);
-            Assert.Equal(null, contact.LastName);
+            Assert.Null(contact.LastName);
         }
 
         [Fact]

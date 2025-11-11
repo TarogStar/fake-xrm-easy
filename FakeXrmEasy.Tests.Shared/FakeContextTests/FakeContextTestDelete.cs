@@ -22,13 +22,13 @@ namespace FakeXrmEasy.Tests
             var service = context.GetOrganizationService();
 
             var ex = Assert.Throws<InvalidOperationException>(() => service.Delete(null, Guid.Empty));
-            Assert.Equal(ex.Message, "The entity logical name must not be null or empty.");
+            Assert.Equal("The entity logical name must not be null or empty.", ex.Message);
 
             ex = Assert.Throws<InvalidOperationException>(() => service.Delete("", Guid.Empty));
-            Assert.Equal(ex.Message, "The entity logical name must not be null or empty.");
+            Assert.Equal("The entity logical name must not be null or empty.", ex.Message);
 
             ex = Assert.Throws<InvalidOperationException>(() => service.Delete("     ", Guid.Empty));
-            Assert.Equal(ex.Message, "The entity logical name must not be null or empty.");
+            Assert.Equal("The entity logical name must not be null or empty.", ex.Message);
         }
 
         [Fact]
@@ -38,7 +38,7 @@ namespace FakeXrmEasy.Tests
             var service = context.GetOrganizationService();
 
             var ex = Assert.Throws<InvalidOperationException>(() => service.Delete("account", Guid.Empty));
-            Assert.Equal(ex.Message, "The id must not be empty.");
+            Assert.Equal("The id must not be empty.", ex.Message);
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace FakeXrmEasy.Tests
             var service = context.GetOrganizationService();
 
             var ex = Assert.Throws<InvalidOperationException>(() => service.Delete("account", nonExistingGuid));
-            Assert.Equal(ex.Message.ToLower(), "the entity logical name account is not valid.");
+            Assert.Equal("the entity logical name account is not valid.", ex.Message.ToLower());
         }
 
         [Fact]

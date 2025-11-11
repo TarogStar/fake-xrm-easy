@@ -23,7 +23,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             var qe = new QueryExpression("contact");
             qe.Criteria.AddCondition("firstname", ConditionOperator.BeginsWith, "jim");
 
-            Assert.Equal(1, service.RetrieveMultiple(qe).Entities.Count);
+            Assert.Single(service.RetrieveMultiple(qe).Entities);
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             var qe = new QueryExpression("contact");
             qe.Criteria.AddCondition("firstname", ConditionOperator.EndsWith, "y");
 
-            Assert.Equal(1, service.RetrieveMultiple(qe).Entities.Count);
+            Assert.Single(service.RetrieveMultiple(qe).Entities);
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             var qe = new QueryExpression("contact");
             qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "JIM%");
 
-            Assert.Equal(1, service.RetrieveMultiple(qe).Entities.Count);
+            Assert.Single(service.RetrieveMultiple(qe).Entities);
         }
 
         [Fact]
@@ -133,7 +133,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(ctx, qe).ToList();
 
-            Assert.Equal(1, result.Count);
+            Assert.Single(result);
             Assert.Equal("Al", result[0]["nickname"]);
         }
 
@@ -178,7 +178,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(ctx, qe).ToList();
 
-            Assert.Equal(1, result.Count);
+            Assert.Single(result);
             Assert.Equal("Charlie", result[0]["nickname"]);
         }
 
