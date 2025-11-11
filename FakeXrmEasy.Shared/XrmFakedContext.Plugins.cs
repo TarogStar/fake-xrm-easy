@@ -251,6 +251,27 @@ namespace FakeXrmEasy
 
         /// <summary>
         /// Executes the plugin of type T against the faked context for an entity target
+        /// with automatic pre and/or post entity image population
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="target">The entity to execute the plug-in for.</param>
+        /// <param name="messageName">Sets the message name.</param>
+        /// <param name="stage">Sets the stage.</param>
+        /// <param name="preImageColumns">ColumnSet for pre-entity image. If specified, the entity will be retrieved from context and added as a pre-image.</param>
+        /// <param name="postImageColumns">ColumnSet for post-entity image. If specified, the entity will be retrieved from context and added as a post-image.</param>
+        /// <param name="preImageName">Name for the pre-entity image. Defaults to "PreImage".</param>
+        /// <param name="postImageName">Name for the post-entity image. Defaults to "PostImage".</param>
+        /// <returns></returns>
+        public IPlugin ExecutePluginWithTarget<T>(Entity target, string messageName = "Create", int stage = 40,
+            ColumnSet preImageColumns = null, ColumnSet postImageColumns = null,
+            string preImageName = "PreImage", string postImageName = "PostImage")
+            where T : IPlugin, new()
+        {
+            return this.ExecutePluginWithTarget(new T(), target, messageName, stage, preImageColumns, postImageColumns, preImageName, postImageName);
+        }
+
+        /// <summary>
+        /// Executes the plugin of type T against the faked context for an entity target
         /// and returns the faked plugin
         /// </summary>
         /// <param name="instance"></param>
@@ -268,6 +289,85 @@ namespace FakeXrmEasy
             ctx.Stage = stage;
 
             return this.ExecutePluginWith(ctx, instance);
+        }
+
+        /// <summary>
+        /// Executes the plugin against the faked context for an entity target
+        /// with automatic pre and/or post entity image population
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <param name="target">The entity to execute the plug-in for.</param>
+        /// <param name="messageName">Sets the message name.</param>
+        /// <param name="stage">Sets the stage.</param>
+        /// <param name="preImageColumns">ColumnSet for pre-entity image. If specified, the entity will be retrieved from context and added as a pre-image.</param>
+        /// <param name="postImageColumns">ColumnSet for post-entity image. If specified, the entity will be retrieved from context and added as a post-image.</param>
+        /// <param name="preImageName">Name for the pre-entity image. Defaults to "PreImage".</param>
+        /// <param name="postImageName">Name for the post-entity image. Defaults to "PostImage".</param>
+        /// <returns></returns>
+        public IPlugin ExecutePluginWithTarget(IPlugin instance, Entity target, string messageName = "Create", int stage = 40,
+            ColumnSet preImageColumns = null, ColumnSet postImageColumns = null,
+            string preImageName = "PreImage", string postImageName = "PostImage")
+        {
+            var ctx = GetDefaultPluginContext();
+
+            // Add the target entity to the InputParameters
+            ctx.InputParameters.Add("Target", target);
+            ctx.MessageName = messageName;
+            ctx.Stage = stage;
+
+            // Auto-populate pre-entity image if requested
+            if (preImageColumns != null && target.Id != Guid.Empty)
+            {
+                var preImage = RetrieveEntityForImage(target.LogicalName, target.Id, preImageColumns);
+                if (preImage != null)
+                {
+                    ctx.PreEntityImages.Add(preImageName, preImage);
+                }
+            }
+
+            // Auto-populate post-entity image if requested
+            if (postImageColumns != null && target.Id != Guid.Empty)
+            {
+                var postImage = RetrieveEntityForImage(target.LogicalName, target.Id, postImageColumns);
+                if (postImage != null)
+                {
+                    ctx.PostEntityImages.Add(postImageName, postImage);
+                }
+            }
+
+            return this.ExecutePluginWith(ctx, instance);
+        }
+
+        /// <summary>
+        /// Helper method to retrieve an entity from context for use as an entity image
+        /// </summary>
+        private Entity RetrieveEntityForImage(string entityName, Guid entityId, ColumnSet columnSet)
+        {
+            // Check if entity exists in context
+            if (Data.ContainsKey(entityName) && Data[entityName].ContainsKey(entityId))
+            {
+                var entity = Data[entityName][entityId];
+
+                // Clone the entity with specified columns
+                if (columnSet.AllColumns)
+                {
+                    return entity.Clone();
+                }
+                else
+                {
+                    var image = new Entity(entityName, entityId);
+                    foreach (var column in columnSet.Columns)
+                    {
+                        if (entity.Contains(column))
+                        {
+                            image[column] = entity[column];
+                        }
+                    }
+                    return image;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>

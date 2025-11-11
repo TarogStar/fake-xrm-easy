@@ -6,18 +6,32 @@ A truly open-source testing framework for Dynamics 365 / Power Platform that mak
 [![NuGet](https://img.shields.io/nuget/v/FakeXrmEasy.Community.svg)](https://www.nuget.org/packages/FakeXrmEasy.Community)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🎉 Version 1.0.1 - FakeXrmEasy.Community Edition!
+## 🎉 Version 1.0.2 - Modern Dataverse Features!
 
-**Latest in v1.0.1**: Added support for `CalculateRollupFieldRequest`!
+**🔥 NEW in v1.0.2** (November 2025): Major enhancements for modern Dataverse testing!
 
-This community edition features a complete modernization:
+### 🚀 Simplified Plugin Testing
+- ✅ **Auto-Populate Entity Images** - No more manual pre/post image setup boilerplate!
+- ✅ **Automatic Relationship Discovery** - Initialize metadata once, relationships auto-register!
+- ✅ **Filtering Attributes Validation** - Pipeline simulation now matches real Dataverse behavior!
+
+### 💪 Modern Bulk Operations
+All optimized bulk operations now supported:
+- ✅ **CreateMultiple** - Transactional bulk creates (no 1000 record limit!)
+- ✅ **UpdateMultiple** - Transactional bulk updates
+- ✅ **DeleteMultiple** - Transactional bulk deletes
+- ✅ **UpsertMultiple** - Bulk upsert with create/update detection
+
+See [ENHANCEMENTS.md](ENHANCEMENTS.md) for complete details and examples!
+
+### Previous Features (v1.0.1)
 - ✅ **CalculateRollupFieldRequest support** - test rollup field calculations
 - ✅ **SDK-style project format** - no more NuGet headaches!
 - ✅ **IPluginExecutionContext4 support** - full Azure AD integration
 - ✅ **Simplified project structure** - easier to maintain and contribute
 - ✅ **Better tooling support** - works great with VS 2019/2022
 
-See [MODERNIZATION.md](MODERNIZATION.md) and [SDK_STYLE_MIGRATION.md](SDK_STYLE_MIGRATION.md) for details.
+See [MODERNIZATION.md](MODERNIZATION.md) and [SDK_STYLE_MIGRATION.md](SDK_STYLE_MIGRATION.md) for migration details.
 
 ## What is FakeXrmEasy?
 
@@ -104,6 +118,84 @@ var outputs = context.ExecuteCodeActivity<MyCustomActivity>(inputs);
 Assert.Equal("Hello World", outputs["OutputText"]);
 ```
 
+### 🔥 NEW: Simplified Plugin Testing (v1.0.2)
+
+#### Auto-Populate Entity Images
+
+**Before (manual boilerplate):**
+```csharp
+var preImage = service.Retrieve("account", accountId, new ColumnSet(true));
+pluginContext.PreEntityImages.Add("PreImage", preImage);
+var postImage = service.Retrieve("account", accountId, new ColumnSet(true));
+pluginContext.PostEntityImages.Add("PostImage", postImage);
+context.ExecutePluginWith<MyPlugin>(pluginContext);
+```
+
+**Now (automatic!):**
+```csharp
+// Entity images auto-populated from context!
+context.ExecutePluginWithTarget<MyPlugin>(target,
+    messageName: "Update",
+    stage: 40,
+    preImageColumns: new ColumnSet(true),
+    postImageColumns: new ColumnSet(true));
+```
+
+#### Automatic Relationship Discovery
+
+**Before:**
+```csharp
+// Had to manually register every relationship
+context.AddRelationship("new_account_contact", new XrmFakedRelationship {
+    IntersectEntity = "new_account_contact",
+    Entity1LogicalName = "account",
+    Entity1Attribute = "accountid",
+    Entity2LogicalName = "contact",
+    Entity2Attribute = "contactid",
+    RelationshipType = XrmFakedRelationship.enmFakeRelationshipType.ManyToMany
+});
+```
+
+**Now (automatic!):**
+```csharp
+// Relationships auto-registered from metadata!
+context.InitializeMetadata(entityMetadata);
+// All N:N, 1:N, and N:1 relationships are now available
+```
+
+### 🔥 NEW: Modern Bulk Operations (v1.0.2)
+
+```csharp
+// CreateMultiple - Transactional bulk create
+var accounts = new EntityCollection();
+accounts.Entities.Add(new Entity("account") { ["name"] = "Account 1" });
+accounts.Entities.Add(new Entity("account") { ["name"] = "Account 2" });
+
+var request = new CreateMultipleRequest { Targets = accounts };
+var response = (CreateMultipleResponse)service.Execute(request);
+// response.Ids contains all created IDs
+
+// UpdateMultiple - Transactional bulk update
+var updates = new EntityCollection();
+updates.Entities.Add(new Entity("account") { Id = id1, ["revenue"] = 100000 });
+updates.Entities.Add(new Entity("account") { Id = id2, ["revenue"] = 200000 });
+
+service.Execute(new UpdateMultipleRequest { Targets = updates });
+
+// UpsertMultiple - Bulk create or update with detection
+var upserts = new EntityCollection();
+upserts.Entities.Add(new Entity("account") { Id = existingId, ["name"] = "Updated" });
+upserts.Entities.Add(new Entity("account") { ["name"] = "New Account" });
+
+var upsertResponse = (UpsertMultipleResponse)service.Execute(
+    new UpsertMultipleRequest { Targets = upserts });
+
+foreach (var result in upsertResponse.Results)
+{
+    Console.WriteLine($"ID: {result.Id}, Created: {result.RecordCreated}");
+}
+```
+
 ## Features
 
 ### Core Capabilities
@@ -122,11 +214,13 @@ Assert.Equal("Hello World", outputs["OutputText"]);
 FakeXrmEasy supports 50+ standard CRM messages including:
 
 - Create, Update, Delete, Retrieve, RetrieveMultiple
+- **NEW**: CreateMultiple, UpdateMultiple, DeleteMultiple, UpsertMultiple (v1.0.2)
 - Associate, Disassociate
 - Assign, GrantAccess, RevokeAccess, ModifyAccess
 - SetState, SetStateDynamicEntity
 - ExecuteMultiple, ExecuteTransaction
 - WhoAmI, RetrieveVersion
+- CalculateRollupField (v1.0.1)
 - And many more...
 
 ## Building from Source

@@ -54,11 +54,113 @@ namespace FakeXrmEasy
                 }
                 EntityMetadata.Add(eMetadata.LogicalName, eMetadata.Copy());
             }
+
+            // Auto-register relationships from metadata
+            AutoRegisterRelationshipsFromMetadata(entityMetadataList);
         }
 
         public void InitializeMetadata(EntityMetadata entityMetadata)
         {
             this.InitializeMetadata(new List<EntityMetadata>() { entityMetadata });
+        }
+
+        /// <summary>
+        /// Automatically registers relationships found in entity metadata
+        /// This eliminates the need to manually call AddRelationship for each N:N and 1:N relationship
+        /// </summary>
+        private void AutoRegisterRelationshipsFromMetadata(IEnumerable<EntityMetadata> entityMetadataList)
+        {
+            foreach (var entityMetadata in entityMetadataList)
+            {
+                // Register Many-to-Many relationships
+                if (entityMetadata.ManyToManyRelationships != null)
+                {
+                    foreach (var manyToMany in entityMetadata.ManyToManyRelationships)
+                    {
+                        if (string.IsNullOrEmpty(manyToMany.SchemaName) ||
+                            string.IsNullOrEmpty(manyToMany.IntersectEntityName))
+                        {
+                            continue; // Skip incomplete relationship metadata
+                        }
+
+                        // Check if relationship already registered
+                        if (Relationships.ContainsKey(manyToMany.SchemaName))
+                        {
+                            continue; // Already registered
+                        }
+
+                        var relationship = new XrmFakedRelationship
+                        {
+                            IntersectEntity = manyToMany.IntersectEntityName,
+                            Entity1LogicalName = manyToMany.Entity1LogicalName,
+                            Entity1Attribute = manyToMany.Entity1IntersectAttribute,
+                            Entity2LogicalName = manyToMany.Entity2LogicalName,
+                            Entity2Attribute = manyToMany.Entity2IntersectAttribute,
+                            RelationshipType = XrmFakedRelationship.enmFakeRelationshipType.ManyToMany
+                        };
+
+                        AddRelationship(manyToMany.SchemaName, relationship);
+                    }
+                }
+
+                // Register One-to-Many relationships
+                if (entityMetadata.OneToManyRelationships != null)
+                {
+                    foreach (var oneToMany in entityMetadata.OneToManyRelationships)
+                    {
+                        if (string.IsNullOrEmpty(oneToMany.SchemaName))
+                        {
+                            continue; // Skip incomplete relationship metadata
+                        }
+
+                        // Check if relationship already registered
+                        if (Relationships.ContainsKey(oneToMany.SchemaName))
+                        {
+                            continue; // Already registered
+                        }
+
+                        var relationship = new XrmFakedRelationship
+                        {
+                            Entity1LogicalName = oneToMany.ReferencedEntity,
+                            Entity1Attribute = oneToMany.ReferencedAttribute,
+                            Entity2LogicalName = oneToMany.ReferencingEntity,
+                            Entity2Attribute = oneToMany.ReferencingAttribute,
+                            RelationshipType = XrmFakedRelationship.enmFakeRelationshipType.OneToMany
+                        };
+
+                        AddRelationship(oneToMany.SchemaName, relationship);
+                    }
+                }
+
+                // Register Many-to-One relationships
+                if (entityMetadata.ManyToOneRelationships != null)
+                {
+                    foreach (var manyToOne in entityMetadata.ManyToOneRelationships)
+                    {
+                        if (string.IsNullOrEmpty(manyToOne.SchemaName))
+                        {
+                            continue; // Skip incomplete relationship metadata
+                        }
+
+                        // Check if relationship already registered
+                        if (Relationships.ContainsKey(manyToOne.SchemaName))
+                        {
+                            continue; // Already registered
+                        }
+
+                        var relationship = new XrmFakedRelationship
+                        {
+                            Entity1LogicalName = manyToOne.ReferencedEntity,
+                            Entity1Attribute = manyToOne.ReferencedAttribute,
+                            Entity2LogicalName = manyToOne.ReferencingEntity,
+                            Entity2Attribute = manyToOne.ReferencingAttribute,
+                            RelationshipType = XrmFakedRelationship.enmFakeRelationshipType.OneToMany
+                        };
+
+                        AddRelationship(manyToOne.SchemaName, relationship);
+                    }
+                }
+            }
         }
 
         public void InitializeMetadata(Assembly earlyBoundEntitiesAssembly)

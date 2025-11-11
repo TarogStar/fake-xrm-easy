@@ -127,6 +127,19 @@ namespace FakeXrmEasy
         {
             foreach (var plugin in plugins)
             {
+                // Check filtering attributes
+                var filteringAttributes = plugin.GetAttributeValue<string>("filteringattributes");
+                if (!string.IsNullOrEmpty(filteringAttributes) && target is Entity targetEntity)
+                {
+                    var attributes = filteringAttributes.Split(',').Select(a => a.Trim()).ToArray();
+
+                    // Only execute if at least one filtering attribute is present in the target
+                    if (!attributes.Any(a => targetEntity.Contains(a)))
+                    {
+                        continue; // Skip this plugin - no filtered attributes present
+                    }
+                }
+
                 var pluginMethod = GetPluginMethod(plugin);
 
                 var pluginContext = this.GetDefaultPluginContext();
@@ -213,7 +226,7 @@ namespace FakeXrmEasy
                 return primaryObjectTypeCode == null || entityTypeCode.HasValue && (int)primaryObjectTypeCode.Value == entityTypeCode.Value;
             });
 
-            // Todo: Filter on attributes
+            // Note: Filtering on attributes is handled in ExecutePipelinePlugins where we have access to the target entity
 
             return plugins;
         }

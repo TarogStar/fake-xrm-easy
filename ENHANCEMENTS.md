@@ -6,27 +6,93 @@ This document outlines planned enhancements to make FakeXrmEasy.Community the mo
 
 ---
 
-## 🎯 Current Status Assessment
+## 🎉 COMPLETED ENHANCEMENTS (2025-11-11)
+
+### Phase 1: Quick Wins ✅
+**Status:** COMPLETED
+
+1. **✅ Auto-Populate Entity Images** - Implemented new overloads for `ExecutePluginWithTarget` that automatically retrieve and populate pre/post entity images from context:
+   ```csharp
+   // New simplified syntax - no more manual image setup!
+   context.ExecutePluginWithTarget<MyPlugin>(target,
+       messageName: "Update",
+       stage: 40,
+       preImageColumns: new ColumnSet(true),
+       postImageColumns: new ColumnSet(true));
+   ```
+
+2. **✅ Filtering Attributes Validation** - Completed the TODO in XrmFakedContext.Pipeline.cs. Plugins now only execute when registered filtering attributes are present in the target entity, matching real Dataverse behavior.
+
+### Phase 2: Modern Dataverse Operations ✅
+**Status:** COMPLETED
+
+All bulk operation message executors have been implemented:
+
+1. **✅ CreateMultiple** - Transactional bulk create operation
+   - CreateMultipleRequest/Response classes
+   - CreateMultipleRequestExecutor
+   - Supports plugin registration for "CreateMultiple" message
+
+2. **✅ UpdateMultiple** - Transactional bulk update operation
+   - UpdateMultipleRequest/Response classes
+   - UpdateMultipleRequestExecutor
+   - Supports plugin registration for "UpdateMultiple" message
+
+3. **✅ DeleteMultiple** - Transactional bulk delete operation
+   - DeleteMultipleRequest/Response classes
+   - DeleteMultipleRequestExecutor
+   - Note: Marked as preview, primarily for elastic tables
+
+4. **✅ UpsertMultiple** - Transactional bulk upsert (create or update) operation
+   - UpsertMultipleRequest/Response classes with UpsertMultipleResult
+   - UpsertMultipleRequestExecutor
+   - Returns which records were created vs updated
+
+**Key Features:**
+- All operations are transactional (all succeed or all fail)
+- Support both strongly-typed and loosely-typed requests
+- Comprehensive error handling with OrganizationServiceFault
+- Compatible with older SDK versions (custom classes provided)
+
+### Phase 3: Relationship Auto-Discovery ✅
+**Status:** COMPLETED
+
+**✅ Auto-Register Relationships from Metadata** - When `InitializeMetadata()` is called, the framework now automatically:
+- Parses ManyToManyRelationships and creates XrmFakedRelationship entries (with intersect entity names!)
+- Parses OneToManyRelationships and creates XrmFakedRelationship entries
+- Parses ManyToOneRelationships and creates XrmFakedRelationship entries
+- Skips already-registered relationships (no duplicates)
+- Handles incomplete metadata gracefully
+
+**Impact:** Eliminates the need to manually call `AddRelationship()` for each N:N relationship - a major pain point!
+
+---
+
+## 🎯 Current Status Assessment (Updated)
 
 ### ✅ What's Working Well
-- ExecuteMultiple fully implemented
-- 50+ message executors with auto-discovery
-- Comprehensive plugin execution support (IPluginExecutionContext4)
-- Pipeline simulation available
-- Metadata generation from early-bound types
-- Full CRUD operations
+- ✅ ExecuteMultiple fully implemented
+- ✅ **CreateMultiple, UpdateMultiple, DeleteMultiple, UpsertMultiple** - ALL IMPLEMENTED!
+- ✅ **Auto-populate entity images** - No more manual boilerplate!
+- ✅ **Filtering attributes validation** - Works like real Dataverse!
+- ✅ **Auto-register relationships from metadata** - No more manual AddRelationship calls!
+- ✅ 50+ message executors with auto-discovery
+- ✅ Comprehensive plugin execution support (IPluginExecutionContext4)
+- ✅ Pipeline simulation available
+- ✅ Metadata generation from early-bound types
+- ✅ Full CRUD operations
 
-### ❌ Missing Modern Dataverse Features
+### 🎯 Remaining Enhancements
 
-#### 1. Bulk Operation Messages (HIGH PRIORITY)
-**Status:** NOT IMPLEMENTED
+#### 1. Bulk Operation Messages
+**Status:** ✅ COMPLETED (2025-11-11)
 
-The newer optimized bulk operations are missing:
+All modern bulk operations are now implemented:
 - ✅ `ExecuteMultiple` - Implemented
-- ❌ `CreateMultiple` - **Missing** (available since 2023)
-- ❌ `UpdateMultiple` - **Missing** (available since 2023)
-- ❌ `DeleteMultiple` - **Missing** (preview, elastic tables only)
-- ❌ `UpsertMultiple` - **Missing** (elastic tables)
+- ✅ `CreateMultiple` - **COMPLETED** (available since 2023)
+- ✅ `UpdateMultiple` - **COMPLETED** (available since 2023)
+- ✅ `DeleteMultiple` - **COMPLETED** (preview, elastic tables only)
+- ✅ `UpsertMultiple` - **COMPLETED** (elastic tables)
 
 **Why This Matters:**
 - CreateMultiple/UpdateMultiple are optimized for bulk operations (no 1000 record limit)
@@ -63,14 +129,14 @@ Elastic tables are a different table type in Dataverse (Cosmos DB-backed vs SQL)
 
 ---
 
-### 🚧 Developer Experience Pain Points
+### ✅ Developer Experience Improvements (COMPLETED!)
 
-#### 1. Manual Pre/Post Entity Image Setup (HIGHEST PRIORITY)
-**Status:** MAJOR PAIN POINT
+#### 1. Manual Pre/Post Entity Image Setup
+**Status:** ✅ COMPLETED (2025-11-11)
 
-**Current State:**
+**Before:**
 ```csharp
-// Every test requires 5-10 lines of boilerplate
+// Every test required 5-10 lines of boilerplate
 var preImage = service.Retrieve("account", accountId, new ColumnSet(true));
 pluginContext.PreEntityImages.Add("PreImage", preImage);
 var postImage = service.Retrieve("account", accountId, new ColumnSet(true));
@@ -78,36 +144,36 @@ pluginContext.PostEntityImages.Add("PostImage", postImage);
 context.ExecutePluginWith<MyPlugin>(pluginContext);
 ```
 
-**Proposed Enhancement:**
+**After (NOW IMPLEMENTED!):**
 ```csharp
-// Automatic image population
+// Automatic image population - just specify what you need!
 context.ExecutePluginWithTarget<MyPlugin>(target,
     messageName: "Update",
     stage: 40,
     preImageColumns: new ColumnSet(true),
     postImageColumns: new ColumnSet(true),
-    preImageName: "PreImage",
-    postImageName: "PostImage"
+    preImageName: "PreImage",    // Optional, defaults to "PreImage"
+    postImageName: "PostImage"    // Optional, defaults to "PostImage"
 );
 ```
 
-**Implementation Plan:**
-- Add optional parameters to ExecutePluginWithTarget methods
-- Auto-retrieve entity from context.Data if it exists
-- Clone and add to appropriate image collections
-- Support both ColumnSet and ColumnSet(true) for all columns
-- Default image names to "PreImage"/"PostImage" if not specified
+**What Was Implemented:**
+- ✅ Optional parameters added to ExecutePluginWithTarget methods
+- ✅ Auto-retrieves entity from context.Data if it exists
+- ✅ Clones and adds to appropriate image collections
+- ✅ Supports both specific columns and ColumnSet(true) for all columns
+- ✅ Default image names to "PreImage"/"PostImage" if not specified
 
-**Impact:** Eliminates 50%+ of plugin test boilerplate code
+**Impact:** Eliminates 50%+ of plugin test boilerplate code!
 
 ---
 
-#### 2. Manual Relationship Definition (HIGH PRIORITY)
-**Status:** TEDIOUS MANUAL SETUP
+#### 2. Manual Relationship Definition
+**Status:** ✅ COMPLETED (2025-11-11)
 
-**Current State:**
+**Before:**
 ```csharp
-// Must manually define every N:N relationship
+// Had to manually define every N:N relationship
 context.AddRelationship("new_account_contact", new XrmFakedRelationship {
     IntersectEntity = "new_account_contact",
     Entity1LogicalName = "account",
@@ -118,63 +184,57 @@ context.AddRelationship("new_account_contact", new XrmFakedRelationship {
 });
 ```
 
-**Issue:** Xrm Toolkit and other proxy generators create classes but don't represent relationships properly for testing.
-
-**Proposed Enhancement:**
-Auto-extract relationships when initializing metadata:
-
+**After (NOW IMPLEMENTED!):**
 ```csharp
-// When this is called:
+// Relationships are automatically registered from metadata!
 context.InitializeMetadata(entityMetadata);
-
-// Automatically register all relationships found in:
-// - entityMetadata.ManyToManyRelationships
-// - entityMetadata.OneToManyRelationships
-// - entityMetadata.ManyToOneRelationships
+// That's it! All N:N, 1:N, and N:1 relationships are now registered
 ```
 
-**Implementation Plan:**
-- Modify InitializeMetadata() methods
-- Parse ManyToManyRelationshipMetadata and auto-create XrmFakedRelationship
-- Parse OneToManyRelationshipMetadata for lookup relationships
-- Handle self-referential relationships
-- Validate and warn if relationship data is incomplete
+**What Was Implemented:**
+- ✅ Modified InitializeMetadata() to call AutoRegisterRelationshipsFromMetadata()
+- ✅ Parses ManyToManyRelationships and auto-creates XrmFakedRelationship (with intersect entity names!)
+- ✅ Parses OneToManyRelationships for lookup relationships
+- ✅ Parses ManyToOneRelationships
+- ✅ Handles self-referential relationships
+- ✅ Validates and skips incomplete relationship metadata gracefully
+- ✅ Avoids duplicates (checks if relationship already registered)
 
-**Impact:** Eliminates 25% of test setup boilerplate
+**Impact:** Eliminates 25% of test setup boilerplate!
 
 ---
 
-#### 3. Filtering Attributes Not Validated (MEDIUM PRIORITY)
-**Status:** TODO IN CODE (XrmFakedContext.Pipeline.cs:216)
+#### 3. Filtering Attributes Validation
+**Status:** ✅ COMPLETED (2025-11-11)
 
-**Current Behavior:**
+**Before:**
 ```csharp
 // Plugin registered with filtering attributes
 context.RegisterPluginStep<MyPlugin>("Update",
     filteringAttributes: "name,accountnumber");
 
-// Plugin executes even if Target only contains "revenue" attribute
-// SHOULD NOT EXECUTE but currently does
+// Plugin executed INCORRECTLY even if Target only contained "revenue" attribute
+// Should NOT execute but did!
 ```
 
-**Fix Required:**
-Implement the TODO at line 216 in XrmFakedContext.Pipeline.cs:
+**After (NOW IMPLEMENTED!):**
 ```csharp
-var filteringAttrs = step.GetAttributeValue<string>("filteringattributes");
-if (!string.IsNullOrEmpty(filteringAttrs))
-{
-    var attrs = filteringAttrs.Split(',').Select(a => a.Trim()).ToArray();
-    var target = (Entity)pluginContext.InputParameters["Target"];
+// Same registration
+context.RegisterPluginStep<MyPlugin>("Update",
+    filteringAttributes: "name,accountnumber");
 
-    // Only execute if at least one filtering attribute is present
-    if (!attrs.Any(a => target.Attributes.ContainsKey(a)))
-    {
-        continue; // Skip this plugin step
-    }
-}
+// Plugin now CORRECTLY only executes if Target contains "name" OR "accountnumber"
+// Matches real Dataverse behavior!
 ```
 
-**Impact:** More realistic plugin pipeline simulation
+**What Was Implemented:**
+- ✅ Completed the TODO at line 216 in XrmFakedContext.Pipeline.cs
+- ✅ Added attribute presence checking in ExecutePipelinePlugins method
+- ✅ Plugin only executes if at least one filtering attribute is present in target
+- ✅ Properly handles comma-separated attribute lists with trimming
+- ✅ Skips plugins gracefully when filtering attributes don't match
+
+**Impact:** More realistic plugin pipeline simulation - tests now match production behavior!
 
 ---
 
