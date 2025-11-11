@@ -1692,7 +1692,8 @@ namespace FakeXrmEasy
 
         /// <summary>
         /// Takes a condition expression which needs translating into a 'between two dates' expression and works out the relevant dates
-        /// </summary>        
+        /// Respects the context's SystemTimeZone setting for timezone-aware date calculations
+        /// </summary>
         protected static Expression TranslateConditionExpressionBetweenDates(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr, XrmFakedContext context)
         {
             var c = tc.CondExpression;
@@ -1700,7 +1701,11 @@ namespace FakeXrmEasy
             DateTime? fromDate = null;
             DateTime? toDate = null;
 
-            var today = DateTime.Today;
+            // Use the context's SystemTimeZone to get "today" in the correct timezone
+            // This allows tests to specify timezone and get correct date ranges
+            var today = context.SystemTimeZone != null
+                ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, context.SystemTimeZone).Date
+                : DateTime.Today;
             var thisYear = today.Year;
             var thisMonth = today.Month;
 
