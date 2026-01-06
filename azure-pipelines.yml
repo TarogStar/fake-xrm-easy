@@ -1,0 +1,158 @@
+# =============================================================================
+# Azure DevOps Pipeline for FakeXrmEasy.Community
+# =============================================================================
+#
+# PREREQUISITES:
+# 1. GitHub Connection: Connect your GitHub repository to Azure DevOps via:
+#    - Azure DevOps Project Settings > Service connections > New service connection
+#    - Select "GitHub" and authorize access to your repository
+#
+# 2. Azure Artifacts Feed: Create an Azure Artifacts feed for NuGet packages:
+#    - Azure DevOps Artifacts > Create Feed
+#    - Note the feed name and update the 'vstsFeed' parameter below
+#
+# 3. Pipeline Setup: Create the pipeline in Azure DevOps:
+#    - Pipelines > New Pipeline > GitHub > Select your repository
+#    - Point to this azure-pipelines.yml file
+#
+# Package ID: FakeXrmEasy.Community
+# Target Framework: .NET Framework 4.6.2
+# =============================================================================
+
+# Trigger pipeline on commits to main branch
+trigger:
+  branches:
+    include:
+      - main
+
+# Use Windows agent for .NET Framework 4.6.2 compatibility
+pool:
+  vmImage: 'windows-latest'
+
+# Define pipeline variables
+variables:
+  solution: 'FakeXrmEasy.sln'
+  buildConfiguration: 'Release'
+  nugetVersion: '6.x'
+  # Update this to match your Azure Artifacts feed name
+  artifactsFeed: 'FakeXrmEasy-Feed'
+
+stages:
+# =============================================================================
+# Stage 1: Build and Test
+# =============================================================================
+- stage: Build
+  displayName: 'Build and Test'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build, Test, and Package'
+    steps:
+
+    # -------------------------------------------------------------------------
+    # Step 1: Install NuGet Tool
+    # Ensures consistent NuGet version across builds
+    # -------------------------------------------------------------------------
+    - task: NuGetToolInstaller@1
+      displayName: 'Install NuGet'
+      inputs:
+        versionSpec: '$(nugetVersion)'
+
+    # -------------------------------------------------------------------------
+    # Step 2: Restore NuGet Packages
+    # Downloads all dependencies defined in packages.config and project files
+    # -------------------------------------------------------------------------
+    - task: NuGetCommand@2
+      displayName: 'Restore NuGet Packages'
+      inputs:
+        command: 'restore'
+        restoreSolution: '$(solution)'
+        feedsToUse: 'select'
+
+    # -------------------------------------------------------------------------
+    # Step 3: Build the Solution
+    # Compiles all projects in Release configuration
+    # -------------------------------------------------------------------------
+    - task: VSBuild@1
+      displayName: 'Build Solution'
+      inputs:
+        solution: '$(solution)'
+        configuration: '$(buildConfiguration)'
+        msbuildArgs: '/p:GenerateDocumentation=true'
+
+    # -------------------------------------------------------------------------
+    # Step 4: Run Unit Tests
+    # Executes all xUnit tests in the FakeXrmEasy.Tests project
+    # Test results are published for visibility in Azure DevOps
+    # -------------------------------------------------------------------------
+    - task: VSTest@2
+      displayName: 'Run Unit Tests'
+      inputs:
+        testSelector: 'testAssemblies'
+        testAssemblyVer2: |
+          **\FakeXrmEasy.Tests.dll
+          !**\obj\**
+        searchFolder: '$(System.DefaultWorkingDirectory)'
+        configuration: '$(buildConfiguration)'
+        publishRunAttachments: true
+        resultsFolder: '$(Agent.TempDirectory)\TestResults'
+
+    # -------------------------------------------------------------------------
+    # Step 5: Pack NuGet Package
+    # Creates the FakeXrmEasy.Community NuGet package using the nuspec file
+    # Version is derived from the nuspec file
+    # -------------------------------------------------------------------------
+    - task: NuGetCommand@2
+      displayName: 'Pack NuGet Package'
+      inputs:
+        command: 'pack'
+        packagesToPack: 'FakeXrmEasy.nuspec'
+        packDestination: '$(Build.ArtifactStagingDirectory)/nuget'
+        versioningScheme: 'off'
+
+    # -------------------------------------------------------------------------
+    # Step 6: Publish Build Artifacts
+    # Makes the NuGet package available for the publish stage
+    # -------------------------------------------------------------------------
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish NuGet Artifact'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/nuget'
+        artifact: 'NuGetPackage'
+        publishLocation: 'pipeline'
+
+# =============================================================================
+# Stage 2: Publish to Azure Artifacts
+# Only runs after successful build and test
+# =============================================================================
+- stage: Publish
+  displayName: 'Publish to Azure Artifacts'
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: PublishJob
+    displayName: 'Publish NuGet Package'
+    steps:
+
+    # -------------------------------------------------------------------------
+    # Step 1: Download the NuGet package artifact from build stage
+    # -------------------------------------------------------------------------
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download NuGet Package'
+      inputs:
+        buildType: 'current'
+        artifactName: 'NuGetPackage'
+        targetPath: '$(Pipeline.Workspace)/nuget'
+
+    # -------------------------------------------------------------------------
+    # Step 2: Push NuGet Package to Azure Artifacts Feed
+    # Publishes FakeXrmEasy.Community to the specified Azure Artifacts feed
+    # NOTE: Update 'vstsFeed' to match your Azure Artifacts feed name
+    # -------------------------------------------------------------------------
+    - task: NuGetCommand@2
+      displayName: 'Push to Azure Artifacts'
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Pipeline.Workspace)/nuget/*.nupkg'
+        nuGetFeedType: 'internal'
+        publishVstsFeed: '$(artifactsFeed)'
+        allowPackageConflicts: true
