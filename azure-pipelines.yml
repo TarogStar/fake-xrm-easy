@@ -23,7 +23,7 @@
 trigger:
   branches:
     include:
-      - main
+      - master
 
 # Use Windows agent for .NET Framework 4.6.2 compatibility
 pool:
@@ -35,7 +35,7 @@ variables:
   buildConfiguration: 'Release'
   nugetVersion: '6.x'
   # Update this to match your Azure Artifacts feed name
-  artifactsFeed: 'FakeXrmEasy-Feed'
+  artifactsFeed: 'FakeXrmEasy-Community'
 
 stages:
 # =============================================================================
