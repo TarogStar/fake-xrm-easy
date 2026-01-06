@@ -854,36 +854,36 @@ namespace FakeXrmEasy.Extensions.FetchXml
             if (Guid.TryParse(value, out gOut))
                 return gOut;
 
-            //Try checking if it is a numeric value, cause, from the fetchxml it 
+            //Try checking if it is a numeric value, cause, from the fetchxml it
             //would be impossible to know the real typed based on the string value only
             // ex: "123" might compared as a string, or, as an int, it will depend on the attribute
             //    data type, therefore, in this case we do need to use proxy types
+            //
+            // However, we can make a best-effort attempt to parse the value and let the query
+            // engine handle type comparison at runtime (resolves upstream issue #507)
+            //
+            // IMPORTANT: We try decimal BEFORE int because:
+            // 1. Decimal can represent both integer and decimal values
+            // 2. The query engine can convert decimal to int for OptionSetValue comparisons
+            // 3. But int cannot be converted to decimal for Money comparisons
+            // 4. This way "100" works for both Money(100) and OptionSetValue(100)
 
-            bool bIsNumeric = false;
-            bool bIsDateTime = false;
-            double dblValue = 0.0;
+            // Try parsing as decimal first (for money, decimal fields, and integers)
             decimal decValue = 0.0m;
-            int intValue = 0;
+            if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out decValue))
+                return decValue;
 
-            if (double.TryParse(value, out dblValue))
-                bIsNumeric = true;
+            // Try parsing as double (for double fields)
+            double dblValue = 0.0;
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out dblValue))
+                return dblValue;
 
-            if (decimal.TryParse(value, out decValue))
-                bIsNumeric = true;
-
-            if (int.TryParse(value, out intValue))
-                bIsNumeric = true;
-
+            // Try parsing as DateTime (for date fields)
             DateTime dtValue = DateTime.MinValue;
             if (DateTime.TryParse(value, out dtValue))
-                bIsDateTime = true;
+                return dtValue;
 
-            if (bIsNumeric || bIsDateTime)
-            {
-                throw new Exception("When using arithmetic values in Fetch a ProxyTypesAssembly must be used in order to know which types to cast values to.");
-            }
-
-            //Default value
+            //Default value - return as string
             return value;
         }
     }

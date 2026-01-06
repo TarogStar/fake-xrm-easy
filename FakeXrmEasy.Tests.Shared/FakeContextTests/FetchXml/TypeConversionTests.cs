@@ -9,8 +9,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
     public class TypeConversionTests
     {
         [Fact]
-        public void When_arithmetic_values_are_used_proxy_types_assembly_is_required()
+        public void When_arithmetic_values_are_used_without_proxy_types_best_effort_conversion_is_used()
         {
+            // v1.0.3: Changed behavior to be more permissive. Instead of requiring ProxyTypesAssembly
+            // for all numeric values, we make a best-effort attempt to parse them. This matches
+            // real Dynamics 365 behavior where FetchXML doesn't require type metadata upfront.
             var ctx = new XrmFakedContext();
             var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
@@ -21,7 +24,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
                                   </entity>
                             </fetch>";
 
-            Assert.Throws<Exception>(() => XrmFakedContext.TranslateFetchXmlToQueryExpression(ctx, fetchXml));
+            // Should successfully parse the value as decimal (best effort)
+            var query = XrmFakedContext.TranslateFetchXmlToQueryExpression(ctx, fetchXml);
+            Assert.NotNull(query);
+            Assert.Single(query.Criteria.Conditions);
+            // Numeric value should be parsed (decimal, double, or compatible type)
+            Assert.True(query.Criteria.Conditions[0].Values[0] is decimal ||
+                        query.Criteria.Conditions[0].Values[0] is double);
         }
 
         [Fact]

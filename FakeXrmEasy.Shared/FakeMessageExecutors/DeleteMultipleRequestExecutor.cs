@@ -72,7 +72,8 @@ namespace FakeXrmEasy.FakeMessageExecutors
                 }
 
                 // All deletes succeeded
-                return new DeleteMultipleResponse();
+                // Note: DeleteMultiple does not have a specific response type, returns base OrganizationResponse
+                return new OrganizationResponse();
             }
             catch (Exception ex)
             {

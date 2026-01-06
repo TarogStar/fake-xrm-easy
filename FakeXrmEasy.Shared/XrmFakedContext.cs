@@ -101,13 +101,47 @@ namespace FakeXrmEasy
             OptionSetValuesMetadata = new Dictionary<string, OptionSetMetadata>();
             StatusAttributeMetadata = new Dictionary<string, StatusAttributeMetadata>();
 
-            FakeMessageExecutors = Assembly.GetExecutingAssembly()
-                .GetTypes()
-                .Where(t => t.GetInterfaces().Contains(typeof(IFakeMessageExecutor)))
-                .Select(t => Activator.CreateInstance(t) as IFakeMessageExecutor)
-                .ToDictionary(t => t.GetResponsibleRequestType(), t => t);
-
+            FakeMessageExecutors = new Dictionary<Type, IFakeMessageExecutor>();
             GenericFakeMessageExecutors = new Dictionary<string, IFakeMessageExecutor>();
+
+            var executorTypes = Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => t.GetInterfaces().Contains(typeof(IFakeMessageExecutor)));
+
+            foreach (var executorType in executorTypes)
+            {
+                try
+                {
+                    var executor = Activator.CreateInstance(executorType) as IFakeMessageExecutor;
+                    if (executor != null)
+                    {
+                        var responsibleType = executor.GetResponsibleRequestType();
+                        if (responsibleType != null && !FakeMessageExecutors.ContainsKey(responsibleType))
+                        {
+                            FakeMessageExecutors.Add(responsibleType, executor);
+
+                            // Also register bulk operation executors by RequestName for loosely-typed requests
+                            // (resolves upstream issue #XXX - bulk operations with OrganizationRequest)
+                            if (responsibleType.Name.EndsWith("MultipleRequest"))
+                            {
+                                // Extract request name from type (e.g., CreateMultipleRequest -> CreateMultiple)
+                                string requestName = responsibleType.Name.Replace("Request", "");
+                                if (!GenericFakeMessageExecutors.ContainsKey(requestName))
+                                {
+                                    GenericFakeMessageExecutors.Add(requestName, executor);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Skip executors that fail to instantiate or register
+                    // This can happen if the request type doesn't exist in the SDK version being used
+                    System.Diagnostics.Debug.WriteLine($"Failed to register executor {executorType.Name}: {ex.Message}");
+                    continue;
+                }
+            }
 
             Relationships = new Dictionary<string, XrmFakedRelationship>();
 

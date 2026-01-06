@@ -561,6 +561,16 @@ namespace FakeXrmEasy
 
             if (EntityMetadata.ContainsKey(sEntityName))
             {
+                // Check if metadata has attributes defined
+                var metadata = EntityMetadata[sEntityName];
+                if (metadata.Attributes == null || metadata.Attributes.Length == 0)
+                {
+                    // Metadata exists but no attributes are defined - treat as dynamic entity
+                    // This allows tests to set up minimal metadata (e.g., just PrimaryNameAttribute)
+                    // without having to define all attributes
+                    return true;
+                }
+
                 //Try with metadata
                 return AttributeExistsInInjectedMetadata(sEntityName, sAttributeName);
             }

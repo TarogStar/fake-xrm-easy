@@ -70,6 +70,7 @@ namespace FakeXrmEasy.FakeMessageExecutors
                 // All creates succeeded
                 var response = new CreateMultipleResponse();
                 response.Results["Ids"] = createdIds.ToArray();
+                response.ResponseName = "CreateMultiple";
 
                 return response;
             }

@@ -342,6 +342,7 @@ namespace FakeXrmEasy.Tests.FetchXml
                 <fetch>
                     <entity name='account'>
                         <attribute name='name' />
+                        <attribute name='city' />
                         <filter>
                             <filter type='or'>
                                 <condition attribute='name' operator='eq' value='Contoso' />

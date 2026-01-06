@@ -1205,16 +1205,30 @@ namespace FakeXrmEasy
 
         protected static Expression GetAppropiateCastExpressionBasedOnDecimal(Expression input)
         {
-            return Expression.Condition(
-                        Expression.TypeIs(input, typeof(Money)),
-                                Expression.Convert(
-                                    Expression.Call(Expression.TypeAs(input, typeof(Money)),
-                                            typeof(Money).GetMethod("get_Value")),
-                                            typeof(decimal)),
-                           Expression.Condition(Expression.TypeIs(input, typeof(decimal)),
-                                        Expression.Convert(input, typeof(decimal)),
-                                        Expression.Constant(0.0M)));
+            // Handle Money -> decimal
+            var moneyCondition = Expression.Condition(
+                Expression.TypeIs(input, typeof(Money)),
+                Expression.Convert(
+                    Expression.Call(Expression.TypeAs(input, typeof(Money)),
+                        typeof(Money).GetMethod("get_Value")),
+                    typeof(decimal)),
+                Expression.Constant(0.0M));
 
+            // Handle OptionSetValue -> decimal (for cases where numeric value could be optionset or money)
+            // This allows FetchXML numeric values without ProxyTypes to work with both Money and OptionSetValue
+            var optionSetCondition = Expression.Condition(
+                Expression.TypeIs(input, typeof(OptionSetValue)),
+                Expression.Convert(
+                    Expression.Call(Expression.TypeAs(input, typeof(OptionSetValue)),
+                        typeof(OptionSetValue).GetMethod("get_Value")),
+                    typeof(decimal)),
+                moneyCondition);
+
+            // Handle decimal or fallback
+            return Expression.Condition(
+                Expression.TypeIs(input, typeof(decimal)),
+                Expression.Convert(input, typeof(decimal)),
+                optionSetCondition);
         }
 
         protected static Expression GetAppropiateCastExpressionBasedOnBoolean(Expression input)
@@ -1822,7 +1836,19 @@ namespace FakeXrmEasy
             value1 = c.Values[0];
             value2 = c.Values[1];
 
-            //Between the range... 
+            // For DateTime comparisons, if the end date is at midnight (00:00:00), extend it to the end of that day
+            // This matches Dynamics 365 behavior where Between with dates includes the full end day
+            if (value2 is DateTime endDateTime)
+            {
+                if (endDateTime.TimeOfDay == TimeSpan.Zero)
+                {
+                    // End date is at midnight, extend to 23:59:59.999
+                    value2 = endDateTime.Date.AddDays(1).AddMilliseconds(-1);
+                    c.Values[1] = value2; // Update the original collection as well
+                }
+            }
+
+            //Between the range...
             var exp = Expression.And(
                 Expression.GreaterThanOrEqual(
                             GetAppropiateCastExpressionBasedOnType(tc.AttributeType, getAttributeValueExpr, value1),
@@ -1888,10 +1914,29 @@ namespace FakeXrmEasy
         {
             return Expression.Call(e, typeof(T).GetMethod("ToString", new Type[] { }));
         }
+
         protected static Expression GetCaseInsensitiveExpression(Expression e)
         {
             return Expression.Call(e,
                                 typeof(string).GetMethod("ToLowerInvariant", new Type[] { }));
+        }
+
+        /// <summary>
+        /// Creates a null-safe case insensitive expression that returns null if the input is null,
+        /// otherwise returns the lowercase version of the string.
+        /// This prevents NullReferenceException when attribute values are null.
+        /// </summary>
+        protected static Expression GetNullSafeCaseInsensitiveExpression(Expression e)
+        {
+            // Create: e == null ? null : e.ToLowerInvariant()
+            var nullCheck = Expression.Equal(e, Expression.Constant(null, e.Type));
+            var toLowerCall = Expression.Call(e, typeof(string).GetMethod("ToLowerInvariant", new Type[] { }));
+
+            return Expression.Condition(
+                nullCheck,
+                Expression.Constant(null, typeof(string)),
+                toLowerCall
+            );
         }
 
         protected static Expression TranslateConditionExpressionLike(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
@@ -1905,9 +1950,28 @@ namespace FakeXrmEasy
             }
 
             BinaryExpression expOrValues = Expression.Or(Expression.Constant(false), Expression.Constant(false));
-            Expression convertedValueToStr = Expression.Convert(GetAppropiateCastExpressionBasedOnType(tc.AttributeType, getAttributeValueExpr, c.Values[0]), typeof(string));
 
-            Expression convertedValueToStrAndToLower = GetCaseInsensitiveExpression(convertedValueToStr);
+            // Check if the RAW attribute value is null BEFORE doing any conversions
+            // In Dataverse, empty strings are converted to null, so we treat null as empty string for comparisons
+            var rawValueIsNull = Expression.Equal(getAttributeValueExpr, Expression.Constant(null));
+
+            // Get the appropriately cast attribute value expression
+            Expression attributeValueExpr = GetAppropiateCastExpressionBasedOnType(tc.AttributeType, getAttributeValueExpr, c.Values[0]);
+
+            // Convert to string
+            Expression convertedValueToStr = Expression.Convert(attributeValueExpr, typeof(string));
+
+            // Create null-safe string: if raw value is null, use empty string, otherwise use the converted value
+            var safeString = Expression.Condition(
+                rawValueIsNull,
+                Expression.Constant("", typeof(string)),
+                convertedValueToStr
+            );
+
+            Expression convertedValueToStrAndToLower = Expression.Call(
+                safeString,
+                typeof(string).GetMethod("ToLowerInvariant", new Type[] { })
+            );
 
             string sLikeOperator = "%";
             foreach (object value in c.Values)
@@ -1921,27 +1985,20 @@ namespace FakeXrmEasy
 
                 if (strValue.EndsWith(sLikeOperator) && strValue.StartsWith(sLikeOperator))
                     sMethod = "Contains";
-
                 else if (strValue.StartsWith(sLikeOperator))
                     sMethod = "EndsWith";
-
                 else
                     sMethod = "StartsWith";
 
                 expOrValues = Expression.Or(expOrValues, Expression.Call(
                     convertedValueToStrAndToLower,
                     typeof(string).GetMethod(sMethod, new Type[] { typeof(string) }),
-                    Expression.Constant(value.ToString().ToLowerInvariant().Replace("%", "")) //Linq2CRM adds the percentage value to be executed as a LIKE operator, here we are replacing it to just use the appropiate method
+                    Expression.Constant(value.ToString().ToLowerInvariant().Replace("%", ""))
                 ));
             }
 
-            // Add null check for attribute value in the expression tree itself
-            // This prevents NullReferenceException when the attribute value is null
-            var nullCheck = Expression.NotEqual(convertedValueToStr, Expression.Constant(null, typeof(string)));
-
-            return Expression.AndAlso(
-                            containsAttributeExpr,
-                            Expression.AndAlso(nullCheck, expOrValues));
+            // Attribute must exist for the comparison to proceed
+            return Expression.AndAlso(containsAttributeExpr, expOrValues);
         }
 
         protected static Expression TranslateConditionExpressionContains(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)

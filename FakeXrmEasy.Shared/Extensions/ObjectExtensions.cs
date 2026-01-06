@@ -32,6 +32,19 @@ namespace FakeXrmEasy.Extensions
             return fieldInfo;
         }
 
+        private static PropertyInfo GetPropertyInfo(Type type, string propertyName)
+        {
+            PropertyInfo propertyInfo;
+            do
+            {
+                propertyInfo = type.GetProperty(propertyName,
+                       BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                type = type.BaseType;
+            }
+            while (propertyInfo == null && type != null);
+            return propertyInfo;
+        }
+
         public static object GetFieldValue(this object obj, string fieldName)
         {
             if (obj == null)
@@ -49,11 +62,37 @@ namespace FakeXrmEasy.Extensions
             if (obj == null)
                 throw new ArgumentNullException("obj");
             Type objType = obj.GetType();
+
+            // First try to find as a field
             FieldInfo fieldInfo = GetFieldInfo(objType, fieldName);
-            if (fieldInfo == null)
-                throw new ArgumentOutOfRangeException("fieldName",
-                  string.Format("Couldn't find field {0} in type {1}", fieldName, objType.FullName));
-            fieldInfo.SetValue(obj, val);
+            if (fieldInfo != null)
+            {
+                fieldInfo.SetValue(obj, val);
+                return;
+            }
+
+            // If not found as a field, try as a property (for SDK compatibility)
+            PropertyInfo propertyInfo = GetPropertyInfo(objType, fieldName);
+            if (propertyInfo != null && propertyInfo.CanWrite)
+            {
+                propertyInfo.SetValue(obj, val);
+                return;
+            }
+
+            // If still not found, try the backing field pattern for properties (e.g., _keys for Keys)
+            if (char.IsUpper(fieldName[0]))
+            {
+                string backingFieldName = "_" + char.ToLower(fieldName[0]) + fieldName.Substring(1);
+                FieldInfo backingFieldInfo = GetFieldInfo(objType, backingFieldName);
+                if (backingFieldInfo != null)
+                {
+                    backingFieldInfo.SetValue(obj, val);
+                    return;
+                }
+            }
+
+            throw new ArgumentOutOfRangeException("fieldName",
+              string.Format("Couldn't find field or property {0} in type {1}", fieldName, objType.FullName));
         }
 
 

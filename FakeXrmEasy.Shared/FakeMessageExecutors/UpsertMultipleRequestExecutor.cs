@@ -48,7 +48,7 @@ namespace FakeXrmEasy.FakeMessageExecutors
             }
 
             var service = ctx.GetOrganizationService();
-            var results = new List<UpsertMultipleResult>();
+            var results = new List<UpsertResponse>();
 
             // UpsertMultiple is transactional - all succeed or all fail
             try
@@ -86,16 +86,15 @@ namespace FakeXrmEasy.FakeMessageExecutors
                         recordCreated = true;
                     }
 
-                    results.Add(new UpsertMultipleResult
-                    {
-                        Id = id,
-                        RecordCreated = recordCreated
-                    });
+                    var upsertResult = new UpsertResponse();
+                    upsertResult.Results.Add("RecordCreated", recordCreated);
+                    upsertResult.Results.Add("Target", new EntityReference(entity.LogicalName, id));
+                    results.Add(upsertResult);
                 }
 
                 // All upserts succeeded
                 var response = new UpsertMultipleResponse();
-                response.Results["Results"] = results.ToArray();
+                response["Results"] = results.ToArray();
 
                 return response;
             }

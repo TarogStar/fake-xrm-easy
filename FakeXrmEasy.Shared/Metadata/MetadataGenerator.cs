@@ -24,7 +24,7 @@ namespace FakeXrmEasy.Metadata
                 FieldInfo entityTypeCode = earlyBoundEntity.GetField("EntityTypeCode", BindingFlags.Static | BindingFlags.Public);
                 if (entityTypeCode != null)
                 {
-                    metadata.SetFieldValue("_objectTypeCode", entityTypeCode.GetValue(null));
+                    metadata.SetFieldValue("ObjectTypeCode", entityTypeCode.GetValue(null));
                 }
 
                 List<AttributeMetadata> attributeMetadatas = new List<AttributeMetadata>();
@@ -36,7 +36,7 @@ namespace FakeXrmEasy.Metadata
                 AttributeLogicalNameAttribute attributeLogicalNameAttribute;
                 if (idProperty != null && (attributeLogicalNameAttribute = GetCustomAttribute<AttributeLogicalNameAttribute>(idProperty)) != null)
                 {
-                    metadata.SetFieldValue("_primaryIdAttribute", attributeLogicalNameAttribute.LogicalName);
+                    metadata.SetFieldValue("PrimaryIdAttribute", attributeLogicalNameAttribute.LogicalName);
                 }
 
                 var properties = earlyBoundEntity.GetProperties(BindingFlags.Instance | BindingFlags.Public)
@@ -53,7 +53,7 @@ namespace FakeXrmEasy.Metadata
 #if !FAKE_XRM_EASY
                         if (property.PropertyType == typeof(byte[]))
                         {
-                            metadata.SetFieldValue("_primaryImageAttribute", attributeLogicalNameAttribute.LogicalName);
+                            metadata.SetFieldValue("PrimaryImageAttribute", attributeLogicalNameAttribute.LogicalName);
                         }
 #endif
                         AttributeMetadata attributeMetadata;
@@ -75,8 +75,8 @@ namespace FakeXrmEasy.Metadata
                             attributeMetadata = CreateAttributeMetadata(property.PropertyType);
                         }
 
-                        attributeMetadata.SetFieldValue("_entityLogicalName", entityLogicalNameAttribute.LogicalName);
-                        attributeMetadata.SetFieldValue("_logicalName", attributeLogicalNameAttribute.LogicalName);
+                        attributeMetadata.SetFieldValue("EntityLogicalName", entityLogicalNameAttribute.LogicalName);
+                        attributeMetadata.SetFieldValue("LogicalName", attributeLogicalNameAttribute.LogicalName);
 
                         attributeMetadatas.Add(attributeMetadata);
                     }
