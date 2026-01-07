@@ -71,6 +71,18 @@ namespace FakeXrmEasy.FakeMessageExecutors
             else
             {
                 recordCreated = true;
+
+                // Issue #566: Copy KeyAttributes to Attributes when creating a new record
+                // Per Microsoft docs: "If there's no alternate key data in Entity.Attributes collection,
+                // the alternate key data from Entity.KeyAttributes are copied into Entity.Attributes"
+                foreach (var keyAttr in upsertRequest.Target.KeyAttributes)
+                {
+                    if (!upsertRequest.Target.Attributes.ContainsKey(keyAttr.Key))
+                    {
+                        upsertRequest.Target.Attributes[keyAttr.Key] = keyAttr.Value;
+                    }
+                }
+
                 entityId = service.Create(upsertRequest.Target);
             }
 

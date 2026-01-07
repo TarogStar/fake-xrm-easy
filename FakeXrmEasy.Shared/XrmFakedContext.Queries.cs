@@ -1500,13 +1500,52 @@ namespace FakeXrmEasy
         /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnInt(Expression input)
         {
-            return Expression.Condition(
-                        Expression.TypeIs(input, typeof(OptionSetValue)),
-                                            Expression.Convert(
-                                                Expression.Call(Expression.TypeAs(input, typeof(OptionSetValue)),
-                                                        typeof(OptionSetValue).GetMethod("get_Value")),
-                                                        typeof(int)),
-                                                    Expression.Convert(input, typeof(int)));
+            // Issue #569: Use SafeConvertToInt to handle type mismatches gracefully
+            // This handles cases where ObjectTypeCode is stored as string but queried as int
+            return Expression.Call(typeof(XrmFakedContext).GetMethod(nameof(SafeConvertToInt)), input);
+        }
+
+        /// <summary>
+        /// Safely converts an object to an integer for query comparisons.
+        /// Handles OptionSetValue, int, and string inputs. Returns int.MinValue for incompatible types
+        /// to ensure the comparison fails gracefully rather than throwing an exception.
+        /// </summary>
+        /// <param name="input">The input value to convert</param>
+        /// <returns>The integer value, or int.MinValue if conversion is not possible</returns>
+        /// <remarks>
+        /// This method supports Issue #569 where ObjectTypeCode attributes may be stored as strings
+        /// (entity logical names like "salesorder") but queried with integer values (ObjectTypeCode like 1088).
+        /// Instead of throwing InvalidCastException, it returns a sentinel value that won't match.
+        /// </remarks>
+        public static int SafeConvertToInt(object input)
+        {
+            if (input == null)
+                return int.MinValue;
+
+            if (input is OptionSetValue osv)
+                return osv.Value;
+
+            if (input is int intValue)
+                return intValue;
+
+            if (input is string strValue)
+            {
+                if (int.TryParse(strValue, out int parsed))
+                    return parsed;
+                // String that can't be parsed to int - return sentinel (won't match any query value)
+                return int.MinValue;
+            }
+
+            // Try Convert for other numeric types
+            try
+            {
+                return Convert.ToInt32(input);
+            }
+            catch
+            {
+                // Type mismatch - return sentinel value that won't match
+                return int.MinValue;
+            }
         }
 
         /// <summary>

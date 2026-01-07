@@ -206,12 +206,12 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 
 ## v1.2.0 Roadmap
 
-### Phase 1 — Quick Wins & Cleanup (1-2 days)
+### Phase 1 — Quick Wins & Cleanup (COMPLETE)
 
-| # | Title | Category | Effort | Notes |
-|---|-------|----------|--------|-------|
-| 569 | ObjectTypeCode casting | Query | Low | Investigate & fix/document |
-| 566 | Upsert alt key copy | CRUD | Low | Verify if already fixed with #615 |
+| # | Title | Category | Status |
+|---|-------|----------|--------|
+| 569 | ObjectTypeCode casting | Query | **FIXED** - SafeConvertToInt handles type mismatches gracefully |
+| 566 | Upsert alt key copy | CRUD | **FIXED** - KeyAttributes copied to Attributes on create |
 
 ### Phase 2 — Any/All Filter Operators (4-6 days)
 
@@ -220,29 +220,29 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 | AnyAllFilterLinkEntity | Query | Medium | Any/NotAny/All/NotAll existence filters |
 
 **Constraints (verified via XrmToolbox testing):**
-- Any/All LinkEntity must be child of `<filter>` node, NOT `<link-entity>`
-- No attributes/columns allowed in Any/All LinkEntity
-- No nested link-entities allowed under Any/All
-- Filters ARE supported inside the Any/All LinkEntity
+- ✅ Any/All LinkEntity CAN be direct child of `<entity>` (top level)
+- ❌ Any/All LinkEntity CANNOT have `<link-entity>` as parent (no nesting under joins)
+- ❌ Any/All LinkEntity CANNOT have nested `<link-entity>` children
+- ❌ No attributes/columns allowed in child link-entities under Any/All
+- ✅ Filters ARE supported inside the Any/All LinkEntity
 - Translates to SQL EXISTS/NOT EXISTS subqueries
 
 **Implementation approach:**
-1. Parse `FilterExpression.AnyAllFilterLinkEntity` in filter translation
+1. Detect `link-type="any|not any|all|not all"` in LinkEntity translation
 2. Generate `.Any()` / `.All()` LINQ predicates with inner filter conditions
-3. FetchXML: Handle `<link-entity link-type="any|all|not-any|not-all">` inside `<filter>` nodes
-4. Validation: Reject nested links, attributes, order clauses with clear error messages
+3. Validation: Reject if parent is LinkEntity, reject nested links, reject attribute/order clauses
+4. QueryExpression: Handle `JoinOperator.Any/NotAny/All/NotAll` with same constraints
 
 **FetchXML structure:**
 ```xml
-<fetch>
-  <entity name="account">
-    <filter>
-      <link-entity name="contact" from="parentcustomerid" to="accountid" link-type="any">
-        <filter>
-          <condition attribute="statecode" operator="eq" value="0" />
-        </filter>
-      </link-entity>
-    </filter>
+<fetch top="50">
+  <entity name="product">
+    <link-entity name="gli_productjurisdiction" from="productid" to="productid"
+                 link-type="not any" intersect="true">
+      <filter>
+        <condition attribute="productid" operator="not-null" />
+      </filter>
+    </link-entity>
   </entity>
 </fetch>
 ```
@@ -396,12 +396,12 @@ Other: Assign, SetState, WhoAmI, InitializeFrom, BulkDelete, CalculateRollupFiel
 
 ## Needs Investigation
 
-Items requiring reproduction tests and decisions (fix vs document as known difference):
+All items resolved - see v1.2.0 Phase 1 above.
 
-| # | Title | Category |
-|---|-------|----------|
-| 569 | ObjectTypeCode casting | Query engine |
-| 566 | Upsert alt key copy | May be fixed with #615 |
+| # | Title | Status |
+|---|-------|--------|
+| 569 | ObjectTypeCode casting | **FIXED** in v1.2.0 |
+| 566 | Upsert alt key copy | **FIXED** in v1.2.0 |
 
 ---
 
