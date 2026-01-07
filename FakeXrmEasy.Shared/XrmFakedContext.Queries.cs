@@ -2228,11 +2228,28 @@ namespace FakeXrmEasy
         {
             var c = tc.CondExpression;
 
+            // For joined entities, the attribute value is wrapped in an AliasedValue object.
+            // We need to check if AliasedValue.Value is null, not if the AliasedValue itself is null.
+            // Fixes upstream issue #547 - ConditionOperator.Null broken in nested filters
+            var getValueFromAliasedValueExpr = Expression.Call(
+                Expression.Convert(getAttributeValueExpr, typeof(AliasedValue)),
+                typeof(AliasedValue).GetMethod("get_Value"));
+
+            // Check if the unwrapped value is null (for AliasedValue)
+            var aliasedValueIsNull = Expression.Equal(getValueFromAliasedValueExpr, Expression.Constant(null));
+
+            // Check if the direct value is null (for non-AliasedValue)
+            var directValueIsNull = Expression.Equal(getAttributeValueExpr, Expression.Constant(null));
+
+            // Use conditional: if it's an AliasedValue, check AliasedValue.Value; otherwise check the value directly
+            var valueIsNullExpr = Expression.Condition(
+                Expression.TypeIs(getAttributeValueExpr, typeof(AliasedValue)),
+                aliasedValueIsNull,
+                directValueIsNull);
+
             return Expression.Or(Expression.AndAlso(
                                     containsAttributeExpr,
-                                    Expression.Equal(
-                                    getAttributeValueExpr,
-                                    Expression.Constant(null))),   //Attribute is null
+                                    valueIsNullExpr),              //Attribute is null (handles both direct and AliasedValue)
                                  Expression.AndAlso(
                                     Expression.Not(containsAttributeExpr),
                                     Expression.Constant(true)));   //Or attribute is not defined (null)

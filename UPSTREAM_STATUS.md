@@ -12,7 +12,7 @@ This document consolidates the status of issues and PRs from the archived [jordi
 | Category | Total | Fixed | TODO | Won't Fix |
 |----------|-------|-------|------|-----------|
 | Plugin/Pipeline | 12 | 4 | 3 | 0 |
-| Query Engine | 20 | 12 | 3 | 0 |
+| Query Engine | 20 | 14 | 1 | 0 |
 | Date/Time | 7 | 7 | 0 | 0 |
 | Message Executors | 12 | 8 | 3 | 0 |
 | Metadata | 10 | 5 | 3 | 2 |
@@ -97,16 +97,16 @@ This document consolidates the status of issues and PRs from the archived [jordi
 | 608 | LIKE condition NullReferenceException | **FIXED** | Null-safe string handling in `TranslateConditionExpressionLike` |
 | 607 | Filtered linked entity NRE | **FIXED** | Defensive null checks on condition values, treats null as empty string |
 
+### Query Engine - Nested Queries
+
+| # | Title | Status | Implementation |
+|---|-------|--------|----------------|
+| 547 | Null operator in nested filter | **FIXED** | `TranslateConditionExpressionNull` unwraps AliasedValue before null check |
+| 545 | Aggregate with nested outer joins | **FIXED** | Aggregation uses immediate parent alias, not full ancestor path |
+
 ---
 
 ## TODO Items (Remaining Work)
-
-### High Priority
-
-| # | Title | Category | Notes |
-|---|-------|----------|-------|
-| 547 | Null operator in nested filter | Query | Investigate LinkEntity filters |
-| 545 | Aggregate with nested outer joins | Query | Returns zero incorrectly |
 
 ### Medium Priority
 
@@ -220,6 +220,15 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 (Part 2)
+- Fixed: #547 - ConditionOperator.Null in nested LinkEntity filters now works correctly
+  - Root cause: AliasedValue wrapper not being unwrapped in null check
+  - Fix: `TranslateConditionExpressionNull` now checks `AliasedValue.Value` for null
+- Fixed: #545 - Aggregate queries with nested outer joins now return correct values
+  - Root cause: Aggregation used full ancestor alias path, but query uses immediate alias only
+  - Fix: Aggregation now uses only immediate parent link-entity alias
+- Added 9 new test cases for nested query issues
 
 ### 2026-01-07
 - Verified: Between dates, Left outer join, Multiple filters, Date operators, EntityReference.Name all FIXED

@@ -47,13 +47,29 @@ namespace FakeXrmEasy
 
             foreach (var attr in xmlDoc.Descendants(ns + "attribute"))
             {
-                //TODO: Find entity alias. Handle aliasedvalue in the query result.
-                var namespacedAlias = attr.Ancestors(ns + "link-entity").Select(x => x.GetAttribute("alias")?.Value != null ? x.GetAttribute("alias").Value : x.GetAttribute("name").Value).ToList();
-                namespacedAlias.Add(attr.GetAttribute("alias")?.Value);
-                var alias = string.Join(".", namespacedAlias);
-                namespacedAlias.RemoveAt(namespacedAlias.Count - 1);
-                namespacedAlias.Add(attr.GetAttribute("name")?.Value);
-                var logicalName = string.Join(".", namespacedAlias);
+                // Get the immediate parent link-entity's alias (if any)
+                // The query execution stores joined attributes with just the immediate alias,
+                // not the full ancestor path. Fixes upstream issue #545 - nested aggregate values.
+                var parentLinkEntity = attr.Ancestors(ns + "link-entity").FirstOrDefault();
+                var immediateAlias = parentLinkEntity != null
+                    ? (parentLinkEntity.GetAttribute("alias")?.Value ?? parentLinkEntity.GetAttribute("name").Value)
+                    : null;
+
+                string alias;
+                string logicalName;
+
+                if (!string.IsNullOrEmpty(immediateAlias))
+                {
+                    // Attribute is from a linked entity - use the immediate alias only
+                    alias = immediateAlias + "." + attr.GetAttribute("alias")?.Value;
+                    logicalName = immediateAlias + "." + attr.GetAttribute("name")?.Value;
+                }
+                else
+                {
+                    // Attribute is from the main entity
+                    alias = attr.GetAttribute("alias")?.Value;
+                    logicalName = attr.GetAttribute("name")?.Value;
+                }
 
                 if (string.IsNullOrEmpty("alias"))
                 {
