@@ -36,7 +36,9 @@ namespace FakeXrmEasy.Extensions.FetchXml
             ConditionOperator.NextXMonths,
             ConditionOperator.NextXYears,
             ConditionOperator.NextXWeeks,
-            ConditionOperator.InFiscalYear
+            ConditionOperator.InFiscalYear,
+            ConditionOperator.InFiscalPeriod,
+            ConditionOperator.InFiscalPeriodAndYear
         };
 
         /// <summary>
@@ -734,6 +736,21 @@ namespace FakeXrmEasy.Extensions.FetchXml
                     break;
                 case "in-fiscal-year":
                     op = ConditionOperator.InFiscalYear;
+                    break;
+                case "in-fiscal-period":
+                    op = ConditionOperator.InFiscalPeriod;
+                    break;
+                case "in-fiscal-period-and-year":
+                    op = ConditionOperator.InFiscalPeriodAndYear;
+                    break;
+                case "this-fiscal-period":
+                    op = ConditionOperator.ThisFiscalPeriod;
+                    break;
+                case "last-fiscal-period":
+                    op = ConditionOperator.LastFiscalPeriod;
+                    break;
+                case "next-fiscal-period":
+                    op = ConditionOperator.NextFiscalPeriod;
                     break;
 #if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013
                 case "olderthan-x-minutes":

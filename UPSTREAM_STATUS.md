@@ -48,8 +48,8 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 | Category | Total | Fixed | P0-P3 TODO | Won't Fix |
 |----------|-------|-------|------------|-----------|
 | Plugin/Pipeline | 12 | 4 | 2 | 0 |
-| Query Engine | 21 | 17 | 2 | 0 |
-| Date/Time | 9 | 9 | 2 | 0 |
+| Query Engine | 21 | 18 | 1 | 0 |
+| Date/Time | 9 | 12 | 0 | 0 |
 | Message Executors | 13 | 9 | 2 | 0 |
 | Metadata | 10 | 5 | 2 | 2 |
 | CRUD/Core | 13 | 5 | 5 | 0 |
@@ -183,13 +183,13 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 
 ### P2 — Query Completeness / Advanced Operators
 
-| # | Title | Category | Notes |
-|---|-------|----------|-------|
-| 461 | next-x-timeperiod operators | Date | PR from RachaelBooth |
-| 460 | last-x-weeks operator | Date | PR from RachaelBooth |
-| 476 | Fiscal period operators | Date | Beyond fiscal year |
-| 509 | LIKE wildcards [X-Y] | Query | Advanced patterns |
-| NEW | Any/All related-record filtering | Query | AnyAllFilterLinkEntity support |
+| # | Title | Category | Status |
+|---|-------|----------|--------|
+| 461 | next-x-timeperiod operators | Date | **FIXED** - Already implemented (TranslateConditionExpressionNext) |
+| 460 | last-x-weeks operator | Date | **FIXED** - Already implemented (TranslateConditionExpressionLast) |
+| 476 | Fiscal period operators | Date | **FIXED** - InFiscalPeriod, InFiscalPeriodAndYear, This/Last/NextFiscalPeriod |
+| 509 | LIKE wildcards [X-Y] | Query | **FIXED** - Underscore, [a-z] ranges, [abc] sets, [^abc] negation |
+| NEW | Any/All related-record filtering | Query | Deferred to P3 - AnyAllFilterLinkEntity requires substantial LINQ changes |
 
 ### P3 — Developer Experience / Sustainability
 
@@ -294,6 +294,30 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 (Part 9) - P2 Complete
+- Verified: #461 - next-x-timeperiod operators already implemented
+  - TranslateConditionExpressionNext supports NextXDays, NextXWeeks, NextXMonths, NextXYears
+- Verified: #460 - last-x-weeks operators already implemented
+  - TranslateConditionExpressionLast supports LastXDays, LastXWeeks, LastXMonths, LastXYears
+- Fixed: #476 - Fiscal Period Operators
+  - Added 5 new operators: InFiscalPeriod, InFiscalPeriodAndYear, ThisFiscalPeriod, LastFiscalPeriod, NextFiscalPeriod
+  - Added FiscalYearSettings with Template enum (Annually, SemiAnnually, Quarterly, Monthly, FourWeek)
+  - Helper methods: GetPeriodsPerYear, GetFiscalPeriodBounds, GetCurrentFiscalPeriod, GetOffsetFiscalPeriod
+  - Period rollover at fiscal year boundary handled correctly
+  - FetchXML support for all new operators
+  - 13 new tests in FiscalPeriodOperatorTests.cs
+- Fixed: #509 - LIKE Wildcards [X-Y] Character Ranges
+  - Added underscore (_) single-character wildcard support
+  - Added [A-Z] and [0-9] character range patterns
+  - Added [abc] character set patterns
+  - Added [^abc] negated character set patterns
+  - Mixed patterns supported (e.g., `[A-Z]_%` for "starts with letter, at least 2 chars")
+  - Backward compatibility maintained for simple % patterns (uses StartsWith/EndsWith/Contains)
+  - Advanced patterns converted to regex with ConvertLikePatternToRegex helper
+  - 30 new tests in LikeAdvancedPatternTests.cs
+- Deferred: Any/All related-record filtering to P3 (requires substantial LINQ changes)
+- P2 status: 4 fixed/verified, 1 deferred
 
 ### 2026-01-07 (Part 8) - P1 Complete
 - Fixed: #521 - Composite Alternate Keys + Uniqueness Enforcement

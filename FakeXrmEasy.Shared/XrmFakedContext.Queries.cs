@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.ServiceModel;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using FakeXrmEasy.Extensions;
@@ -1014,6 +1015,11 @@ namespace FakeXrmEasy
                 case ConditionOperator.ThisWeek:
                 case ConditionOperator.NextWeek:
                 case ConditionOperator.InFiscalYear:
+                case ConditionOperator.InFiscalPeriod:
+                case ConditionOperator.InFiscalPeriodAndYear:
+                case ConditionOperator.ThisFiscalPeriod:
+                case ConditionOperator.LastFiscalPeriod:
+                case ConditionOperator.NextFiscalPeriod:
                     operatorExpression = TranslateConditionExpressionBetweenDates(c, getNonBasicValueExpr, containsAttributeExpression, context);
                     break;
 #if FAKE_XRM_EASY_9
@@ -2122,6 +2128,60 @@ namespace FakeXrmEasy
                     fromDate = fiscalYearDate;
                     toDate = fiscalYearDate.AddYears(1).AddDays(-1).AddHours(23).AddMinutes(59).AddSeconds(59).AddMilliseconds(999);
                     break;
+                case ConditionOperator.InFiscalPeriod:
+                case ConditionOperator.InFiscalPeriodAndYear:
+                    {
+                        // InFiscalPeriod takes (period) or (year, period) as values
+                        int periodYear;
+                        int periodNumber;
+                        if (c.Values.Count == 1)
+                        {
+                            // Just period number, use current fiscal year
+                            periodNumber = Convert.ToInt32(c.Values[0]);
+                            var fiscalStart = context.FiscalYearSettings?.StartDate ?? new DateTime(today.Year, 4, 1);
+                            periodYear = today >= fiscalStart ? today.Year : today.Year - 1;
+                        }
+                        else
+                        {
+                            // Year and period
+                            periodYear = Convert.ToInt32(c.Values[0]);
+                            periodNumber = Convert.ToInt32(c.Values[1]);
+                        }
+                        c.Values.Clear();
+                        var periodBounds = GetFiscalPeriodBounds(context, periodYear, periodNumber, today);
+                        fromDate = periodBounds.start;
+                        toDate = periodBounds.end;
+                    }
+                    break;
+                case ConditionOperator.ThisFiscalPeriod:
+                    {
+                        c.Values.Clear();
+                        var currentPeriod = GetCurrentFiscalPeriod(context, today);
+                        var periodBounds = GetFiscalPeriodBounds(context, currentPeriod.year, currentPeriod.period, today);
+                        fromDate = periodBounds.start;
+                        toDate = periodBounds.end;
+                    }
+                    break;
+                case ConditionOperator.LastFiscalPeriod:
+                    {
+                        c.Values.Clear();
+                        var currentPeriod = GetCurrentFiscalPeriod(context, today);
+                        var lastPeriod = GetOffsetFiscalPeriod(context, currentPeriod.year, currentPeriod.period, -1, today);
+                        var periodBounds = GetFiscalPeriodBounds(context, lastPeriod.year, lastPeriod.period, today);
+                        fromDate = periodBounds.start;
+                        toDate = periodBounds.end;
+                    }
+                    break;
+                case ConditionOperator.NextFiscalPeriod:
+                    {
+                        c.Values.Clear();
+                        var currentPeriod = GetCurrentFiscalPeriod(context, today);
+                        var nextPeriod = GetOffsetFiscalPeriod(context, currentPeriod.year, currentPeriod.period, 1, today);
+                        var periodBounds = GetFiscalPeriodBounds(context, nextPeriod.year, nextPeriod.period, today);
+                        fromDate = periodBounds.start;
+                        toDate = periodBounds.end;
+                    }
+                    break;
             }
 
             c.Values.Add(fromDate);
@@ -2130,6 +2190,172 @@ namespace FakeXrmEasy
             return TranslateConditionExpressionBetween(tc, getAttributeValueExpr, containsAttributeExpr);
         }
 
+        /// <summary>
+        /// Gets the number of periods in a fiscal year based on the fiscal period template.
+        /// </summary>
+        /// <param name="template">The fiscal period template.</param>
+        /// <returns>The number of periods in the fiscal year.</returns>
+        protected static int GetPeriodsPerYear(FiscalYearSettings.Template template)
+        {
+            switch (template)
+            {
+                case FiscalYearSettings.Template.Annually:
+                    return 1;
+                case FiscalYearSettings.Template.SemiAnnually:
+                    return 2;
+                case FiscalYearSettings.Template.Quarterly:
+                    return 4;
+                case FiscalYearSettings.Template.Monthly:
+                    return 12;
+                case FiscalYearSettings.Template.FourWeek:
+                    return 13;
+                default:
+                    return 4; // Default to quarterly
+            }
+        }
+
+        /// <summary>
+        /// Calculates the start and end dates for a specific fiscal period.
+        /// </summary>
+        /// <param name="context">The XrmFakedContext containing FiscalYearSettings.</param>
+        /// <param name="fiscalYear">The fiscal year number.</param>
+        /// <param name="periodNumber">The 1-based period number within the fiscal year.</param>
+        /// <param name="referenceDate">Reference date for calculating default fiscal year start.</param>
+        /// <returns>A tuple containing the start and end DateTime for the fiscal period.</returns>
+        protected static (DateTime start, DateTime end) GetFiscalPeriodBounds(XrmFakedContext context, int fiscalYear, int periodNumber, DateTime referenceDate)
+        {
+            // Get fiscal year settings or use defaults (April 1st start, Quarterly)
+            var fiscalYearStart = context.FiscalYearSettings?.StartDate ?? new DateTime(fiscalYear, 4, 1);
+            var template = context.FiscalYearSettings?.FiscalPeriodTemplate ?? FiscalYearSettings.Template.Quarterly;
+
+            // Make sure fiscalYearStart uses the correct year
+            fiscalYearStart = new DateTime(fiscalYear, fiscalYearStart.Month, fiscalYearStart.Day);
+
+            var periodsPerYear = GetPeriodsPerYear(template);
+
+            // Validate period number
+            if (periodNumber < 1 || periodNumber > periodsPerYear)
+            {
+                throw new Exception($"Period number {periodNumber} is out of range for template {template}. Valid range is 1-{periodsPerYear}.");
+            }
+
+            DateTime periodStart;
+            DateTime periodEnd;
+
+            if (template == FiscalYearSettings.Template.FourWeek)
+            {
+                // Four-week periods (13 periods of 28 days each, plus extra days in last period)
+                var periodLengthDays = 28;
+                periodStart = fiscalYearStart.AddDays((periodNumber - 1) * periodLengthDays);
+
+                if (periodNumber == periodsPerYear)
+                {
+                    // Last period goes to end of fiscal year
+                    periodEnd = fiscalYearStart.AddYears(1).AddMilliseconds(-1);
+                }
+                else
+                {
+                    periodEnd = periodStart.AddDays(periodLengthDays).AddMilliseconds(-1);
+                }
+            }
+            else
+            {
+                // Month-based periods (Annually, SemiAnnually, Quarterly, Monthly)
+                var monthsPerPeriod = 12 / periodsPerYear;
+                periodStart = fiscalYearStart.AddMonths((periodNumber - 1) * monthsPerPeriod);
+                periodEnd = periodStart.AddMonths(monthsPerPeriod).AddMilliseconds(-1);
+            }
+
+            return (periodStart, periodEnd);
+        }
+
+        /// <summary>
+        /// Determines the current fiscal period based on today's date.
+        /// </summary>
+        /// <param name="context">The XrmFakedContext containing FiscalYearSettings.</param>
+        /// <param name="today">Today's date.</param>
+        /// <returns>A tuple containing the fiscal year and 1-based period number.</returns>
+        protected static (int year, int period) GetCurrentFiscalPeriod(XrmFakedContext context, DateTime today)
+        {
+            // Get fiscal year settings or use defaults
+            var fiscalYearStartMonth = context.FiscalYearSettings?.StartDate.Month ?? 4;
+            var fiscalYearStartDay = context.FiscalYearSettings?.StartDate.Day ?? 1;
+            var template = context.FiscalYearSettings?.FiscalPeriodTemplate ?? FiscalYearSettings.Template.Quarterly;
+
+            // Determine which fiscal year we're in
+            var fiscalYearStartForThisYear = new DateTime(today.Year, fiscalYearStartMonth, fiscalYearStartDay);
+            int fiscalYear;
+            DateTime fiscalYearStart;
+
+            if (today >= fiscalYearStartForThisYear)
+            {
+                fiscalYear = today.Year;
+                fiscalYearStart = fiscalYearStartForThisYear;
+            }
+            else
+            {
+                fiscalYear = today.Year - 1;
+                fiscalYearStart = new DateTime(fiscalYear, fiscalYearStartMonth, fiscalYearStartDay);
+            }
+
+            var periodsPerYear = GetPeriodsPerYear(template);
+            var daysSinceFiscalYearStart = (today - fiscalYearStart).Days;
+
+            int period;
+            if (template == FiscalYearSettings.Template.FourWeek)
+            {
+                // Four-week periods (28 days each)
+                period = Math.Min((daysSinceFiscalYearStart / 28) + 1, periodsPerYear);
+            }
+            else
+            {
+                // Month-based periods
+                var monthsPerPeriod = 12 / periodsPerYear;
+                var monthsSinceFiscalYearStart = ((today.Year - fiscalYearStart.Year) * 12 + today.Month - fiscalYearStart.Month);
+
+                // Handle edge case when today is before the start day of the month
+                if (today.Day < fiscalYearStartDay && monthsSinceFiscalYearStart > 0)
+                {
+                    monthsSinceFiscalYearStart--;
+                }
+
+                period = Math.Min((monthsSinceFiscalYearStart / monthsPerPeriod) + 1, periodsPerYear);
+            }
+
+            return (fiscalYear, period);
+        }
+
+        /// <summary>
+        /// Calculates a fiscal period offset from a given period (for LastFiscalPeriod and NextFiscalPeriod).
+        /// </summary>
+        /// <param name="context">The XrmFakedContext containing FiscalYearSettings.</param>
+        /// <param name="fiscalYear">The current fiscal year.</param>
+        /// <param name="periodNumber">The current 1-based period number.</param>
+        /// <param name="offset">The offset to apply (negative for previous, positive for next).</param>
+        /// <param name="referenceDate">Reference date for calculations.</param>
+        /// <returns>A tuple containing the new fiscal year and period number.</returns>
+        protected static (int year, int period) GetOffsetFiscalPeriod(XrmFakedContext context, int fiscalYear, int periodNumber, int offset, DateTime referenceDate)
+        {
+            var template = context.FiscalYearSettings?.FiscalPeriodTemplate ?? FiscalYearSettings.Template.Quarterly;
+            var periodsPerYear = GetPeriodsPerYear(template);
+
+            var newPeriod = periodNumber + offset;
+            var newYear = fiscalYear;
+
+            while (newPeriod < 1)
+            {
+                newPeriod += periodsPerYear;
+                newYear--;
+            }
+
+            while (newPeriod > periodsPerYear)
+            {
+                newPeriod -= periodsPerYear;
+                newYear++;
+            }
+
+            return (newYear, newPeriod);
+        }
 
         /// <summary>
         /// Translates condition expression for older than operator
@@ -2353,6 +2579,108 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
+        /// Checks if a LIKE pattern contains advanced wildcards that require regex processing.
+        /// Advanced wildcards include: _ (single character), [ (character sets/ranges).
+        /// </summary>
+        /// <param name="pattern">The LIKE pattern to check.</param>
+        /// <returns>True if the pattern contains advanced wildcards requiring regex; false for simple % patterns only.</returns>
+        protected static bool LikePatternRequiresRegex(string pattern)
+        {
+            if (string.IsNullOrEmpty(pattern))
+                return false;
+
+            // Check for underscore or bracket characters that indicate advanced patterns
+            return pattern.Contains("_") || pattern.Contains("[");
+        }
+
+        /// <summary>
+        /// Converts a SQL LIKE pattern to a .NET Regex pattern.
+        /// Handles: % (any characters), _ (single character), [A-Z] (character ranges),
+        /// [ABC] (character sets), [^ABC] (negated sets).
+        /// </summary>
+        /// <param name="likePattern">The SQL LIKE pattern to convert.</param>
+        /// <returns>A .NET Regex pattern string.</returns>
+        public static string ConvertLikePatternToRegex(string likePattern)
+        {
+            if (string.IsNullOrEmpty(likePattern))
+                return "^$"; // Match empty string only
+
+            var result = new StringBuilder();
+            result.Append("^"); // Anchor at start
+
+            bool insideBracket = false;
+            for (int i = 0; i < likePattern.Length; i++)
+            {
+                char c = likePattern[i];
+
+                if (insideBracket)
+                {
+                    // Inside brackets, pass through characters as-is (they're already regex-compatible)
+                    result.Append(c);
+                    if (c == ']')
+                    {
+                        insideBracket = false;
+                    }
+                }
+                else
+                {
+                    switch (c)
+                    {
+                        case '%':
+                            // % matches zero or more characters -> .*
+                            result.Append(".*");
+                            break;
+                        case '_':
+                            // _ matches exactly one character -> .
+                            result.Append(".");
+                            break;
+                        case '[':
+                            // Start of character class - pass through to regex
+                            result.Append('[');
+                            insideBracket = true;
+                            break;
+                        // Escape regex special characters (outside brackets)
+                        case '.':
+                        case '^':
+                        case '$':
+                        case '*':
+                        case '+':
+                        case '?':
+                        case '{':
+                        case '}':
+                        case '\\':
+                        case '|':
+                        case '(':
+                        case ')':
+                            result.Append('\\');
+                            result.Append(c);
+                            break;
+                        default:
+                            result.Append(c);
+                            break;
+                    }
+                }
+            }
+
+            result.Append("$"); // Anchor at end
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// Performs a LIKE pattern match using regex for advanced patterns.
+        /// This method is called at runtime via Expression.Call.
+        /// </summary>
+        /// <param name="input">The string to match against.</param>
+        /// <param name="regexPattern">The regex pattern converted from LIKE syntax.</param>
+        /// <returns>True if the input matches the pattern; false otherwise.</returns>
+        public static bool MatchLikePattern(string input, string regexPattern)
+        {
+            if (input == null)
+                return false;
+            return Regex.IsMatch(input, regexPattern, RegexOptions.IgnoreCase);
+        }
+
+        /// <summary>
         /// Translates condition expression for like operator
         /// </summary>
         /// <param name="tc">The typed condition expression</param>
@@ -2401,20 +2729,40 @@ namespace FakeXrmEasy
                     continue;
 
                 var strValue = value.ToString();
-                string sMethod = "";
 
-                if (strValue.EndsWith(sLikeOperator) && strValue.StartsWith(sLikeOperator))
-                    sMethod = "Contains";
-                else if (strValue.StartsWith(sLikeOperator))
-                    sMethod = "EndsWith";
+                // Check if this pattern requires regex (contains _, [, or ])
+                if (LikePatternRequiresRegex(strValue))
+                {
+                    // Use regex for advanced pattern matching
+                    var regexPattern = ConvertLikePatternToRegex(strValue);
+
+                    // Call MatchLikePattern(safeString, regexPattern)
+                    // Note: Using safeString (not lowercased) because regex uses IgnoreCase
+                    var matchMethod = typeof(XrmFakedContext).GetMethod("MatchLikePattern", new Type[] { typeof(string), typeof(string) });
+                    expOrValues = Expression.Or(expOrValues, Expression.Call(
+                        matchMethod,
+                        safeString,
+                        Expression.Constant(regexPattern)
+                    ));
+                }
                 else
-                    sMethod = "StartsWith";
+                {
+                    // Simple % pattern - use existing optimized StartsWith/EndsWith/Contains logic
+                    string sMethod = "";
 
-                expOrValues = Expression.Or(expOrValues, Expression.Call(
-                    convertedValueToStrAndToLower,
-                    typeof(string).GetMethod(sMethod, new Type[] { typeof(string) }),
-                    Expression.Constant(value.ToString().ToLowerInvariant().Replace("%", ""))
-                ));
+                    if (strValue.EndsWith(sLikeOperator) && strValue.StartsWith(sLikeOperator))
+                        sMethod = "Contains";
+                    else if (strValue.StartsWith(sLikeOperator))
+                        sMethod = "EndsWith";
+                    else
+                        sMethod = "StartsWith";
+
+                    expOrValues = Expression.Or(expOrValues, Expression.Call(
+                        convertedValueToStrAndToLower,
+                        typeof(string).GetMethod(sMethod, new Type[] { typeof(string) }),
+                        Expression.Constant(strValue.ToLowerInvariant().Replace("%", ""))
+                    ));
+                }
             }
 
             // Attribute must exist for the comparison to proceed
