@@ -9,7 +9,7 @@
     <license type="expression">MIT</license>
     <projectUrl>https://github.com/YOUR_ORG/fake-xrm-easy</projectUrl>
     <repository type="git" url="https://github.com/YOUR_ORG/fake-xrm-easy.git" />
-    <icon>icon.png</icon>
+    <iconUrl>https://raw.githubusercontent.com/TarogStar/fake-xrm-easy/master/FakeXrmEasyLogo_128x128.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>
       A truly open-source testing framework for Dynamics 365 / Power Platform that makes unit testing plugins, workflows, and custom code simple and fast.
