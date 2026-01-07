@@ -12,10 +12,10 @@ This document consolidates the status of issues and PRs from the archived [jordi
 | Category | Total | Fixed | TODO | Won't Fix |
 |----------|-------|-------|------|-----------|
 | Plugin/Pipeline | 12 | 4 | 3 | 0 |
-| Query Engine | 18 | 10 | 5 | 0 |
-| Date/Time | 6 | 6 | 0 | 0 |
-| Message Executors | 8 | 3 | 4 | 0 |
-| Metadata | 9 | 3 | 4 | 2 |
+| Query Engine | 20 | 12 | 3 | 0 |
+| Date/Time | 7 | 7 | 0 | 0 |
+| Message Executors | 12 | 8 | 3 | 0 |
+| Metadata | 10 | 5 | 3 | 2 |
 | CRUD/Core | 13 | 3 | 6 | 0 |
 | Other | 5 | 0 | 1 | 4 |
 
@@ -80,6 +80,23 @@ This document consolidates the status of issues and PRs from the archived [jordi
 | 524 | Duplicate intersect records | **FIXED** | AssociateRequest checks for duplicates |
 | 554 | N:N duplicate fix (PR) | **FIXED** | Integrated |
 
+### Message Executors
+
+| # | Title | Status | Implementation |
+|---|-------|--------|----------------|
+| 538 | RetrieveMetadataChangesRequest | **FIXED** | `RetrieveMetadataChangesRequestExecutor` - metadata filtering/projection |
+| 455 | UtcTimeFromLocalTimeRequest | **FIXED** | `UtcTimeFromLocalTimeRequestExecutor` - time zone conversion |
+| 510 | WinQuoteRequest | **FIXED** | `WinQuoteRequestExecutor` - sets quote to Won state, creates QuoteClose activity |
+| 572 | IEntityDataSourceRetrieverService | **FIXED** | `EntityDataSourceRetriever` property, virtual entity data provider testing |
+| 610 | ExecuteTransactionRequest | **FIXED** | `ExecuteTransactionExecutor` - batch transactional execution |
+
+### Query Engine - Null Handling
+
+| # | Title | Status | Implementation |
+|---|-------|--------|----------------|
+| 608 | LIKE condition NullReferenceException | **FIXED** | Null-safe string handling in `TranslateConditionExpressionLike` |
+| 607 | Filtered linked entity NRE | **FIXED** | Defensive null checks on condition values, treats null as empty string |
+
 ---
 
 ## TODO Items (Remaining Work)
@@ -88,10 +105,6 @@ This document consolidates the status of issues and PRs from the archived [jordi
 
 | # | Title | Category | Notes |
 |---|-------|----------|-------|
-| 610 | ExecuteTransactionRequest | Executors | Transactional batch operations |
-| 538 | RetrieveMetadataChangesRequest | Executors | PR exists from MarkMpn |
-| 608 | LIKE condition NullReferenceException | Query | Add defensive null checks |
-| 607 | Generic NRE in queries | Query | Related to #608 |
 | 547 | Null operator in nested filter | Query | Investigate LinkEntity filters |
 | 545 | Aggregate with nested outer joins | Query | Returns zero incorrectly |
 
@@ -100,11 +113,8 @@ This document consolidates the status of issues and PRs from the archived [jordi
 | # | Title | Category | Notes |
 |---|-------|----------|-------|
 | 514 | FetchXml valueof column comparison | Query | Column-to-column comparison |
-| 510 | WinQuoteRequest | Executors | PR exists |
-| 455 | UtcTimeFromLocalTimeRequest | Executors | PR from RachaelBooth |
 | 562 | Min date validation 01/01/1753 | Core | CRM minimum date |
 | 508 | Alternate keys in AssociateRequest | Core | Currently not supported |
-| 572 | IEntityDataSourceRetrieverService | Metadata | PR exists |
 | 557 | Expose Metadata generation | Metadata | PR exists |
 | 447 | PicklistAttributeMetadata options | Metadata | PR from Nianwei |
 
@@ -160,10 +170,6 @@ These items need verification against the current codebase:
 ### Integrate Soon
 | PR | Title | Author | Notes |
 |----|-------|--------|-------|
-| 538 | RetrieveMetadataChangesRequest | MarkMpn | Metadata tracking |
-| 510 | WinQuoteRequest | BenjaminP-GitHub | Quote to order |
-| 455 | UtcTimeFromLocalTimeRequest | RachaelBooth | Time conversion |
-| 572 | IEntityDataSourceRetrieverService | jimbonovak | Managed identities |
 | 557 | Expose Metadata generation | janssen-io | CrmSvcUtilMetadataGenerator |
 
 ### Already Integrated/Fixed
@@ -176,6 +182,10 @@ These items need verification against the current codebase:
 | 496 | Plugin Images/PreValidation | FIXED (we did better) |
 | 484 | OptionSetValue groupby | FIXED |
 | 486 | Aggregate alias/name | FIXED |
+| 538 | RetrieveMetadataChangesRequest | FIXED |
+| 510 | WinQuoteRequest | FIXED |
+| 455 | UtcTimeFromLocalTimeRequest | FIXED |
+| 572 | IEntityDataSourceRetrieverService | FIXED |
 
 ---
 
@@ -213,6 +223,12 @@ When integrating a PR:
 
 ### 2026-01-07
 - Verified: Between dates, Left outer join, Multiple filters, Date operators, EntityReference.Name all FIXED
+- Added: RetrieveMetadataChangesRequestExecutor (PR #538) - metadata filtering and projection
+- Added: UtcTimeFromLocalTimeRequestExecutor (PR #455) - time zone conversion
+- Added: WinQuoteRequestExecutor (PR #510) - quote winning with QuoteClose activity
+- Verified: IEntityDataSourceRetrieverService (PR #572) - virtual entity data provider testing already implemented
+- Verified: NullReferenceException fixes (#608, #607) - LIKE, Contains, EndsWith operators handle null values
+- Verified: ExecuteTransactionRequest (#610) - transactional batch execution already implemented
 - Consolidated from multiple tracking documents
 
 ### 2025-11-11
