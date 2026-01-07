@@ -7,13 +7,27 @@ using System.ServiceModel;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor for AddToQueueRequest
+    /// </summary>
     public class AddToQueueRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is AddToQueueRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is AddToQueueRequest;
         }
 
+        /// <summary>
+        /// Executes the AddToQueueRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>AddToQueueResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var addToQueueRequest = (AddToQueueRequest)request;
@@ -67,6 +81,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             };
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of AddToQueueRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(AddToQueueRequest);

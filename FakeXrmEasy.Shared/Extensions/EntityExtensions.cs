@@ -7,15 +7,19 @@ using System.Linq;
 
 namespace FakeXrmEasy.Extensions
 {
+    /// <summary>
+    /// Provides extension methods for <see cref="Entity"/> objects to facilitate cloning,
+    /// attribute manipulation, projection, and join operations within the FakeXrmEasy framework.
+    /// </summary>
     public static class EntityExtensions
     {
         /// <summary>
-        /// Extension method to add an attribute and return the entity itself
+        /// Adds an attribute to the entity and returns the entity instance for fluent chaining.
         /// </summary>
-        /// <param name="e"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="e">The entity to which the attribute will be added.</param>
+        /// <param name="key">The logical name of the attribute.</param>
+        /// <param name="value">The value to assign to the attribute.</param>
+        /// <returns>The same entity instance, allowing method chaining.</returns>
         public static Entity AddAttribute(this Entity e, string key, object value)
         {
             e.Attributes.Add(key, value);
@@ -23,17 +27,23 @@ namespace FakeXrmEasy.Extensions
         }
 
         /// <summary>
-        /// Projects the attributes of entity e so that only the attributes specified in the columnSet are returned
+        /// Projects the attributes of an entity so that only the attributes specified in the column set are returned.
         /// </summary>
-        /// <param name="e"></param>
-        /// <param name="columnSet"></param>
-        /// <param name="alias"></param>
-        /// <returns></returns>
+        /// <param name="e">The source entity containing the attributes to project.</param>
+        /// <param name="columnSet">The column set specifying which attributes to include in the projection.</param>
+        /// <param name="context">The fake context used to resolve metadata and proxy types.</param>
+        /// <returns>A new entity containing only the projected attributes.</returns>
         public static Entity ProjectAttributes(this Entity e, ColumnSet columnSet, XrmFakedContext context)
         {
             return ProjectAttributes(e, new QueryExpression() { ColumnSet = columnSet }, context);
         }
 
+        /// <summary>
+        /// Applies date behavior rules to DateTime attributes on the entity based on the context's configured date behaviors.
+        /// For DateOnly behavior, the time portion is stripped and the value is normalized to midnight UTC.
+        /// </summary>
+        /// <param name="e">The entity whose DateTime attributes should be adjusted.</param>
+        /// <param name="context">The fake context containing the date behavior configuration.</param>
         public static void ApplyDateBehaviour(this Entity e, XrmFakedContext context)
         {
 #if FAKE_XRM_EASY || FAKE_XRM_EASY_2013
@@ -67,6 +77,14 @@ namespace FakeXrmEasy.Extensions
 #endif
         }
 
+        /// <summary>
+        /// Projects attributes from a source entity into a target entity based on a link entity definition.
+        /// Handles both all-columns and specific column projections, including nested link entities.
+        /// </summary>
+        /// <param name="e">The source entity containing the attributes to project.</param>
+        /// <param name="projected">The target entity where projected attributes will be stored.</param>
+        /// <param name="le">The link entity definition specifying which columns to project and the alias to use.</param>
+        /// <param name="context">The fake context used for metadata resolution.</param>
         public static void ProjectAttributes(Entity e, Entity projected, LinkEntity le, XrmFakedContext context)
         {
             var sAlias = string.IsNullOrWhiteSpace(le.EntityAlias) ? le.LinkToEntityName : le.EntityAlias;
@@ -109,6 +127,14 @@ namespace FakeXrmEasy.Extensions
             }
         }
 
+        /// <summary>
+        /// Projects entity attributes based on a QueryExpression, including linked entity columns.
+        /// Creates a new entity with only the requested columns, validating attribute existence against metadata.
+        /// </summary>
+        /// <param name="e">The source entity containing the attributes to project.</param>
+        /// <param name="qe">The query expression defining which columns to include.</param>
+        /// <param name="context">The fake context used for metadata validation and proxy type resolution.</param>
+        /// <returns>A new entity containing only the projected attributes, with null attributes removed.</returns>
         public static Entity ProjectAttributes(this Entity e, QueryExpression qe, XrmFakedContext context)
         {
             if (qe.ColumnSet == null || qe.ColumnSet.AllColumns)
@@ -168,6 +194,11 @@ namespace FakeXrmEasy.Extensions
             }
         }
 
+        /// <summary>
+        /// Removes all attributes with null values from the entity, including aliased values that contain null.
+        /// </summary>
+        /// <param name="entity">The entity from which null attributes will be removed.</param>
+        /// <returns>The same entity instance with null attributes removed.</returns>
         public static Entity RemoveNullAttributes(Entity entity)
         {
             IList<string> nullAttributes = entity.Attributes
@@ -181,6 +212,14 @@ namespace FakeXrmEasy.Extensions
             return entity;
         }
 
+        /// <summary>
+        /// Creates a deep clone of an attribute value, handling all CRM SDK types including
+        /// EntityReference, OptionSetValue, Money, AliasedValue, EntityCollection, and primitive types.
+        /// </summary>
+        /// <param name="attributeValue">The attribute value to clone.</param>
+        /// <param name="context">Optional fake context used to populate EntityReference.Name from metadata.</param>
+        /// <returns>A deep copy of the attribute value, or the original value for value types.</returns>
+        /// <exception cref="Exception">Thrown when the attribute type is not supported for cloning.</exception>
         public static object CloneAttribute(object attributeValue, XrmFakedContext context = null)
         {
             if (attributeValue == null)
@@ -290,6 +329,12 @@ namespace FakeXrmEasy.Extensions
             throw new Exception(string.Format("Attribute type not supported when trying to clone attribute '{0}'", type.ToString()));
         }
 
+        /// <summary>
+        /// Creates a deep clone of an entity, including all attributes, formatted values, and key attributes.
+        /// </summary>
+        /// <param name="e">The entity to clone.</param>
+        /// <param name="context">Optional fake context used for attribute cloning (e.g., populating EntityReference names).</param>
+        /// <returns>A new entity instance with cloned attributes.</returns>
         public static Entity Clone(this Entity e, XrmFakedContext context = null)
         {
             var cloned = new Entity(e.LogicalName);
@@ -318,11 +363,25 @@ namespace FakeXrmEasy.Extensions
             return cloned;
         }
 
+        /// <summary>
+        /// Creates a deep clone of an entity as a specific early-bound entity type.
+        /// </summary>
+        /// <typeparam name="T">The early-bound entity type to create.</typeparam>
+        /// <param name="e">The entity to clone.</param>
+        /// <returns>A new instance of type T with cloned attributes.</returns>
         public static T Clone<T>(this Entity e) where T : Entity
         {
             return (T)e.Clone(typeof(T));
         }
 
+        /// <summary>
+        /// Creates a deep clone of an entity as a specified type, including all attributes,
+        /// formatted values, and key attributes.
+        /// </summary>
+        /// <param name="e">The entity to clone.</param>
+        /// <param name="t">The type to create the cloned entity as. If null, creates a generic Entity.</param>
+        /// <param name="context">Optional fake context used for attribute cloning.</param>
+        /// <returns>A new entity instance of the specified type with cloned attributes.</returns>
         public static Entity Clone(this Entity e, Type t, XrmFakedContext context = null)
         {
             if (t == null)
@@ -356,12 +415,15 @@ namespace FakeXrmEasy.Extensions
         }
 
         /// <summary>
-        /// Extension method to join the attributes of entity e and otherEntity
+        /// Joins attributes from another entity into this entity using aliased attribute names.
+        /// Attributes from the other entity are prefixed with the specified alias.
         /// </summary>
-        /// <param name="e"></param>
-        /// <param name="otherEntity"></param>
-        /// <param name="attributes"></param>
-        /// <returns></returns>
+        /// <param name="e">The primary entity to which attributes will be joined.</param>
+        /// <param name="otherEntity">The related entity containing attributes to join. May be null for left outer joins.</param>
+        /// <param name="columnSet">The column set specifying which attributes to join from the other entity.</param>
+        /// <param name="alias">The alias prefix to use for joined attribute names (e.g., "contact" results in "contact.name").</param>
+        /// <param name="context">The fake context used for metadata validation.</param>
+        /// <returns>The primary entity with joined attributes added as AliasedValue instances.</returns>
         public static Entity JoinAttributes(this Entity e, Entity otherEntity, ColumnSet columnSet, string alias, XrmFakedContext context)
         {
             if (otherEntity == null) return e; //Left Join where otherEntity was not matched
@@ -408,6 +470,16 @@ namespace FakeXrmEasy.Extensions
             return e;
         }
 
+        /// <summary>
+        /// Joins attributes from multiple related entities into this entity using aliased attribute names.
+        /// Each entity's attributes are prefixed with the specified alias.
+        /// </summary>
+        /// <param name="e">The primary entity to which attributes will be joined.</param>
+        /// <param name="otherEntities">The collection of related entities containing attributes to join.</param>
+        /// <param name="columnSet">The column set specifying which attributes to join from the other entities.</param>
+        /// <param name="alias">The alias prefix to use for joined attribute names.</param>
+        /// <param name="context">The fake context used for metadata validation.</param>
+        /// <returns>The primary entity with joined attributes added as AliasedValue instances.</returns>
         public static Entity JoinAttributes(this Entity e, IEnumerable<Entity> otherEntities, ColumnSet columnSet, string alias, XrmFakedContext context)
         {
             foreach (var otherEntity in otherEntities)
@@ -456,11 +528,16 @@ namespace FakeXrmEasy.Extensions
         }
 
         /// <summary>
-        /// Returns the key for the attribute name selected (could an entity reference or a primary key or a guid)
+        /// Returns the key value for an attribute, resolving EntityReference, OptionSetValue, and Money types
+        /// to their underlying values. Used for join and grouping operations.
         /// </summary>
-        /// <param name="e"></param>
-        /// <param name="sAttributeName"></param>
-        /// <returns></returns>
+        /// <param name="e">The entity containing the attribute.</param>
+        /// <param name="sAttributeName">The logical name of the attribute, optionally prefixed with an alias (e.g., "alias.attributename").</param>
+        /// <param name="context">The fake context (currently unused but reserved for future metadata operations).</param>
+        /// <returns>
+        /// The underlying key value: Guid for EntityReference, int for OptionSetValue, decimal for Money,
+        /// the entity's Id for primary key attributes, or Guid.Empty if the attribute doesn't exist.
+        /// </returns>
         public static object KeySelector(this Entity e, string sAttributeName, XrmFakedContext context)
         {
             if (sAttributeName.Contains("."))
@@ -512,16 +589,24 @@ namespace FakeXrmEasy.Extensions
         }
 
         /// <summary>
-        /// Extension method to "hack" internal set properties on sealed classes via reflection
+        /// Sets a property value on an entity using reflection, bypassing normal accessibility restrictions.
+        /// Used to set read-only properties like FormattedValues on SDK classes.
         /// </summary>
-        /// <param name="e"></param>
-        /// <param name="property"></param>
-        /// <param name="value"></param>
+        /// <param name="e">The entity on which to set the property.</param>
+        /// <param name="property">The name of the property to set.</param>
+        /// <param name="value">The value to assign to the property.</param>
         public static void Inject(this Entity e, string property, object value)
         {
             e.GetType().GetProperty(property).SetValue(e, value, null);
         }
 
+        /// <summary>
+        /// Sets an attribute value on the entity only if the attribute does not exist or has a null value.
+        /// Useful for setting default values without overwriting existing data.
+        /// </summary>
+        /// <param name="e">The entity on which to conditionally set the attribute.</param>
+        /// <param name="property">The logical name of the attribute to set.</param>
+        /// <param name="value">The value to assign if the attribute is empty or null.</param>
         public static void SetValueIfEmpty(this Entity e, string property, object value)
         {
             var containsKey = e.Attributes.ContainsKey(property);
@@ -532,10 +617,10 @@ namespace FakeXrmEasy.Extensions
         }
 
         /// <summary>
-        /// ToEntityReference implementation which converts an entity into an entity reference with key attribute info as well
+        /// Converts an entity to an EntityReference, preserving key attribute information for alternate key lookups.
         /// </summary>
-        /// <param name="e">Entity to convert to an Entity Reference</param>
-        /// <returns></returns>
+        /// <param name="e">The entity to convert to an EntityReference.</param>
+        /// <returns>An EntityReference containing the entity's logical name, Id, and key attributes.</returns>
         public static EntityReference ToEntityReferenceWithKeyAttributes(this Entity e)
         {
             var result = e.ToEntityReference();

@@ -14,27 +14,64 @@ namespace FakeXrmEasy.FakeMessageExecutors.CustomExecutors
     /// </summary>
     public class NavigateToNextEntityOrganizationRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// The request name for NavigateToNextEntity
+        /// </summary>
         public static readonly string RequestName = "NavigateToNextEntity";
 
-        // Required Parameters - comment on each key describes the output type of value = request.Prameters[key]
+        /// <summary>
+        /// Required parameter - Workflow Id
+        /// </summary>
         public static readonly string ParameterProcessId = "ProcessId"; // Workflow Id - Guid
+        /// <summary>
+        /// Required parameter - ProcessStage Id
+        /// </summary>
         public static readonly string ParameterNewActiveStageId = "NewActiveStageId"; // ProcessStage Id - Guid
 
+        /// <summary>
+        /// Required parameter - Current entity logical name
+        /// </summary>
         public static readonly string ParameterCurrentEntityLogicalName = "CurrentEntityLogicalName"; // string
+        /// <summary>
+        /// Required parameter - Current entity Id
+        /// </summary>
         public static readonly string ParameterCurrentEntityId = "CurrentEntityId"; // Guid
 
+        /// <summary>
+        /// Required parameter - Next entity logical name
+        /// </summary>
         public static readonly string ParameterNextEntityLogicalName = "NextEntityLogicalName"; // string
+        /// <summary>
+        /// Required parameter - Next entity Id
+        /// </summary>
         public static readonly string ParameterNextEntityId = "NextEntityId"; // Guid
 
+        /// <summary>
+        /// Required parameter - New traversed path
+        /// </summary>
         public static readonly string ParameterNewTraversedPath = "NewTraversedPath"; // string
+        /// <summary>
+        /// Required parameter - Traversed path
+        /// </summary>
         public static readonly string ParameterTraversedPath = "TraversedPath"; // string
 
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request name is NavigateToNextEntity</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             // Since it is a custom OrganizationRequest it can only be execute if the Request Name is correct.
             return request.RequestName.Equals(RequestName);
         }
 
+        /// <summary>
+        /// Executes the NavigateToNextEntity request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>OrganizationResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var orgService = ctx.GetOrganizationService();
@@ -107,6 +144,10 @@ namespace FakeXrmEasy.FakeMessageExecutors.CustomExecutors
             return response;
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of OrganizationRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(OrganizationRequest);

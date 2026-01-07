@@ -4,13 +4,27 @@ using System;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor for CloseQuoteRequest
+    /// </summary>
     public class CloseQuoteRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is CloseQuoteRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is CloseQuoteRequest;
         }
 
+        /// <summary>
+        /// Executes the CloseQuoteRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>CloseQuoteResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var closeRequest = request as CloseQuoteRequest;
@@ -51,6 +65,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return new CloseQuoteResponse();
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of CloseQuoteRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(CloseQuoteRequest);

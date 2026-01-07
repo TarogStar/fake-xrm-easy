@@ -3,7 +3,10 @@
     "allow": [
       "Bash(dotnet build:*)",
       "Bash(dotnet test:*)",
-      "Bash(Select-String -Pattern \"(Failed!|Passed!|Total tests|Failed:|Passed:)\" -Context 0,2)"
+      "Bash(Select-String -Pattern \"(Failed!|Passed!|Total tests|Failed:|Passed:)\" -Context 0,2)",
+      "Skill(orchestration)",
+      "Bash(findstr:*)",
+      "Bash(Select-String \"warning\")"
     ],
     "deny": [],
     "ask": []

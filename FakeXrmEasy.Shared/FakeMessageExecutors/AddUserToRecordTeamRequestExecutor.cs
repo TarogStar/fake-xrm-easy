@@ -7,13 +7,27 @@ using Microsoft.Crm.Sdk.Messages;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor for AddUserToRecordTeamRequest
+    /// </summary>
     public class AddUserToRecordTeamRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is AddUserToRecordTeamRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is AddUserToRecordTeamRequest;
         }
 
+        /// <summary>
+        /// Executes the AddUserToRecordTeamRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>AddUserToRecordTeamResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             AddUserToRecordTeamRequest addReq = (AddUserToRecordTeamRequest)request;
@@ -89,6 +103,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             };
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of AddUserToRecordTeamRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(AddUserToRecordTeamRequest);

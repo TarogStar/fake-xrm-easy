@@ -1,4 +1,4 @@
-﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk;
 using System;
 using System.Activities;
 using System.Collections.Generic;
@@ -6,6 +6,10 @@ using System.Linq;
 
 namespace FakeXrmEasy
 {
+    /// <summary>
+    /// Defines the contract for a faked or real CRM context used for testing.
+    /// Provides methods for initializing data, executing plugins, code activities, and querying entities.
+    /// </summary>
     public interface IXrmContext
     {
         /// <summary>
@@ -138,6 +142,15 @@ namespace FakeXrmEasy
                                      string secureConfiguration)
             where T : class, IPlugin;
 
+        /// <summary>
+        /// Executes a plugin with a custom context, instance, and custom configurations.
+        /// </summary>
+        /// <typeparam name="T">The plugin type.</typeparam>
+        /// <param name="plugCtx">The plugin execution context.</param>
+        /// <param name="instance">The plugin instance to execute.</param>
+        /// <param name="unsecureConfiguration">The unsecure configuration string.</param>
+        /// <param name="secureConfiguration">The secure configuration string.</param>
+        /// <returns>The executed plugin instance.</returns>
         [Obsolete("Use ExecutePluginWith(XrmFakedPluginExecutionContext ctx, IPlugin instance).")]
         IPlugin ExecutePluginWithConfigurations<T>(XrmFakedPluginExecutionContext plugCtx, T instance, string unsecureConfiguration, string secureConfiguration)
             where T : class, IPlugin;

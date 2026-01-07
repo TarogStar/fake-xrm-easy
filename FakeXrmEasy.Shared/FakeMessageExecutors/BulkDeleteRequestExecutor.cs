@@ -6,13 +6,27 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor for BulkDeleteRequest
+    /// </summary>
     public class BulkDeleteRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is BulkDeleteRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is BulkDeleteRequest;
         }
 
+        /// <summary>
+        /// Executes the BulkDeleteRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>BulkDeleteResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var bulkDeleteRequest = (BulkDeleteRequest)request;
@@ -65,6 +79,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return new BulkDeleteResponse { ResponseName = "BulkDeleteResponse", ["JobId"] = jobId};
         }
          
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of BulkDeleteRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(BulkDeleteRequest);

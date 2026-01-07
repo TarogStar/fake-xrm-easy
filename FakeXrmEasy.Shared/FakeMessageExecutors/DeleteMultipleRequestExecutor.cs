@@ -12,12 +12,23 @@ namespace FakeXrmEasy.FakeMessageExecutors
     /// </summary>
     public class DeleteMultipleRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is DeleteMultipleRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is DeleteMultipleRequest ||
                    (request != null && request.RequestName == "DeleteMultiple");
         }
 
+        /// <summary>
+        /// Executes the DeleteMultipleRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>OrganizationResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var deleteMultipleRequest = request as DeleteMultipleRequest;
@@ -85,6 +96,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             }
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of DeleteMultipleRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(DeleteMultipleRequest);

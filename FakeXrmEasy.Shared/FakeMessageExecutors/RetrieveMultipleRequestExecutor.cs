@@ -1,4 +1,4 @@
-﻿using FakeXrmEasy.Extensions;
+using FakeXrmEasy.Extensions;
 using FakeXrmEasy.Extensions.FetchXml;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -9,13 +9,69 @@ using System.Linq;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Handles the execution of <see cref="RetrieveMultipleRequest"/> messages in the faked CRM context.
+    /// This executor simulates retrieving multiple entity records from Dynamics 365/CRM using various query types.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The executor supports three query types:
+    /// <list type="bullet">
+    /// <item><description><see cref="QueryExpression"/> - Standard SDK query with filters, links, and ordering</description></item>
+    /// <item><description><see cref="FetchExpression"/> - FetchXML-based queries including aggregate functions</description></item>
+    /// <item><description><see cref="QueryByAttribute"/> - Simple attribute-based filtering</description></item>
+    /// </list>
+    /// </para>
+    /// <para>
+    /// The executor also handles paging, distinct results, formatted values population,
+    /// and EntityReference Name property resolution.
+    /// </para>
+    /// </remarks>
     public class RetrieveMultipleRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can handle the specified organization request.
+        /// </summary>
+        /// <param name="request">The <see cref="OrganizationRequest"/> to evaluate.</param>
+        /// <returns>
+        /// <c>true</c> if the request is a <see cref="RetrieveMultipleRequest"/>; otherwise, <c>false</c>.
+        /// </returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is RetrieveMultipleRequest;
         }
 
+        /// <summary>
+        /// Executes the retrieve multiple operation, fetching entity records from the faked CRM context.
+        /// </summary>
+        /// <param name="req">The <see cref="RetrieveMultipleRequest"/> containing the query to execute.</param>
+        /// <param name="ctx">The <see cref="XrmFakedContext"/> that provides the in-memory CRM simulation.</param>
+        /// <returns>
+        /// A <see cref="RetrieveMultipleResponse"/> containing an <see cref="EntityCollection"/> with the query results,
+        /// including paging information such as MoreRecords, PagingCookie, and TotalRecordCount.
+        /// </returns>
+        /// <exception cref="PullRequestException">
+        /// Thrown when the query type is not supported (not QueryExpression, FetchExpression, or QueryByAttribute).
+        /// </exception>
+        /// <remarks>
+        /// <para>
+        /// For <see cref="QueryExpression"/> queries, the executor translates the query to LINQ and executes it
+        /// against the in-memory data store.
+        /// </para>
+        /// <para>
+        /// For <see cref="FetchExpression"/> queries, the FetchXML is parsed and converted to a QueryExpression
+        /// before execution. Aggregate FetchXML queries are processed separately to handle grouping and aggregation.
+        /// </para>
+        /// <para>
+        /// For <see cref="QueryByAttribute"/> queries, the executor builds an equivalent QueryExpression
+        /// with conditions for each attribute-value pair.
+        /// </para>
+        /// <para>
+        /// Paging is controlled by the PageInfo property of the query. If not specified, the context's
+        /// MaxRetrieveCount is used as the page size. The response includes MoreRecords and PagingCookie
+        /// properties to support result set paging.
+        /// </para>
+        /// </remarks>
         public OrganizationResponse Execute(OrganizationRequest req, XrmFakedContext ctx)
         {
             var request = req as RetrieveMultipleRequest;
@@ -153,9 +209,14 @@ namespace FakeXrmEasy.FakeMessageExecutors
         }
 
         /// <summary>
-        /// Populates the formmated values property of this entity record based on the proxy types
+        /// Populates the FormattedValues property of an entity based on attribute types.
         /// </summary>
-        /// <param name="e"></param>
+        /// <param name="e">The entity whose FormattedValues collection should be populated.</param>
+        /// <remarks>
+        /// This method iterates through all attributes of the entity and generates formatted string
+        /// representations for certain types (such as Enum values). The formatted values are added
+        /// to the entity's FormattedValues collection if not already present.
+        /// </remarks>
         protected void PopulateFormattedValues(Entity e)
         {
             // Iterate through attributes and retrieve formatted values based on type
@@ -175,6 +236,24 @@ namespace FakeXrmEasy.FakeMessageExecutors
             }
         }
 
+        /// <summary>
+        /// Gets the formatted string representation of an attribute value.
+        /// </summary>
+        /// <param name="value">The attribute value to format.</param>
+        /// <param name="bShouldAddFormattedValue">
+        /// When this method returns, contains <c>true</c> if the formatted value should be added
+        /// to the FormattedValues collection; otherwise, <c>false</c>.
+        /// </param>
+        /// <returns>
+        /// The formatted string representation of the value, or an empty string if no formatting is applicable.
+        /// </returns>
+        /// <remarks>
+        /// Currently supports formatting for:
+        /// <list type="bullet">
+        /// <item><description>Enum values - Returns the enum member name</description></item>
+        /// <item><description>AliasedValue - Recursively formats the underlying value</description></item>
+        /// </list>
+        /// </remarks>
         protected string GetFormattedValueForValue(object value, out bool bShouldAddFormattedValue)
         {
             bShouldAddFormattedValue = false;
@@ -194,15 +273,28 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return sFormattedValue;
         }
 
+        /// <summary>
+        /// Gets the type of organization request that this executor handles.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="Type"/> of <see cref="RetrieveMultipleRequest"/>.
+        /// </returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(RetrieveMultipleRequest);
         }
 
         /// <summary>
-        /// Populates the Name property of EntityReference attributes by looking up the referenced entity's primary name attribute
-        /// Resolves upstream issue #555
+        /// Populates the Name property of EntityReference attributes by looking up the referenced entity's primary name attribute.
         /// </summary>
+        /// <param name="entity">The entity whose EntityReference attributes should have their Name property populated.</param>
+        /// <param name="context">The <see cref="XrmFakedContext"/> containing entity metadata and data.</param>
+        /// <remarks>
+        /// This method resolves upstream issue #555 by ensuring that EntityReference attributes
+        /// have their Name property set based on the referenced entity's primary name attribute.
+        /// The Name is only populated if it is not already set and the referenced entity exists
+        /// in the context with valid metadata.
+        /// </remarks>
         private void PopulateEntityReferenceNames(Entity entity, XrmFakedContext context)
         {
             if (entity == null || context == null)
@@ -239,6 +331,18 @@ namespace FakeXrmEasy.FakeMessageExecutors
             }
         }
 
+        /// <summary>
+        /// Filters a list of entities to return only distinct records based on logical name and attribute values.
+        /// </summary>
+        /// <param name="input">The collection of entities to filter.</param>
+        /// <returns>
+        /// A list containing only unique entities. Two entities are considered equal if they have
+        /// the same LogicalName and identical attribute key-value pairs.
+        /// </returns>
+        /// <remarks>
+        /// This method is used to handle the Distinct property of QueryExpression queries.
+        /// Entity comparison is based on both the logical name and all attribute values.
+        /// </remarks>
         private static List<Entity> GetDistinctEntities(IEnumerable<Entity> input)
         {
             var output = new List<Entity>();

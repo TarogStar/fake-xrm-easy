@@ -672,8 +672,6 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             Assert.Equal(account2["name"], resultAccount["name"]);
 
             //check relationship
-            Assert.NotNull(resultAccount.RelatedEntities.FirstOrDefault(x => x.Key.SchemaName == "contact_customer_accounts"));
-
             var relatedEntityCollection = resultAccount.RelatedEntities.FirstOrDefault(x => x.Key.SchemaName == "contact_customer_accounts");
             Assert.NotNull(relatedEntityCollection.Value);
             Assert.NotNull(relatedEntityCollection.Value.Entities);

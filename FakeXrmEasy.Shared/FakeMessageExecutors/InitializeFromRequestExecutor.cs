@@ -7,18 +7,56 @@ using System.ServiceModel;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Implements the fake message executor for <see cref="InitializeFromRequest"/>.
+    /// This executor simulates the CRM InitializeFrom operation, which creates a new entity record
+    /// pre-populated with values mapped from an existing source entity based on entity mappings.
+    /// </summary>
+    /// <remarks>
+    /// The InitializeFrom operation is commonly used in Dynamics 365 to create related records
+    /// with pre-populated fields, such as creating a Quote from an Opportunity or an Order from a Quote.
+    /// This executor queries the entitymap and attributemap entities to determine which fields
+    /// should be copied from the source to the target entity.
+    /// </remarks>
     public class InitializeFromRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can handle the specified organization request.
+        /// </summary>
+        /// <param name="request">The organization request to evaluate.</param>
+        /// <returns><c>true</c> if the request is an <see cref="InitializeFromRequest"/>; otherwise, <c>false</c>.</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is InitializeFromRequest;
         }
 
+        /// <summary>
+        /// Gets the type of organization request that this executor is responsible for handling.
+        /// </summary>
+        /// <returns>The <see cref="Type"/> of <see cref="InitializeFromRequest"/>.</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(InitializeFromRequest);
         }
 
+        /// <summary>
+        /// Executes the InitializeFrom request, creating a new entity pre-populated with mapped attribute values
+        /// from the source entity.
+        /// </summary>
+        /// <param name="request">The <see cref="InitializeFromRequest"/> containing the source entity reference and target entity name.</param>
+        /// <param name="ctx">The <see cref="XrmFakedContext"/> providing the in-memory CRM context for the operation.</param>
+        /// <returns>
+        /// An <see cref="InitializeFromResponse"/> containing the newly created entity with mapped attributes.
+        /// The entity has an empty GUID as its Id since it has not yet been saved to the database.
+        /// </returns>
+        /// <exception cref="FaultException{OrganizationServiceFault}">Thrown when the request is null or cannot be cast to InitializeFromRequest.</exception>
+        /// <exception cref="PullRequestException">Thrown when TargetFieldType is not set to All, as other field type filtering is not yet implemented.</exception>
+        /// <remarks>
+        /// This method queries the entitymap and attributemap entities to find attribute mappings between the source
+        /// and target entities. If proxy types are configured, the returned entity will be an instance of the
+        /// appropriate early-bound class. Entity reference fields are automatically converted from GUID values
+        /// to proper EntityReference objects.
+        /// </remarks>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var req = request as InitializeFromRequest;

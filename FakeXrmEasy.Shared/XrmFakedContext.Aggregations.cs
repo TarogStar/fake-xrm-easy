@@ -7,8 +7,23 @@ using System.Xml.Linq;
 
 namespace FakeXrmEasy
 {
+    /// <summary>
+    /// Partial class containing FetchXML aggregate query processing functionality for the faked CRM context.
+    /// Provides support for aggregate functions (COUNT, SUM, AVG, MIN, MAX) and grouping operations
+    /// in FetchXML queries within the in-memory test environment.
+    /// </summary>
     public partial class XrmFakedContext
     {
+        /// <summary>
+        /// Processes an aggregate FetchXML query and returns the aggregated results.
+        /// Supports aggregate functions including COUNT, COUNTCOLUMN, MIN, MAX, AVG, and SUM,
+        /// as well as grouping by attributes with optional date grouping.
+        /// </summary>
+        /// <param name="ctx">The faked CRM context for query execution.</param>
+        /// <param name="xmlDoc">The parsed FetchXML document containing the aggregate query.</param>
+        /// <param name="resultOfQuery">The pre-filtered list of entities to aggregate.</param>
+        /// <returns>A list of entities containing the aggregated results with aliased values.</returns>
+        /// <exception cref="Exception">Thrown when the FetchXML contains invalid aggregate syntax or unsupported operations.</exception>
         internal static List<Entity> ProcessAggregateFetchXml(XrmFakedContext ctx, XDocument xmlDoc, List<Entity> resultOfQuery)
         {
             // Validate that <all-attributes> is not present,
@@ -143,6 +158,14 @@ namespace FakeXrmEasy
             return OrderAggregateResult(xmlDoc, aggregateResult.AsQueryable());
         }
 
+        /// <summary>
+        /// Orders the aggregate query results based on the order clauses in the FetchXML document.
+        /// Aggregate queries must use aliases for ordering, not attribute names.
+        /// </summary>
+        /// <param name="xmlDoc">The FetchXML document containing order clauses.</param>
+        /// <param name="result">The aggregate query results to order.</param>
+        /// <returns>The ordered list of aggregate result entities.</returns>
+        /// <exception cref="Exception">Thrown when an attribute is specified instead of an alias for ordering.</exception>
         private static List<Entity> OrderAggregateResult(XDocument xmlDoc, IQueryable<Entity> result)
         {
             var ns = xmlDoc.Root.Name.Namespace;
@@ -171,6 +194,14 @@ namespace FakeXrmEasy
             return result.ToList();
         }
 
+        /// <summary>
+        /// Processes aggregate functions for a single group of entities and returns the aggregated result.
+        /// Creates a new entity with aliased values containing the aggregate results.
+        /// </summary>
+        /// <param name="entityName">The logical name of the entity being aggregated.</param>
+        /// <param name="entities">The collection of entities to aggregate.</param>
+        /// <param name="aggregates">The list of aggregate functions to apply.</param>
+        /// <returns>An entity containing the aggregated values as <see cref="AliasedValue"/> attributes.</returns>
         private static Entity ProcessAggregatesForSingleGroup(string entityName, IEnumerable<Entity> entities, IList<FetchAggregate> aggregates)
         {
             var ent = new Entity(entityName);
@@ -193,6 +224,15 @@ namespace FakeXrmEasy
             return ent;
         }
 
+        /// <summary>
+        /// Processes aggregate functions with grouping and returns the grouped aggregate results.
+        /// Groups entities by the specified grouping criteria and applies aggregate functions to each group.
+        /// </summary>
+        /// <param name="entityName">The logical name of the entity being aggregated.</param>
+        /// <param name="resultOfQuery">The list of entities to group and aggregate.</param>
+        /// <param name="aggregates">The list of aggregate functions to apply to each group.</param>
+        /// <param name="groups">The list of grouping definitions specifying how to group the entities.</param>
+        /// <returns>A list of entities, one per group, containing both group values and aggregated values.</returns>
         private static List<Entity> ProcessGroupedAggregate(string entityName, IList<Entity> resultOfQuery, IList<FetchAggregate> aggregates, IList<FetchGrouping> groups)
         {
             // Group by the groupBy-attribute
@@ -228,11 +268,28 @@ namespace FakeXrmEasy
             return result;
         }
 
+        /// <summary>
+        /// Abstract base class for FetchXML aggregate functions.
+        /// Provides common properties and processing logic for aggregate operations.
+        /// </summary>
         private abstract class FetchAggregate
         {
+            /// <summary>
+            /// Gets or sets the logical name of the attribute to aggregate.
+            /// </summary>
             public string Attribute { get; set; }
+
+            /// <summary>
+            /// Gets or sets the output alias for the aggregated value in the result.
+            /// </summary>
             public string OutputAlias { get; set; }
 
+            /// <summary>
+            /// Processes the aggregate function over a collection of entities.
+            /// Extracts the attribute values and delegates to the specific aggregate implementation.
+            /// </summary>
+            /// <param name="entities">The entities to aggregate.</param>
+            /// <returns>The aggregated result value.</returns>
             public object Process(IEnumerable<Entity> entities)
             {
                 return AggregateValues(entities.Select(e =>
@@ -240,11 +297,25 @@ namespace FakeXrmEasy
                 ));
             }
 
+            /// <summary>
+            /// When overridden in a derived class, performs the specific aggregation logic on the values.
+            /// </summary>
+            /// <param name="values">The attribute values to aggregate.</param>
+            /// <returns>The aggregated result.</returns>
             protected abstract object AggregateValues(IEnumerable<object> values);
         }
 
+        /// <summary>
+        /// Abstract base class for aggregate functions that handle aliased values.
+        /// Unwraps <see cref="AliasedValue"/> instances before performing aggregation.
+        /// </summary>
         private abstract class AliasedAggregate : FetchAggregate
         {
+            /// <summary>
+            /// Processes values by unwrapping any AliasedValue instances before aggregation.
+            /// </summary>
+            /// <param name="values">The values to aggregate, which may be wrapped in AliasedValue.</param>
+            /// <returns>The aggregated result.</returns>
             protected override object AggregateValues(IEnumerable<object> values)
             {
                 var lst = values.Where(x => x != null);
@@ -257,35 +328,69 @@ namespace FakeXrmEasy
                 return AggregateAliasedValues(lst);
             }
 
+            /// <summary>
+            /// When overridden in a derived class, performs the specific aggregation on unwrapped values.
+            /// </summary>
+            /// <param name="values">The unwrapped attribute values to aggregate.</param>
+            /// <returns>The aggregated result.</returns>
             protected abstract object AggregateAliasedValues(IEnumerable<object> values);
         }
 
+        /// <summary>
+        /// Aggregate function that counts all rows including those with null values.
+        /// Equivalent to COUNT(*) in SQL.
+        /// </summary>
         private class CountAggregate : FetchAggregate
         {
+            /// <summary>
+            /// Returns the count of all values in the collection.
+            /// </summary>
             protected override object AggregateValues(IEnumerable<object> values)
             {
                 return values.Count();
             }
         }
 
+        /// <summary>
+        /// Aggregate function that counts non-null values in a column.
+        /// Equivalent to COUNT(column) in SQL.
+        /// </summary>
         private class CountColumnAggregate : AliasedAggregate
         {
+            /// <summary>
+            /// Returns the count of non-null values in the collection.
+            /// </summary>
             protected override object AggregateAliasedValues(IEnumerable<object> values)
             {
                 return values.Where(x => x != null).Count();
             }
         }
 
+        /// <summary>
+        /// Aggregate function that counts distinct non-null values in a column.
+        /// Equivalent to COUNT(DISTINCT column) in SQL.
+        /// </summary>
         private class CountDistinctAggregate : AliasedAggregate
         {
+            /// <summary>
+            /// Returns the count of distinct non-null values in the collection.
+            /// </summary>
             protected override object AggregateAliasedValues(IEnumerable<object> values)
             {
                 return values.Where(x => x != null).Distinct().Count();
             }
         }
 
+        /// <summary>
+        /// Aggregate function that returns the minimum value in a column.
+        /// Supports decimal, Money, int, float, double, and DateTime types.
+        /// </summary>
         private class MinAggregate : AliasedAggregate
         {
+            /// <summary>
+            /// Returns the minimum value from the collection.
+            /// </summary>
+            /// <exception cref="Exception">Thrown when the value type is not supported for MIN aggregation.</exception>
             protected override object AggregateAliasedValues(IEnumerable<object> values)
             {
                 var lst = values.Where(x => x != null);
@@ -328,8 +433,16 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Aggregate function that returns the maximum value in a column.
+        /// Supports decimal, Money, int, float, double, and DateTime types.
+        /// </summary>
         private class MaxAggregate : AliasedAggregate
         {
+            /// <summary>
+            /// Returns the maximum value from the collection.
+            /// </summary>
+            /// <exception cref="Exception">Thrown when the value type is not supported for MAX aggregation.</exception>
             protected override object AggregateAliasedValues(IEnumerable<object> values)
             {
                 var lst = values.Where(x => x != null);
@@ -372,8 +485,16 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Aggregate function that returns the average value in a column.
+        /// Supports decimal, Money, int, float, and double types.
+        /// </summary>
         private class AvgAggregate : AliasedAggregate
         {
+            /// <summary>
+            /// Returns the average of values in the collection.
+            /// </summary>
+            /// <exception cref="Exception">Thrown when the value type is not supported for AVG aggregation.</exception>
             protected override object AggregateAliasedValues(IEnumerable<object> values)
             {
                 var lst = values.Where(x => x != null);
@@ -411,8 +532,16 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Aggregate function that returns the sum of values in a column.
+        /// Supports decimal, Money, int, float, and double types.
+        /// </summary>
         private class SumAggregate : AliasedAggregate
         {
+            /// <summary>
+            /// Returns the sum of values in the collection.
+            /// </summary>
+            /// <exception cref="Exception">Thrown when the value type is not supported for SUM aggregation.</exception>
             protected override object AggregateAliasedValues(IEnumerable<object> values)
             {
                 var lst = values.ToList().Where(x => x != null);
@@ -449,30 +578,63 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Abstract base class for FetchXML grouping operations.
+        /// Provides common properties and processing logic for group-by operations.
+        /// </summary>
         private abstract class FetchGrouping
         {
+            /// <summary>
+            /// Gets or sets the logical name of the attribute to group by.
+            /// </summary>
             public string Attribute { get; set; }
+
+            /// <summary>
+            /// Gets or sets the output alias for the grouping value in the result.
+            /// </summary>
             public string OutputAlias { get; set; }
 
+            /// <summary>
+            /// Processes an entity and extracts the group value for this grouping.
+            /// </summary>
+            /// <param name="entity">The entity to extract the group value from.</param>
+            /// <returns>A comparable value used for grouping.</returns>
             public IComparable Process(Entity entity)
             {
                 var attr = entity.Contains(Attribute) ? entity[Attribute] : null;
                 return FindGroupValue(attr);
             }
 
+            /// <summary>
+            /// When overridden in a derived class, extracts the group value from an attribute value.
+            /// </summary>
+            /// <param name="attributeValue">The attribute value to process.</param>
+            /// <returns>A comparable value used for grouping.</returns>
             public abstract IComparable FindGroupValue(object attributeValue);
         }
 
         /// <summary>
-        /// Used to compare array of objects, in order to group by a variable number of conditions.
+        /// Equality comparer for arrays of comparable objects.
+        /// Used to compare grouping key arrays when grouping by multiple attributes.
         /// </summary>
         private class ArrayComparer : IEqualityComparer<IComparable[]>
         {
+            /// <summary>
+            /// Determines whether two arrays are equal by comparing their elements sequentially.
+            /// </summary>
+            /// <param name="x">The first array to compare.</param>
+            /// <param name="y">The second array to compare.</param>
+            /// <returns>True if the arrays contain equal elements in the same order; otherwise, false.</returns>
             public bool Equals(IComparable[] x, IComparable[] y)
             {
                 return x.SequenceEqual(y);
             }
 
+            /// <summary>
+            /// Returns a hash code for the array based on XOR of element hash codes.
+            /// </summary>
+            /// <param name="obj">The array to compute a hash code for.</param>
+            /// <returns>A hash code for the array.</returns>
             public int GetHashCode(IComparable[] obj)
             {
                 int result = 0;
@@ -484,20 +646,42 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Wrapper class that makes EntityReference comparable for use in grouping operations.
+        /// Compares entity references by their Id and LogicalName.
+        /// </summary>
         private class ComparableEntityReference : IComparable
         {
+            /// <summary>
+            /// Gets the wrapped entity reference.
+            /// </summary>
             public EntityReference entityReference { get; private set; }
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ComparableEntityReference"/> class.
+            /// </summary>
+            /// <param name="entityReference">The entity reference to wrap.</param>
             public ComparableEntityReference(EntityReference entityReference)
             {
                 this.entityReference = entityReference;
             }
 
+            /// <summary>
+            /// Compares this entity reference to another object.
+            /// </summary>
+            /// <param name="obj">The object to compare to.</param>
+            /// <returns>0 if equal; otherwise, 1.</returns>
             int IComparable.CompareTo(object obj)
             {
                 return Equals(obj) ? 0 : 1;
             }
 
+            /// <summary>
+            /// Determines whether this entity reference equals another object.
+            /// Compares by Id and LogicalName.
+            /// </summary>
+            /// <param name="obj">The object to compare.</param>
+            /// <returns>True if the objects represent the same entity reference.</returns>
             public override bool Equals(object obj)
             {
                 EntityReference other;
@@ -516,14 +700,28 @@ namespace FakeXrmEasy
                 return entityReference.Id == other.Id && entityReference.LogicalName == other.LogicalName;
             }
 
+            /// <summary>
+            /// Returns a hash code based on the entity's LogicalName and Id.
+            /// </summary>
+            /// <returns>A hash code for this entity reference.</returns>
             public override int GetHashCode()
             {
                 return (entityReference.LogicalName == null ? 0 : entityReference.LogicalName.GetHashCode()) ^ entityReference.Id.GetHashCode();
             }
         }
 
+        /// <summary>
+        /// Grouping class that groups by the raw attribute value.
+        /// Handles EntityReference values by wrapping them in ComparableEntityReference.
+        /// </summary>
         private class SimpleValueGroup : FetchGrouping
         {
+            /// <summary>
+            /// Extracts the group value from an attribute value.
+            /// EntityReference values are wrapped for comparison; other values are used directly.
+            /// </summary>
+            /// <param name="attributeValue">The attribute value to use for grouping.</param>
+            /// <returns>A comparable value for grouping.</returns>
             public override IComparable FindGroupValue(object attributeValue)
             {
                 if (attributeValue is EntityReference)
@@ -537,20 +735,42 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Specifies the type of date grouping to apply in aggregate queries.
+        /// </summary>
         private enum DateGroupType
         {
+            /// <summary>Group by the full DateTime value.</summary>
             DateTime,
+            /// <summary>Group by day of month (1-31).</summary>
             Day,
+            /// <summary>Group by week of year.</summary>
             Week,
+            /// <summary>Group by month (1-12).</summary>
             Month,
+            /// <summary>Group by quarter (1-4).</summary>
             Quarter,
+            /// <summary>Group by year.</summary>
             Year
         }
 
+        /// <summary>
+        /// Grouping class that groups DateTime values by a specified date component
+        /// such as day, week, month, quarter, or year.
+        /// </summary>
         private class DateTimeGroup : FetchGrouping
         {
+            /// <summary>
+            /// Gets or sets the type of date grouping to apply.
+            /// </summary>
             public DateGroupType Type { get; set; }
 
+            /// <summary>
+            /// Extracts the appropriate date component from a DateTime value for grouping.
+            /// </summary>
+            /// <param name="attributeValue">The DateTime value to extract the component from.</param>
+            /// <returns>The date component value (day, week, month, quarter, year, or full DateTime).</returns>
+            /// <exception cref="Exception">Thrown when the value is not a DateTime or when an unknown DateGroupType is specified.</exception>
             public override IComparable FindGroupValue(object attributeValue)
             {
                 if (attributeValue == null) return null;

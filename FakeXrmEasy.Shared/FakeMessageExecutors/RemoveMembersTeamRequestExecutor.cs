@@ -7,13 +7,27 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor for RemoveMembersTeamRequest
+    /// </summary>
     public class RemoveMembersTeamRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is RemoveMembersTeamRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is RemoveMembersTeamRequest;
         }
 
+        /// <summary>
+        /// Executes the RemoveMembersTeamRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>RemoveMembersTeamResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var req = (RemoveMembersTeamRequest)request;
@@ -71,6 +85,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return new RemoveMembersTeamResponse();
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of RemoveMembersTeamRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(RemoveMembersTeamRequest);

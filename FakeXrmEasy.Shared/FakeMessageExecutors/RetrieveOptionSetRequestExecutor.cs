@@ -4,13 +4,35 @@ using System;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor that handles <see cref="RetrieveOptionSetRequest"/> messages.
+    /// Retrieves global OptionSet metadata from the faked CRM context's metadata cache.
+    /// </summary>
     public class RetrieveOptionSetRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can handle the specified organization request.
+        /// </summary>
+        /// <param name="request">The organization request to evaluate.</param>
+        /// <returns><c>true</c> if the request is a <see cref="RetrieveOptionSetRequest"/>; otherwise, <c>false</c>.</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is RetrieveOptionSetRequest;
         }
 
+        /// <summary>
+        /// Executes the <see cref="RetrieveOptionSetRequest"/> and returns the corresponding OptionSet metadata.
+        /// </summary>
+        /// <param name="request">The organization request to execute. Must be a <see cref="RetrieveOptionSetRequest"/>.</param>
+        /// <param name="ctx">The faked XRM context containing the OptionSet metadata cache.</param>
+        /// <returns>
+        /// A <see cref="RetrieveOptionSetResponse"/> containing the <see cref="Microsoft.Xrm.Sdk.Metadata.OptionSetMetadata"/>
+        /// for the requested global OptionSet in the Results collection.
+        /// </returns>
+        /// <remarks>
+        /// The OptionSet can be retrieved by Name. Retrieval by MetadataId is not currently supported.
+        /// Use <see cref="XrmFakedContext.OptionSetValuesMetadata"/> to initialize OptionSet metadata before executing this request.
+        /// </remarks>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var retrieveOptionSetRequest = (RetrieveOptionSetRequest)request;
@@ -45,6 +67,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return response;
         }
 
+        /// <summary>
+        /// Gets the type of organization request that this executor is responsible for handling.
+        /// </summary>
+        /// <returns>The <see cref="Type"/> of <see cref="RetrieveOptionSetRequest"/>.</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(RetrieveOptionSetRequest);

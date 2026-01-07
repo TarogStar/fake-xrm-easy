@@ -5,13 +5,32 @@ using System.Linq;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor that handles AssociateRequest messages for creating relationships between CRM entities.
+    /// Supports both Many-to-Many (N:N) relationships by creating intersect entity records and
+    /// One-to-Many (1:N) relationships by updating the lookup field on the related entity.
+    /// </summary>
     public class AssociateRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can handle the specified organization request.
+        /// </summary>
+        /// <param name="request">The organization request to evaluate.</param>
+        /// <returns>True if the request is an AssociateRequest; otherwise, false.</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is AssociateRequest;
         }
 
+        /// <summary>
+        /// Executes the AssociateRequest to create an association between CRM entities.
+        /// For Many-to-Many relationships, creates a record in the intersect entity.
+        /// For One-to-Many relationships, updates the lookup field on the related entity.
+        /// </summary>
+        /// <param name="request">The AssociateRequest containing the target entity, related entities, and relationship information.</param>
+        /// <param name="ctx">The XrmFakedContext providing the in-memory CRM context and organization service.</param>
+        /// <returns>An AssociateResponse indicating successful completion of the association.</returns>
+        /// <exception cref="Exception">Thrown when the request is not an AssociateRequest, the relationship does not exist in the metadata cache, or the target/related entities do not exist.</exception>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var associateRequest = request as AssociateRequest;
@@ -95,6 +114,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return new AssociateResponse();
         }
 
+        /// <summary>
+        /// Gets the type of organization request that this executor is responsible for handling.
+        /// </summary>
+        /// <returns>The Type of AssociateRequest.</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(AssociateRequest);

@@ -7,13 +7,27 @@ using FakeXrmEasy.Extensions;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor for InsertOptionValueRequest
+    /// </summary>
     public class InsertOptionValueRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is InsertOptionValueRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is InsertOptionValueRequest;
         }
 
+        /// <summary>
+        /// Executes the InsertOptionValueRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>InsertOptionValueResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var req = request as InsertOptionValueRequest;
@@ -83,6 +97,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return new InsertOptionValueResponse();
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of InsertOptionValueRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(InsertOptionValueRequest);

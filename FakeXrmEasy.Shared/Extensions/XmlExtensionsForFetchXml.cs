@@ -9,6 +9,9 @@ using System.Globalization;
 
 namespace FakeXrmEasy.Extensions.FetchXml
 {
+    /// <summary>
+    /// Helper methods that translate FetchXML documents into the SDK query representation used by FakeXrmEasy.
+    /// </summary>
     public static class XmlExtensionsForFetchXml
     {
         private static IEnumerable<ConditionOperator> OperatorsNotToConvertArray = new[]
@@ -35,6 +38,12 @@ namespace FakeXrmEasy.Extensions.FetchXml
             ConditionOperator.InFiscalYear
         };
 
+        /// <summary>
+        /// Checks whether the given attribute on the element is logically true ("true" or "1").
+        /// </summary>
+        /// <param name="elem">The element that contains the attribute.</param>
+        /// <param name="attributeName">The attribute name to inspect.</param>
+        /// <returns><c>true</c> when the attribute exists and represents truth; otherwise <c>false</c>.</returns>
         public static bool IsAttributeTrue(this XElement elem, string attributeName)
         {
             var val = elem.GetAttribute(attributeName)?.Value;
@@ -43,16 +52,32 @@ namespace FakeXrmEasy.Extensions.FetchXml
                 || "1".Equals(val, StringComparison.InvariantCultureIgnoreCase);
         }
 
+        /// <summary>
+        /// Indicates whether the FetchXML document aggregates results.
+        /// </summary>
+        /// <param name="doc">The FetchXML document.</param>
+        /// <returns><c>true</c> when the root fetch node has aggregate="true".</returns>
         public static bool IsAggregateFetchXml(this XDocument doc)
         {
             return doc.Root.IsAttributeTrue("aggregate");
         }
 
+        /// <summary>
+        /// Indicates whether the FetchXML request is marked as distinct.
+        /// </summary>
+        /// <param name="doc">The FetchXML document.</param>
+        /// <returns><c>true</c> when the root fetch node has distinct="true".</returns>
         public static bool IsDistincFetchXml(this XDocument doc)
         {
             return doc.Root.IsAttributeTrue("distinct");
         }
 
+        /// <summary>
+        /// Validates a FetchXML node ensuring the required attributes are present based on the node type.
+        /// </summary>
+        /// <param name="elem">The node to validate.</param>
+        /// <returns><c>true</c> for known nodes with the needed attributes.</returns>
+        /// <exception cref="Exception">Thrown when the node type is unknown or missing mandatory attributes.</exception>
         public static bool IsFetchXmlNodeValid(this XElement elem)
         {
             switch (elem.Name.LocalName)
@@ -98,11 +123,22 @@ namespace FakeXrmEasy.Extensions.FetchXml
             }
         }
 
+        /// <summary>
+        /// Retrieves an attribute from an element using the local name.
+        /// </summary>
+        /// <param name="elem">The source element.</param>
+        /// <param name="sAttributeName">The attribute local name.</param>
+        /// <returns>The matching attribute or <c>null</c> if it does not exist.</returns>
         public static XAttribute GetAttribute(this XElement elem, string sAttributeName)
         {
             return elem.Attributes().FirstOrDefault((a => a.Name.LocalName.Equals(sAttributeName)));
         }
 
+        /// <summary>
+        /// Converts an entity node into a <see cref="ColumnSet"/> representation.
+        /// </summary>
+        /// <param name="el">The entity element.</param>
+        /// <returns>A populated <see cref="ColumnSet"/> honoring all-attributes or explicit attribute declarations.</returns>
         public static ColumnSet ToColumnSet(this XElement el)
         {
             var allAttributes = el.Elements()
@@ -123,6 +159,12 @@ namespace FakeXrmEasy.Extensions.FetchXml
             return new ColumnSet(attributes);
         }
 
+        /// <summary>
+        /// Reads the top attribute and converts it into an integer value.
+        /// </summary>
+        /// <param name="el">The fetch element.</param>
+        /// <returns>The parsed top count, or <c>null</c> when not specified.</returns>
+        /// <exception cref="Exception">Thrown when the attribute cannot be parsed.</exception>
         public static int? ToTopCount(this XElement el)
         {
             var countAttr = el.GetAttribute("top");
@@ -135,6 +177,12 @@ namespace FakeXrmEasy.Extensions.FetchXml
             return iCount;
         }
 
+        /// <summary>
+        /// Reads the count attribute and converts it into an integer value.
+        /// </summary>
+        /// <param name="el">The fetch element.</param>
+        /// <returns>The parsed count, or <c>null</c> when not specified.</returns>
+        /// <exception cref="Exception">Thrown when the attribute cannot be parsed.</exception>
         public static int? ToCount(this XElement el)
         {
             var countAttr = el.GetAttribute("count");
@@ -148,6 +196,12 @@ namespace FakeXrmEasy.Extensions.FetchXml
         }
 
 
+        /// <summary>
+        /// Determines whether the caller requested the total record count in the FetchXML.
+        /// </summary>
+        /// <param name="el">The fetch element.</param>
+        /// <returns><c>true</c> when returntotalrecordcount is truthy.</returns>
+        /// <exception cref="Exception">Thrown when the attribute cannot be parsed.</exception>
         public static bool ToReturnTotalRecordCount(this XElement el)
         {
             var returnTotalRecordCountAttr = el.GetAttribute("returntotalrecordcount");
@@ -160,6 +214,12 @@ namespace FakeXrmEasy.Extensions.FetchXml
             return bReturnCount;
         }
 
+        /// <summary>
+        /// Parses the page attribute from the fetch element.
+        /// </summary>
+        /// <param name="el">The fetch element.</param>
+        /// <returns>The page number or <c>null</c> if not present.</returns>
+        /// <exception cref="Exception">Thrown when the attribute cannot be parsed.</exception>
         public static int? ToPageNumber(this XElement el)
         {
             var pageAttr = el.GetAttribute("page");
@@ -172,6 +232,11 @@ namespace FakeXrmEasy.Extensions.FetchXml
             return iPage;
         }
 
+        /// <summary>
+        /// Converts the FetchXML document root into a <see cref="ColumnSet"/>.
+        /// </summary>
+        /// <param name="xlDoc">The FetchXML document.</param>
+        /// <returns>The resolved column set.</returns>
         public static ColumnSet ToColumnSet(this XDocument xlDoc)
         {
             //Check if all-attributes exist
@@ -182,6 +247,11 @@ namespace FakeXrmEasy.Extensions.FetchXml
         }
 
 
+        /// <summary>
+        /// Gets the top attribute from the FetchXML document.
+        /// </summary>
+        /// <param name="xlDoc">The FetchXML document.</param>
+        /// <returns>The parsed top count.</returns>
         public static int? ToTopCount(this XDocument xlDoc)
         {
             //Check if all-attributes exist
@@ -190,6 +260,11 @@ namespace FakeXrmEasy.Extensions.FetchXml
                     .ToTopCount();
         }
 
+        /// <summary>
+        /// Gets the count attribute from the FetchXML document.
+        /// </summary>
+        /// <param name="xlDoc">The FetchXML document.</param>
+        /// <returns>The parsed count.</returns>
         public static int? ToCount(this XDocument xlDoc)
         {
             //Check if all-attributes exist
@@ -198,6 +273,11 @@ namespace FakeXrmEasy.Extensions.FetchXml
                     .ToCount();
         }
 
+        /// <summary>
+        /// Indicates whether the FetchXML request asked for the total record count.
+        /// </summary>
+        /// <param name="xlDoc">The FetchXML document.</param>
+        /// <returns><c>true</c> when returntotalrecordcount evaluates to true.</returns>
         public static bool ToReturnTotalRecordCount(this XDocument xlDoc)
         {
             return xlDoc.Elements()   //fetch
@@ -206,6 +286,11 @@ namespace FakeXrmEasy.Extensions.FetchXml
         }
 
 
+        /// <summary>
+        /// Gets the requested page number from the FetchXML document.
+        /// </summary>
+        /// <param name="xlDoc">The FetchXML document.</param>
+        /// <returns>The parsed page number or <c>null</c>.</returns>
         public static int? ToPageNumber(this XDocument xlDoc)
         {
             //Check if all-attributes exist
@@ -214,6 +299,12 @@ namespace FakeXrmEasy.Extensions.FetchXml
                     .ToPageNumber();
         }
 
+        /// <summary>
+        /// Converts the FetchXML filter nodes into a <see cref="FilterExpression"/> tree.
+        /// </summary>
+        /// <param name="xlDoc">The FetchXML document.</param>
+        /// <param name="ctx">The fake context used to resolve metadata.</param>
+        /// <returns>A combined filter expression or <c>null</c> when no filters exist.</returns>
         public static FilterExpression ToCriteria(this XDocument xlDoc, XrmFakedContext ctx)
         {
             var filters = xlDoc.Elements()   //fetch
@@ -240,6 +331,11 @@ namespace FakeXrmEasy.Extensions.FetchXml
             return combinedFilter;
         }
 
+        /// <summary>
+        /// Traverses the XML tree to find the entity name associated with a condition.
+        /// </summary>
+        /// <param name="el">The condition element.</param>
+        /// <returns>The logical name of the owning entity or <c>null</c>.</returns>
         public static string GetAssociatedEntityNameForConditionExpression(this XElement el)
         {
 
@@ -256,6 +352,12 @@ namespace FakeXrmEasy.Extensions.FetchXml
             return null;
         }
 
+        /// <summary>
+        /// Converts a link-entity node into a <see cref="LinkEntity"/> object.
+        /// </summary>
+        /// <param name="el">The link-entity element.</param>
+        /// <param name="ctx">The fake context used for nested conversions.</param>
+        /// <returns>A populated <see cref="LinkEntity"/>.</returns>
         public static LinkEntity ToLinkEntity(this XElement el, XrmFakedContext ctx)
         {
             //Create this node
@@ -323,6 +425,12 @@ namespace FakeXrmEasy.Extensions.FetchXml
             return linkEntity;
         }
 
+        /// <summary>
+        /// Converts all link-entity nodes under the root entity into <see cref="LinkEntity"/> instances.
+        /// </summary>
+        /// <param name="xlDoc">The FetchXML document.</param>
+        /// <param name="ctx">The fake context used for nested conversions.</param>
+        /// <returns>A list of link entities.</returns>
         public static List<LinkEntity> ToLinkEntities(this XDocument xlDoc, XrmFakedContext ctx)
         {
             return xlDoc.Elements()   //fetch
@@ -333,6 +441,11 @@ namespace FakeXrmEasy.Extensions.FetchXml
                     .ToList();
         }
 
+        /// <summary>
+        /// Converts order nodes into a list of <see cref="OrderExpression"/> instances.
+        /// </summary>
+        /// <param name="xlDoc">The FetchXML document.</param>
+        /// <returns>A list of order expressions in document order.</returns>
         public static List<OrderExpression> ToOrderExpressionList(this XDocument xlDoc)
         {
             var orderByElements = xlDoc.Elements()   //fetch
@@ -350,6 +463,12 @@ namespace FakeXrmEasy.Extensions.FetchXml
             return orderByElements;
         }
 
+        /// <summary>
+        /// Converts a filter node into a <see cref="FilterExpression"/> with nested conditions.
+        /// </summary>
+        /// <param name="elem">The filter element.</param>
+        /// <param name="ctx">The fake context used for metadata-driven conversions.</param>
+        /// <returns>A populated filter expression.</returns>
         public static FilterExpression ToFilterExpression(this XElement elem, XrmFakedContext ctx)
         {
             var filterExpression = new FilterExpression();
@@ -389,11 +508,26 @@ namespace FakeXrmEasy.Extensions.FetchXml
             return filterExpression;
         }
 
+        /// <summary>
+        /// Converts the textual value of a condition node into a typed value.
+        /// </summary>
+        /// <param name="elem">The value element.</param>
+        /// <param name="ctx">The fake context providing metadata.</param>
+        /// <param name="sEntityName">The logical name of the entity.</param>
+        /// <param name="sAttributeName">The attribute the condition targets.</param>
+        /// <param name="op">The condition operator.</param>
+        /// <returns>A value cast to the correct SDK type.</returns>
         public static object ToValue(this XElement elem, XrmFakedContext ctx, string sEntityName, string sAttributeName, ConditionOperator op)
         {
             return GetConditionExpressionValueCast(elem.Value, ctx, sEntityName, sAttributeName, op);
         }
 
+        /// <summary>
+        /// Converts a condition node into a <see cref="ConditionExpression"/>.
+        /// </summary>
+        /// <param name="elem">The condition element.</param>
+        /// <param name="ctx">The fake context providing metadata.</param>
+        /// <returns>A fully populated condition expression.</returns>
         public static ConditionExpression ToConditionExpression(this XElement elem, XrmFakedContext ctx)
         {
             var conditionExpression = new ConditionExpression();
@@ -672,7 +806,13 @@ namespace FakeXrmEasy.Extensions.FetchXml
 
         }
 
-
+        /// <summary>
+        /// Casts a string literal from FetchXML into the expected SDK type for comparisons.
+        /// </summary>
+        /// <param name="t">The destination type.</param>
+        /// <param name="value">The string representation coming from FetchXML.</param>
+        /// <returns>The value converted to the target type.</returns>
+        /// <exception cref="Exception">Thrown when the value cannot be parsed as the requested type.</exception>
         public static object GetValueBasedOnType(Type t, string value)
         {
             if (t == typeof(int)
@@ -811,11 +951,25 @@ namespace FakeXrmEasy.Extensions.FetchXml
             return value;
         }
 
+        /// <summary>
+        /// Determines whether a condition operator requires type conversion instead of integer parsing.
+        /// </summary>
+        /// <param name="conditionOperator">The operator used in the condition.</param>
+        /// <returns><c>true</c> when conversion is required.</returns>
         public static bool ValueNeedsConverting(ConditionOperator conditionOperator)
         {
             return !OperatorsNotToConvertArray.Contains(conditionOperator);
         }
 
+        /// <summary>
+        /// Converts a FetchXML value into the appropriate type by consulting proxy metadata when available.
+        /// </summary>
+        /// <param name="value">The raw value from FetchXML.</param>
+        /// <param name="ctx">The fake context used to inspect metadata.</param>
+        /// <param name="sEntityName">The logical name of the entity.</param>
+        /// <param name="sAttributeName">The logical name of the attribute.</param>
+        /// <param name="op">The operator applied to the condition.</param>
+        /// <returns>A typed representation of the value.</returns>
         public static object GetConditionExpressionValueCast(string value, XrmFakedContext ctx, string sEntityName, string sAttributeName, ConditionOperator op)
         {
             if (ctx.ProxyTypesAssembly != null)

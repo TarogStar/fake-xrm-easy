@@ -11,12 +11,23 @@ namespace FakeXrmEasy.FakeMessageExecutors
     /// </summary>
     public class UpdateMultipleRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is UpdateMultipleRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is UpdateMultipleRequest ||
                    (request != null && request.RequestName == "UpdateMultiple");
         }
 
+        /// <summary>
+        /// Executes the UpdateMultipleRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>UpdateMultipleResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var updateMultipleRequest = request as UpdateMultipleRequest;
@@ -83,6 +94,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             }
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of UpdateMultipleRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(UpdateMultipleRequest);

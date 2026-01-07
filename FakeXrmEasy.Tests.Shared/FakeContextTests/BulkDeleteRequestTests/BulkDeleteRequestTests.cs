@@ -165,7 +165,6 @@ namespace FakeXrmEasy.Tests.FakeContextTests.BulkDeleteRequestTests
 
             Assert.NotNull(response);
             Assert.IsType<BulkDeleteResponse>(response);
-            Assert.NotNull(response.JobId);
             Assert.NotEqual(Guid.Empty, response.JobId);
             Assert.Equal(0, deletedContacts.Count());
             Assert.Equal(1, allContacts.Count());

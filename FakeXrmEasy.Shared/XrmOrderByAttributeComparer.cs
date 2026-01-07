@@ -1,11 +1,22 @@
-﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
 
 namespace FakeXrmEasy
 {
+    /// <summary>
+    /// A comparer for sorting CRM attribute values used in OrderBy operations.
+    /// Supports comparison of various CRM types including OptionSetValue, EntityReference, Money, and primitive types.
+    /// </summary>
     public class XrmOrderByAttributeComparer : IComparer<object>
     {
+        /// <summary>
+        /// Compares two CRM attribute values and returns their relative sort order.
+        /// Handles null values and supports multiple CRM types including OptionSetValue, EntityReference, Money, AliasedValue, and primitive types.
+        /// </summary>
+        /// <param name="objectA">The first object to compare.</param>
+        /// <param name="objectB">The second object to compare.</param>
+        /// <returns>A negative value if objectA is less than objectB, zero if they are equal, or a positive value if objectA is greater than objectB.</returns>
         public int Compare(Object objectA, Object objectB)
         {
             if (objectA == null && objectB == null) return 0;  //Equal

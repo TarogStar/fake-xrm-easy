@@ -9,13 +9,27 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor for ReviseQuoteRequest
+    /// </summary>
     public class ReviseQuoteRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is ReviseQuoteRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is ReviseQuoteRequest;
         }
 
+        /// <summary>
+        /// Executes the ReviseQuoteRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>ReviseQuoteResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var service = ctx.GetOrganizationService();
@@ -106,6 +120,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return response;
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of ReviseQuoteRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(ReviseQuoteRequest);

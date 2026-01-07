@@ -17,8 +17,19 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace FakeXrmEasy
 {
+    /// <summary>
+    /// Partial class containing query translation functionality for the XrmFakedContext.
+    /// This portion handles QueryExpression, FetchXML, and LINQ query translation to enable
+    /// in-memory querying of CRM entities during unit testing.
+    /// </summary>
     public partial class XrmFakedContext : IXrmContext
     {
+        /// <summary>
+        /// Finds the early-bound type for a given entity logical name by searching all registered proxy type assemblies.
+        /// </summary>
+        /// <param name="logicalName">The logical name of the CRM entity to find the reflected type for.</param>
+        /// <returns>The early-bound Type if found in exactly one assembly; null if not found.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the entity type is defined in multiple assemblies.</exception>
         protected internal Type FindReflectedType(string logicalName)
         {
             var types =
@@ -96,6 +107,13 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Finds the attribute type from injected entity metadata for a given entity and attribute name.
+        /// </summary>
+        /// <param name="sEntityName">The logical name of the CRM entity.</param>
+        /// <param name="sAttributeName">The logical name of the attribute to find.</param>
+        /// <returns>The CLR Type corresponding to the attribute's CRM attribute type, or null if not found.</returns>
+        /// <exception cref="Exception">Thrown for unsupported attribute types like CalendarRules or Virtual.</exception>
         protected internal Type FindAttributeTypeInInjectedMetadata(string sEntityName, string sAttributeName)
         {
             if (!EntityMetadata.ContainsKey(sEntityName))
@@ -176,6 +194,15 @@ namespace FakeXrmEasy
             }
 
         }
+        /// <summary>
+        /// Finds the CLR type of an attribute by reflecting on the early-bound entity type or falling back to injected metadata.
+        /// Handles special cases like EntityReference name attributes and enum types.
+        /// </summary>
+        /// <param name="earlyBoundType">The early-bound CLR Type of the CRM entity.</param>
+        /// <param name="sEntityName">The logical name of the CRM entity.</param>
+        /// <param name="attributeName">The logical name of the attribute to find.</param>
+        /// <returns>The CLR Type of the attribute.</returns>
+        /// <exception cref="Exception">Thrown when the attribute cannot be found in the early-bound type or injected metadata.</exception>
         protected internal Type FindReflectedAttributeType(Type earlyBoundType, string sEntityName, string attributeName)
         {
             //Get that type properties
@@ -246,11 +273,22 @@ namespace FakeXrmEasy
             return attributeInfo;
         }
 
+        /// <summary>
+        /// Creates a LINQ queryable for entities of the specified logical name using late-bound Entity type.
+        /// </summary>
+        /// <param name="entityLogicalName">The logical name of the CRM entity to query.</param>
+        /// <returns>An IQueryable of Entity objects that can be used to build LINQ queries against the in-memory data store.</returns>
         public IQueryable<Entity> CreateQuery(string entityLogicalName)
         {
             return this.CreateQuery<Entity>(entityLogicalName);
         }
 
+        /// <summary>
+        /// Creates a LINQ queryable for entities of the specified early-bound type.
+        /// Automatically infers the entity logical name from the EntityLogicalNameAttribute on the type.
+        /// </summary>
+        /// <typeparam name="T">The early-bound entity type that inherits from Entity and has an EntityLogicalNameAttribute.</typeparam>
+        /// <returns>An IQueryable of the specified entity type that can be used to build LINQ queries against the in-memory data store.</returns>
         public IQueryable<T> CreateQuery<T>()
             where T : Entity
         {
@@ -276,6 +314,14 @@ namespace FakeXrmEasy
             return this.CreateQuery<T>(logicalName);
         }
 
+        /// <summary>
+        /// Creates a LINQ queryable for entities of the specified type and logical name.
+        /// Clones entities from the in-memory data store to the appropriate type before returning.
+        /// </summary>
+        /// <typeparam name="T">The entity type to return, either Entity or an early-bound type.</typeparam>
+        /// <param name="entityLogicalName">The logical name of the CRM entity to query.</param>
+        /// <returns>An IQueryable of the specified type containing cloned entities from the in-memory store.</returns>
+        /// <exception cref="Exception">Thrown when the entity type cannot be found and T is not the base Entity type.</exception>
         protected IQueryable<T> CreateQuery<T>(string entityLogicalName)
             where T : Entity
         {
@@ -305,11 +351,30 @@ namespace FakeXrmEasy
             return lst.AsQueryable();
         }
 
+        /// <summary>
+        /// Creates a LINQ queryable directly from the internal data store without cloning.
+        /// Unlike CreateQuery, this returns references to the actual stored entities.
+        /// </summary>
+        /// <param name="entityName">The logical name of the CRM entity to query.</param>
+        /// <returns>An IQueryable of Entity objects directly from the in-memory data store.</returns>
         public IQueryable<Entity> CreateQueryFromEntityName(string entityName)
         {
             return Data[entityName].Values.AsQueryable();
         }
 
+        /// <summary>
+        /// Translates a LinkEntity into a LINQ join operation on the query.
+        /// Supports Inner and LeftOuter join operators and recursively processes nested LinkEntities.
+        /// </summary>
+        /// <param name="context">The XrmFakedContext containing metadata and proxy type information.</param>
+        /// <param name="le">The LinkEntity defining the join relationship between entities.</param>
+        /// <param name="query">The current LINQ query to add the join to.</param>
+        /// <param name="previousColumnSet">The ColumnSet from the parent query or LinkEntity.</param>
+        /// <param name="linkedEntities">Dictionary tracking linked entity aliases to ensure uniqueness.</param>
+        /// <param name="linkFromAlias">Optional alias of the entity being joined from.</param>
+        /// <param name="linkFromEntity">Optional logical name of the entity being joined from.</param>
+        /// <returns>The query with the join operation applied.</returns>
+        /// <exception cref="PullRequestException">Thrown when an unsupported JoinOperator is used.</exception>
         public static IQueryable<Entity> TranslateLinkedEntityToLinq(XrmFakedContext context, LinkEntity le, IQueryable<Entity> query, ColumnSet previousColumnSet, Dictionary<string, int> linkedEntities, string linkFromAlias = "", string linkFromEntity = "")
         {
             if (!string.IsNullOrEmpty(le.EntityAlias))
@@ -427,11 +492,23 @@ namespace FakeXrmEasy
         }
 
 
+        /// <summary>
+        /// Retrieves a specific node from a FetchXML document
+        /// </summary>
+        /// <param name="xlDoc">The FetchXML document</param>
+        /// <param name="sName">The name of the node to retrieve</param>
+        /// <returns>The requested XElement or null if not found</returns>
         protected static XElement RetrieveFetchXmlNode(XDocument xlDoc, string sName)
         {
             return xlDoc.Descendants().Where(e => e.Name.LocalName.Equals(sName)).FirstOrDefault();
         }
 
+        /// <summary>
+        /// Parses a FetchXML string into an XDocument for further processing.
+        /// </summary>
+        /// <param name="fetchXml">The FetchXML query string to parse.</param>
+        /// <returns>An XDocument representation of the FetchXML.</returns>
+        /// <exception cref="Exception">Thrown when the FetchXML is not valid XML.</exception>
         public static XDocument ParseFetchXml(string fetchXml)
         {
             try
@@ -444,11 +521,25 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Translates a FetchXML query string into a QueryExpression.
+        /// </summary>
+        /// <param name="context">The XrmFakedContext for metadata resolution.</param>
+        /// <param name="fetchXml">The FetchXML query string to translate.</param>
+        /// <returns>A QueryExpression equivalent to the FetchXML query.</returns>
         public static QueryExpression TranslateFetchXmlToQueryExpression(XrmFakedContext context, string fetchXml)
         {
             return TranslateFetchXmlDocumentToQueryExpression(context, ParseFetchXml(fetchXml));
         }
 
+        /// <summary>
+        /// Translates a parsed FetchXML XDocument into a QueryExpression.
+        /// Handles columns, filters, ordering, paging, distinct, and linked entities.
+        /// </summary>
+        /// <param name="context">The XrmFakedContext for metadata resolution.</param>
+        /// <param name="xlDoc">The parsed FetchXML document.</param>
+        /// <returns>A QueryExpression equivalent to the FetchXML document.</returns>
+        /// <exception cref="Exception">Thrown when the FetchXML contains invalid nodes or structure.</exception>
         public static QueryExpression TranslateFetchXmlDocumentToQueryExpression(XrmFakedContext context, XDocument xlDoc)
         {
             //Validate nodes
@@ -495,6 +586,13 @@ namespace FakeXrmEasy
             return query;
         }
 
+        /// <summary>
+        /// Translates a QueryExpression into a LINQ IQueryable for execution against the in-memory data store.
+        /// Handles joins, filters, ordering, and column projection.
+        /// </summary>
+        /// <param name="context">The XrmFakedContext containing the in-memory data and metadata.</param>
+        /// <param name="qe">The QueryExpression to translate into LINQ.</param>
+        /// <returns>An IQueryable of Entity that represents the QueryExpression as a LINQ query; null if qe is null.</returns>
         public static IQueryable<Entity> TranslateQueryExpressionToLinq(XrmFakedContext context, QueryExpression qe)
         {
             if (qe == null) return null;
@@ -563,6 +661,11 @@ namespace FakeXrmEasy
         }
 
 #if !FAKE_XRM_EASY
+        /// <summary>
+        /// Validates aliases in a query expression
+        /// </summary>
+        /// <param name="qe">The query expression</param>
+        /// <param name="context">The faked context</param>
         protected static void ValidateAliases(QueryExpression qe, XrmFakedContext context)
         {
             if (qe.Criteria != null)
@@ -574,6 +677,12 @@ namespace FakeXrmEasy
                 }
         }
 
+        /// <summary>
+        /// Validates aliases in a linked entity
+        /// </summary>
+        /// <param name="qe">The query expression</param>
+        /// <param name="context">The faked context</param>
+        /// <param name="link">The linked entity</param>
         protected static void ValidateAliases(QueryExpression qe, XrmFakedContext context, LinkEntity link)
         {
             if (link.LinkCriteria != null)
@@ -585,6 +694,12 @@ namespace FakeXrmEasy
                 }
         }
 
+        /// <summary>
+        /// Validates aliases in a filter expression
+        /// </summary>
+        /// <param name="qe">The query expression</param>
+        /// <param name="context">The faked context</param>
+        /// <param name="filter">The filter expression</param>
         protected static void ValidateAliases(QueryExpression qe, XrmFakedContext context, FilterExpression filter)
         {
             if (filter.Filters != null)
@@ -603,6 +718,12 @@ namespace FakeXrmEasy
                 }
         }
 
+        /// <summary>
+        /// Validates aliases in a condition expression
+        /// </summary>
+        /// <param name="qe">The query expression</param>
+        /// <param name="context">The faked context</param>
+        /// <param name="condition">The condition expression</param>
         protected static void ValidateAliases(QueryExpression qe, XrmFakedContext context, ConditionExpression condition)
         {
             var matches = qe.LinkEntities != null ? MatchByAlias(qe, context, condition, qe.LinkEntities) : 0;
@@ -626,6 +747,14 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Matches a condition expression by entity name in linked entities
+        /// </summary>
+        /// <param name="qe">The query expression</param>
+        /// <param name="context">The faked context</param>
+        /// <param name="condition">The condition expression</param>
+        /// <param name="linkEntities">The collection of linked entities</param>
+        /// <returns>The number of matches found</returns>
         protected static int MatchByEntity(QueryExpression qe, XrmFakedContext context, ConditionExpression condition, DataCollection<LinkEntity> linkEntities)
         {
             var matches = 0;
@@ -640,6 +769,14 @@ namespace FakeXrmEasy
             return matches;
         }
 
+        /// <summary>
+        /// Matches a condition expression by alias in linked entities
+        /// </summary>
+        /// <param name="qe">The query expression</param>
+        /// <param name="context">The faked context</param>
+        /// <param name="condition">The condition expression</param>
+        /// <param name="linkEntities">The collection of linked entities</param>
+        /// <returns>The number of matches found</returns>
         protected static int MatchByAlias(QueryExpression qe, XrmFakedContext context, ConditionExpression condition, DataCollection<LinkEntity> linkEntities)
         {
             var matches = 0;
@@ -655,6 +792,15 @@ namespace FakeXrmEasy
         }
 #endif
 
+
+        /// <summary>
+        /// Translates a condition expression to a LINQ expression
+        /// </summary>
+        /// <param name="qe">The query expression</param>
+        /// <param name="context">The faked context</param>
+        /// <param name="c">The typed condition expression</param>
+        /// <param name="entity">The parameter expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpression(QueryExpression qe, XrmFakedContext context, TypedConditionExpression c, ParameterExpression entity)
         {
             Expression attributesProperty = Expression.Property(
@@ -912,6 +1058,11 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Gets an appropriate typed value expression for comparison
+        /// </summary>
+        /// <param name="value">The value to convert</param>
+        /// <returns>An expression representing the typed value</returns>
         protected static Expression GetAppropiateTypedValue(object value)
         {
             //Basic types conversions
@@ -946,6 +1097,11 @@ namespace FakeXrmEasy
             return Expression.Constant(value);
         }
 
+        /// <summary>
+        /// Gets the appropriate type for a given value
+        /// </summary>
+        /// <param name="value">The value to get the type for</param>
+        /// <returns>The type of the value</returns>
         protected static Type GetAppropiateTypeForValue(object value)
         {
             //Basic types conversions
@@ -966,6 +1122,12 @@ namespace FakeXrmEasy
                 return value.GetType();
         }
 
+        /// <summary>
+        /// Gets an appropriate typed value expression and type for comparison
+        /// </summary>
+        /// <param name="value">The value to convert</param>
+        /// <param name="attributeType">The attribute type</param>
+        /// <returns>An expression representing the typed value</returns>
         protected static Expression GetAppropiateTypedValueAndType(object value, Type attributeType)
         {
             if (attributeType == null)
@@ -1020,6 +1182,13 @@ namespace FakeXrmEasy
             return Expression.Constant(value);
         }
 
+        /// <summary>
+        /// Gets an appropriate cast expression based on type
+        /// </summary>
+        /// <param name="t">The target type</param>
+        /// <param name="input">The input expression</param>
+        /// <param name="value">The value to cast</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnType(Type t, Expression input, object value)
         {
             var typedExpression = GetAppropiateCastExpressionBasedOnAttributeTypeOrValue(input, value, t);
@@ -1054,6 +1223,12 @@ namespace FakeXrmEasy
         //    return exp;
         //}
 
+        /// <summary>
+        /// Gets an appropriate cast expression based on value's inherent type
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <param name="value">The value to cast</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnValueInherentType(Expression input, object value)
         {
             if (value is Guid || value is EntityReference)
@@ -1071,6 +1246,13 @@ namespace FakeXrmEasy
             return GetAppropiateCastExpressionDefault(input, value); //any other type
         }
 
+        /// <summary>
+        /// Gets an appropriate cast expression based on attribute type or value
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <param name="value">The value to cast</param>
+        /// <param name="attributeType">The attribute type</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnAttributeTypeOrValue(Expression input, object value, Type attributeType)
         {
             if (attributeType != null)
@@ -1107,6 +1289,13 @@ namespace FakeXrmEasy
 
             return GetAppropiateCastExpressionBasedOnValueInherentType(input, value); //Dynamic entities
         }
+
+        /// <summary>
+        /// Gets an appropriate cast expression based on string value
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <param name="value">The value to cast</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnString(Expression input, object value)
         {
             var defaultStringExpression = GetCaseInsensitiveExpression(GetAppropiateCastExpressionDefault(input, value));
@@ -1129,6 +1318,13 @@ namespace FakeXrmEasy
             return defaultStringExpression;
         }
 
+        /// <summary>
+        /// Gets an appropriate cast expression based on string value and type
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <param name="value">The value to cast</param>
+        /// <param name="attributeType">The attribute type</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnStringAndType(Expression input, object value, Type attributeType)
         {
             var defaultStringExpression = GetCaseInsensitiveExpression(GetAppropiateCastExpressionDefault(input, value));
@@ -1145,6 +1341,12 @@ namespace FakeXrmEasy
             return defaultStringExpression;
         }
 
+        /// <summary>
+        /// Gets an appropriate cast expression based on DateTime value
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <param name="value">The value to cast</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnDateTime(Expression input, object value)
         {
             // Convert to DateTime if string
@@ -1157,10 +1359,22 @@ namespace FakeXrmEasy
             return input; // return directly
         }
 
+        /// <summary>
+        /// Gets the default cast expression
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <param name="value">The value to cast</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionDefault(Expression input, object value)
         {
             return Expression.Convert(input, value.GetType());  //Default type conversion
         }
+
+        /// <summary>
+        /// Gets an appropriate cast expression based on Guid
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedGuid(Expression input)
         {
             var getIdFromEntityReferenceExpr = Expression.Call(Expression.TypeAs(input, typeof(EntityReference)),
@@ -1176,6 +1390,12 @@ namespace FakeXrmEasy
                     Expression.Constant(Guid.Empty, typeof(Guid))));
         }
 
+        /// <summary>
+        /// Gets an appropriate cast expression based on EntityReference
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <param name="value">The value to cast</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnEntityReference(Expression input, object value)
         {
             Guid guid;
@@ -1203,6 +1423,11 @@ namespace FakeXrmEasy
 
         }
 
+        /// <summary>
+        /// Gets an appropriate cast expression based on decimal
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnDecimal(Expression input)
         {
             // Handle Money -> decimal
@@ -1231,6 +1456,11 @@ namespace FakeXrmEasy
                 optionSetCondition);
         }
 
+        /// <summary>
+        /// Gets an appropriate cast expression based on boolean
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnBoolean(Expression input)
         {
             return Expression.Condition(
@@ -1245,6 +1475,11 @@ namespace FakeXrmEasy
 
         }
 
+        /// <summary>
+        /// Gets an appropriate cast expression based on int
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnInt(Expression input)
         {
             return Expression.Condition(
@@ -1256,12 +1491,25 @@ namespace FakeXrmEasy
                                                     Expression.Convert(input, typeof(int)));
         }
 
+        /// <summary>
+        /// Gets an appropriate cast expression based on OptionSetValueCollection
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <returns>The cast expression</returns>
         protected static Expression GetAppropiateCastExpressionBasedOnOptionSetValueCollection(Expression input)
         {
             return Expression.Call(typeof(XrmFakedContext).GetMethod("ConvertToHashSetOfInt"), input, Expression.Constant(true));
         }
 
 #if FAKE_XRM_EASY_9
+        /// <summary>
+        /// Converts various input types to a HashSet of integers for multi-select option set comparisons.
+        /// Supports int, string, int[], string[], DataCollection of objects, and OptionSetValueCollection.
+        /// </summary>
+        /// <param name="input">The input value to convert. Can be int, string, int[], string[], DataCollection, or OptionSetValueCollection.</param>
+        /// <param name="isOptionSetValueCollectionAccepted">If true, OptionSetValueCollection inputs are accepted; otherwise they throw a FaultException.</param>
+        /// <returns>A HashSet of integers representing the converted values.</returns>
+        /// <exception cref="FaultException">Thrown when the input type is not supported or cannot be converted.</exception>
         public static HashSet<int> ConvertToHashSetOfInt(object input, bool isOptionSetValueCollectionAccepted)
         {
             var set = new HashSet<int>();
@@ -1327,11 +1575,22 @@ namespace FakeXrmEasy
         }
 #endif
 
+        /// <summary>
+        /// Transforms expression to get date only part
+        /// </summary>
+        /// <param name="input">The input expression</param>
+        /// <returns>The transformed expression</returns>
         protected static Expression TransformExpressionGetDateOnlyPart(Expression input)
         {
             return Expression.Call(input, typeof(DateTime).GetMethod("get_Date"));
         }
 
+        /// <summary>
+        /// Transforms expression value based on operator
+        /// </summary>
+        /// <param name="op">The condition operator</param>
+        /// <param name="input">The input expression</param>
+        /// <returns>The transformed expression</returns>
         protected static Expression TransformExpressionValueBasedOnOperator(ConditionOperator op, Expression input)
         {
             switch (op)
@@ -1349,6 +1608,14 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Translates condition expression for equal operator
+        /// </summary>
+        /// <param name="context">The faked context</param>
+        /// <param name="c">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionEqual(XrmFakedContext context, TypedConditionExpression c, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
 
@@ -1450,6 +1717,13 @@ namespace FakeXrmEasy
             return conditionValue;
         }
 
+        /// <summary>
+        /// Translates condition expression for in operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionIn(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -1519,6 +1793,14 @@ namespace FakeXrmEasy
         //                        expOrValues));
         //}
 
+        /// <summary>
+        /// Translates condition expression for greater than or equal operator
+        /// </summary>
+        /// <param name="context">The faked context</param>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionGreaterThanOrEqual(XrmFakedContext context, TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             //var c = tc.CondExpression;
@@ -1528,6 +1810,13 @@ namespace FakeXrmEasy
                                 TranslateConditionExpressionGreaterThan(tc, getAttributeValueExpr, containsAttributeExpr));
 
         }
+        /// <summary>
+        /// Translates condition expression for greater than operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionGreaterThan(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -1566,6 +1855,13 @@ namespace FakeXrmEasy
 
         }
 
+        /// <summary>
+        /// Translates condition expression for greater than operator with string values
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionGreaterThanString(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -1592,6 +1888,14 @@ namespace FakeXrmEasy
                                 expOrValues));
         }
 
+        /// <summary>
+        /// Translates condition expression for less than or equal operator
+        /// </summary>
+        /// <param name="context">The faked context</param>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionLessThanOrEqual(XrmFakedContext context, TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             //var c = tc.CondExpression;
@@ -1602,11 +1906,25 @@ namespace FakeXrmEasy
 
         }
 
+        /// <summary>
+        /// Gets a CompareTo expression for the given type
+        /// </summary>
+        /// <typeparam name="T">The type to compare</typeparam>
+        /// <param name="left">The left expression</param>
+        /// <param name="right">The right expression</param>
+        /// <returns>The CompareTo expression</returns>
         protected static Expression GetCompareToExpression<T>(Expression left, Expression right)
         {
             return Expression.Call(left, typeof(T).GetMethod("CompareTo", new Type[] { typeof(string) }), new[] { right });
         }
 
+        /// <summary>
+        /// Translates condition expression for less than operator with string values
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionLessThanString(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -1631,6 +1949,13 @@ namespace FakeXrmEasy
                                 expOrValues));
         }
 
+        /// <summary>
+        /// Translates condition expression for less than operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionLessThan(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -1669,6 +1994,13 @@ namespace FakeXrmEasy
 
         }
 
+        /// <summary>
+        /// Translates condition expression for last operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionLast(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -1708,6 +2040,11 @@ namespace FakeXrmEasy
         /// Takes a condition expression which needs translating into a 'between two dates' expression and works out the relevant dates
         /// Respects the context's SystemTimeZone setting for timezone-aware date calculations
         /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <param name="context">The faked context</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionBetweenDates(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr, XrmFakedContext context)
         {
             var c = tc.CondExpression;
@@ -1782,6 +2119,13 @@ namespace FakeXrmEasy
         }
 
 
+        /// <summary>
+        /// Translates condition expression for older than operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionOlderThan(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -1828,6 +2172,13 @@ namespace FakeXrmEasy
         }
      
 
+        /// <summary>
+        /// Translates condition expression for between operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionBetween(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -1866,6 +2217,13 @@ namespace FakeXrmEasy
                                 exp));
         }
 
+        /// <summary>
+        /// Translates condition expression for null operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionNull(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -1880,6 +2238,14 @@ namespace FakeXrmEasy
                                     Expression.Constant(true)));   //Or attribute is not defined (null)
         }
 
+        /// <summary>
+        /// Translates condition expression for older than operator with specific date
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <param name="olderThanDate">The date to compare against</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionOlderThan(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr, DateTime olderThanDate)
         {
             var lessThanExpression = Expression.LessThan(
@@ -1891,6 +2257,13 @@ namespace FakeXrmEasy
                                 lessThanExpression));
         }
 
+        /// <summary>
+        /// Translates condition expression for ends with operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionEndsWith(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -1910,11 +2283,22 @@ namespace FakeXrmEasy
             return TranslateConditionExpressionLike(typedComputedCondition, getAttributeValueExpr, containsAttributeExpr);
         }
 
+        /// <summary>
+        /// Gets a ToString expression for the given type
+        /// </summary>
+        /// <typeparam name="T">The type to convert to string</typeparam>
+        /// <param name="e">The expression to convert</param>
+        /// <returns>The ToString expression</returns>
         protected static Expression GetToStringExpression<T>(Expression e)
         {
             return Expression.Call(e, typeof(T).GetMethod("ToString", new Type[] { }));
         }
 
+        /// <summary>
+        /// Gets a case insensitive expression by calling ToLowerInvariant
+        /// </summary>
+        /// <param name="e">The expression to make case insensitive</param>
+        /// <returns>The case insensitive expression</returns>
         protected static Expression GetCaseInsensitiveExpression(Expression e)
         {
             return Expression.Call(e,
@@ -1939,6 +2323,13 @@ namespace FakeXrmEasy
             );
         }
 
+        /// <summary>
+        /// Translates condition expression for like operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionLike(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -2001,6 +2392,13 @@ namespace FakeXrmEasy
             return Expression.AndAlso(containsAttributeExpr, expOrValues);
         }
 
+        /// <summary>
+        /// Translates condition expression for contains operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionContains(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -2021,6 +2419,17 @@ namespace FakeXrmEasy
 
         }
 
+        /// <summary>
+        /// Translates multiple condition expressions with a logical operator
+        /// </summary>
+        /// <param name="qe">The query expression</param>
+        /// <param name="context">The faked context</param>
+        /// <param name="sEntityName">The entity name</param>
+        /// <param name="conditions">The list of condition expressions</param>
+        /// <param name="op">The logical operator</param>
+        /// <param name="entity">The entity parameter expression</param>
+        /// <param name="bIsOuter">Whether this is an outer join</param>
+        /// <returns>The translated binary expression</returns>
         protected static BinaryExpression TranslateMultipleConditionExpressions(QueryExpression qe, XrmFakedContext context, string sEntityName, List<ConditionExpression> conditions, LogicalOperator op, ParameterExpression entity, bool bIsOuter)
         {
             BinaryExpression binaryExpression = null;  //Default initialisation depending on logical operator
@@ -2097,6 +2506,17 @@ namespace FakeXrmEasy
             return binaryExpression;
         }
 
+        /// <summary>
+        /// Translates multiple filter expressions with a logical operator
+        /// </summary>
+        /// <param name="qe">The query expression</param>
+        /// <param name="context">The faked context</param>
+        /// <param name="sEntityName">The entity name</param>
+        /// <param name="filters">The list of filter expressions</param>
+        /// <param name="op">The logical operator</param>
+        /// <param name="entity">The entity parameter expression</param>
+        /// <param name="bIsOuter">Whether this is an outer join</param>
+        /// <returns>The translated binary expression</returns>
         protected static BinaryExpression TranslateMultipleFilterExpressions(QueryExpression qe, XrmFakedContext context, string sEntityName, List<FilterExpression> filters, LogicalOperator op, ParameterExpression entity, bool bIsOuter)
         {
             BinaryExpression binaryExpression = null;
@@ -2121,6 +2541,14 @@ namespace FakeXrmEasy
             return binaryExpression;
         }
 
+        /// <summary>
+        /// Translates linked entity filter expression to expression
+        /// </summary>
+        /// <param name="qe">The query expression</param>
+        /// <param name="context">The faked context</param>
+        /// <param name="le">The link entity</param>
+        /// <param name="entity">The entity parameter expression</param>
+        /// <returns>The list of translated expressions</returns>
         protected static List<Expression> TranslateLinkedEntityFilterExpressionToExpression(QueryExpression qe, XrmFakedContext context, LinkEntity le, ParameterExpression entity)
         {
             //In CRM 2011, condition expressions are at the LinkEntity level without an entity name
@@ -2191,6 +2619,13 @@ namespace FakeXrmEasy
             return linkedEntitiesQueryExpressions;
         }
 
+        /// <summary>
+        /// Translates query expression filters to expression
+        /// </summary>
+        /// <param name="context">The faked context</param>
+        /// <param name="qe">The query expression</param>
+        /// <param name="entity">The entity parameter expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateQueryExpressionFiltersToExpression(XrmFakedContext context, QueryExpression qe, ParameterExpression entity)
         {
             var linkedEntitiesQueryExpressions = new List<Expression>();
@@ -2229,6 +2664,16 @@ namespace FakeXrmEasy
                 return TranslateFilterExpressionToExpression(qe, context, qe.EntityName, qe.Criteria, entity, false);
             }
         }
+        /// <summary>
+        /// Translates filter expression to expression
+        /// </summary>
+        /// <param name="qe">The query expression</param>
+        /// <param name="context">The faked context</param>
+        /// <param name="sEntityName">The entity name</param>
+        /// <param name="fe">The filter expression</param>
+        /// <param name="entity">The entity parameter expression</param>
+        /// <param name="bIsOuter">Whether this is an outer join</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateFilterExpressionToExpression(QueryExpression qe, XrmFakedContext context, string sEntityName, FilterExpression fe, ParameterExpression entity, bool bIsOuter)
         {
             if (fe == null) return Expression.Constant(true);
@@ -2265,6 +2710,13 @@ namespace FakeXrmEasy
 
             return Expression.Constant(true); //Satisfy filter if there are no conditions nor filters
         }
+        /// <summary>
+        /// Translates condition expression for next operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionNext(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var c = tc.CondExpression;
@@ -2302,6 +2754,13 @@ namespace FakeXrmEasy
         }
 
 #if FAKE_XRM_EASY_9
+        /// <summary>
+        /// Translates condition expression for contain values operator
+        /// </summary>
+        /// <param name="tc">The typed condition expression</param>
+        /// <param name="getAttributeValueExpr">The attribute value expression</param>
+        /// <param name="containsAttributeExpr">The contains attribute expression</param>
+        /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionContainValues(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
             var leftHandSideExpression = GetAppropiateCastExpressionBasedOnType(tc.AttributeType, getAttributeValueExpr, null);

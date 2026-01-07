@@ -8,13 +8,27 @@ using FakeXrmEasy.Extensions;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor for InsertStatusValueRequest
+    /// </summary>
     public class InsertStatusValueRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is InsertStatusValueRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is InsertStatusValueRequest;
         }
 
+        /// <summary>
+        /// Executes the InsertStatusValueRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>InsertStatusValueResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var req = request as InsertStatusValueRequest;
@@ -87,6 +101,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return new InsertStatusValueResponse();
         }       
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of InsertStatusValueRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(InsertStatusValueRequest);

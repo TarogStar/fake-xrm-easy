@@ -1,4 +1,4 @@
-﻿using FakeXrmEasy.Extensions;
+using FakeXrmEasy.Extensions;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
@@ -8,15 +8,60 @@ using System.ServiceModel;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Handles the execution of <see cref="RetrieveRequest"/> messages in the faked CRM context.
+    /// This executor simulates retrieving a single entity record from Dynamics 365/CRM by its unique identifier.
+    /// </summary>
+    /// <remarks>
+    /// The executor retrieves an entity from the in-memory context, applies column projections based on
+    /// the specified <see cref="ColumnSet"/>, and optionally retrieves related entities based on
+    /// the <see cref="RetrieveRequest.RelatedEntitiesQuery"/> property. It also populates
+    /// EntityReference Name properties using the referenced entity's primary name attribute.
+    /// </remarks>
     public class RetrieveRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can handle the specified organization request.
+        /// </summary>
+        /// <param name="request">The <see cref="OrganizationRequest"/> to evaluate.</param>
+        /// <returns>
+        /// <c>true</c> if the request type matches <see cref="RetrieveRequest"/>; otherwise, <c>false</c>.
+        /// </returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request.GetType().Equals(GetResponsibleRequestType());
         }
 
-
-
+        /// <summary>
+        /// Executes the retrieve operation, fetching a single entity record from the faked CRM context.
+        /// </summary>
+        /// <param name="req">The <see cref="RetrieveRequest"/> containing the target entity reference and column set.</param>
+        /// <param name="context">The <see cref="XrmFakedContext"/> that provides the in-memory CRM simulation.</param>
+        /// <returns>
+        /// A <see cref="RetrieveResponse"/> containing the retrieved entity in the Results collection under the "Entity" key.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when the Target property is null.
+        /// </exception>
+        /// <exception cref="FaultException{OrganizationServiceFault}">
+        /// Thrown when the ColumnSet is missing or when the requested entity does not exist in the context.
+        /// The error code 0x80040217 indicates "entity does not exist".
+        /// </exception>
+        /// <remarks>
+        /// <para>
+        /// The Target property must contain a valid <see cref="EntityReference"/> identifying the entity to retrieve.
+        /// The ColumnSet property specifies which attributes to return. If ColumnSet.AllColumns is false,
+        /// only the specified columns are included in the result.
+        /// </para>
+        /// <para>
+        /// If RelatedEntitiesQuery is specified, related entities are retrieved according to the defined
+        /// relationships and included in the result entity's RelatedEntities collection.
+        /// </para>
+        /// <para>
+        /// EntityReference attributes in the result have their Name property populated automatically
+        /// using the referenced entity's primary name attribute from metadata.
+        /// </para>
+        /// </remarks>
         public OrganizationResponse Execute(OrganizationRequest req, XrmFakedContext context)
         {
             var request = req as RetrieveRequest;
@@ -163,15 +208,28 @@ namespace FakeXrmEasy.FakeMessageExecutors
             }
         }
 
+        /// <summary>
+        /// Gets the type of organization request that this executor handles.
+        /// </summary>
+        /// <returns>
+        /// The <see cref="Type"/> of <see cref="RetrieveRequest"/>.
+        /// </returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(RetrieveRequest);
         }
 
         /// <summary>
-        /// Populates the Name property of EntityReference attributes by looking up the referenced entity's primary name attribute
-        /// Resolves upstream issue #555
+        /// Populates the Name property of EntityReference attributes by looking up the referenced entity's primary name attribute.
         /// </summary>
+        /// <param name="entity">The entity whose EntityReference attributes should have their Name property populated.</param>
+        /// <param name="context">The <see cref="XrmFakedContext"/> containing entity metadata and data.</param>
+        /// <remarks>
+        /// This method resolves upstream issue #555 by ensuring that EntityReference attributes
+        /// have their Name property set based on the referenced entity's primary name attribute.
+        /// The Name is only populated if it is not already set and the referenced entity exists
+        /// in the context with valid metadata.
+        /// </remarks>
         private void PopulateEntityReferenceNames(Entity entity, XrmFakedContext context)
         {
             if (entity == null || context == null)

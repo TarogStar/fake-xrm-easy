@@ -6,20 +6,58 @@ using System.ServiceModel;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Implements a fake message executor for the AddListMembersListRequest CRM message.
+    /// This executor handles adding multiple members (accounts, contacts, or leads) to a marketing list
+    /// in the faked CRM context by creating listmember association records for each member.
+    /// </summary>
     public class AddListMembersListRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Specifies the entity type code values that indicate which entity type
+        /// a marketing list was created from. The marketing list can only contain
+        /// members of this entity type.
+        /// </summary>
         public enum ListCreatedFromCode
         {
+            /// <summary>
+            /// The marketing list contains account records.
+            /// </summary>
             Account = 1,
+
+            /// <summary>
+            /// The marketing list contains contact records.
+            /// </summary>
             Contact = 2,
+
+            /// <summary>
+            /// The marketing list contains lead records.
+            /// </summary>
             Lead = 4
         }
 
+        /// <summary>
+        /// Determines whether this executor can handle the specified organization request.
+        /// </summary>
+        /// <param name="request">The organization request to evaluate.</param>
+        /// <returns>True if the request is an AddListMembersListRequest; otherwise, false.</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is AddListMembersListRequest;
         }
 
+        /// <summary>
+        /// Executes the AddListMembersListRequest, adding multiple members to a marketing list in the faked CRM context.
+        /// This method validates the list existence, verifies all member types match the list's CreatedFromCode attribute,
+        /// and creates listmember association records for each member.
+        /// </summary>
+        /// <param name="request">The AddListMembersListRequest containing the list ID and array of member IDs to add.</param>
+        /// <param name="ctx">The faked XRM context containing the in-memory CRM data.</param>
+        /// <returns>An AddListMembersListResponse indicating successful completion of the bulk add members operation.</returns>
+        /// <exception cref="FakeOrganizationServiceFault">
+        /// Thrown when MemberIds is null, ListId is empty, the marketing list cannot be found,
+        /// the list does not have a valid CreatedFromCode attribute, or any member entity cannot be found.
+        /// </exception>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var req = (AddListMembersListRequest)request;
@@ -99,6 +137,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return new AddListMembersListResponse();
         }
 
+        /// <summary>
+        /// Gets the type of CRM request that this executor is responsible for handling.
+        /// </summary>
+        /// <returns>The Type of AddListMembersListRequest, indicating this executor handles AddListMembersListRequest messages.</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(AddListMembersListRequest);

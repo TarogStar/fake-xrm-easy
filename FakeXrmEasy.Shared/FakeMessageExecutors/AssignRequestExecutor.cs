@@ -6,13 +6,31 @@ using System.ServiceModel;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor that handles AssignRequest messages for changing the owner of CRM entities.
+    /// Updates the ownerid attribute along with either owninguser or owningteam depending on the assignee type.
+    /// </summary>
     public class AssignRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can handle the specified organization request.
+        /// </summary>
+        /// <param name="request">The organization request to evaluate.</param>
+        /// <returns>True if the request is an AssignRequest; otherwise, false.</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is AssignRequest;
         }
 
+        /// <summary>
+        /// Executes the AssignRequest to change the owner of a CRM entity.
+        /// Sets the ownerid attribute to the new assignee and updates owninguser or owningteam
+        /// based on whether the assignee is a systemuser or team.
+        /// </summary>
+        /// <param name="request">The AssignRequest containing the Target entity reference and the Assignee entity reference.</param>
+        /// <param name="ctx">The XrmFakedContext providing the in-memory CRM context and organization service.</param>
+        /// <returns>An AssignResponse indicating successful completion of the assignment.</returns>
+        /// <exception cref="FaultException{OrganizationServiceFault}">Thrown when the target or assignee is null.</exception>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var assignRequest = (AssignRequest)request;
@@ -54,6 +72,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return new AssignResponse();
         }
 
+        /// <summary>
+        /// Gets the type of organization request that this executor is responsible for handling.
+        /// </summary>
+        /// <returns>The Type of AssignRequest.</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(AssignRequest);

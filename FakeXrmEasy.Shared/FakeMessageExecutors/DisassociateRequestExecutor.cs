@@ -6,13 +6,30 @@ using System.Linq;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor that handles DisassociateRequest messages for removing relationships between CRM entities.
+    /// Removes Many-to-Many (N:N) relationship records by deleting the corresponding intersect entity records.
+    /// </summary>
     public class DisassociateRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can handle the specified organization request.
+        /// </summary>
+        /// <param name="request">The organization request to evaluate.</param>
+        /// <returns>True if the request is a DisassociateRequest; otherwise, false.</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is DisassociateRequest;
         }
 
+        /// <summary>
+        /// Executes the DisassociateRequest to remove an association between CRM entities.
+        /// Queries the intersect entity to find matching relationship records and deletes them.
+        /// </summary>
+        /// <param name="request">The DisassociateRequest containing the target entity, related entities, and relationship information.</param>
+        /// <param name="ctx">The XrmFakedContext providing the in-memory CRM context and organization service.</param>
+        /// <returns>A DisassociateResponse indicating successful completion of the disassociation.</returns>
+        /// <exception cref="Exception">Thrown when the request is not a DisassociateRequest, the relationship does not exist in the metadata cache, or the target is null.</exception>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var disassociateRequest = request as DisassociateRequest;
@@ -66,6 +83,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return new DisassociateResponse();
         }
 
+        /// <summary>
+        /// Gets the type of organization request that this executor is responsible for handling.
+        /// </summary>
+        /// <returns>The Type of DisassociateRequest.</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(DisassociateRequest);

@@ -9,13 +9,29 @@ using Microsoft.Xrm.Sdk.Client;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor that handles <see cref="RetrieveEntityRequest"/> messages.
+    /// Retrieves entity metadata from the faked CRM context's metadata cache.
+    /// </summary>
     public class RetrieveEntityRequestExecutor : IFakeMessageExecutor
     {
-        
+        /// <summary>
+        /// Determines whether this executor can handle the specified organization request.
+        /// </summary>
+        /// <param name="request">The organization request to evaluate.</param>
+        /// <returns><c>true</c> if the request is a <see cref="RetrieveEntityRequest"/>; otherwise, <c>false</c>.</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is RetrieveEntityRequest;
         }
+
+        /// <summary>
+        /// Gets the early-bound proxy type for the specified entity from the proxy types assembly.
+        /// </summary>
+        /// <param name="entityName">The logical name of the entity to find the proxy type for.</param>
+        /// <param name="ctx">The faked XRM context containing the proxy types assembly.</param>
+        /// <returns>The <see cref="Type"/> representing the early-bound entity class.</returns>
+        /// <exception cref="Exception">Thrown when the entity is not found in the proxy types assembly.</exception>
         public static Type GetEntityProxyType(string entityName, XrmFakedContext ctx)
         {
             //Find the reflected type in the proxy types assembly
@@ -32,6 +48,21 @@ namespace FakeXrmEasy.FakeMessageExecutors
             }
             return subClassType;
         }
+
+        /// <summary>
+        /// Executes the <see cref="RetrieveEntityRequest"/> and returns the corresponding entity metadata.
+        /// </summary>
+        /// <param name="request">The organization request to execute. Must be a <see cref="RetrieveEntityRequest"/>.</param>
+        /// <param name="ctx">The faked XRM context containing the entity metadata cache.</param>
+        /// <returns>
+        /// A <see cref="RetrieveEntityResponse"/> containing the <see cref="EntityMetadata"/>
+        /// for the requested entity in the Results collection.
+        /// </returns>
+        /// <exception cref="Exception">
+        /// Thrown when the LogicalName property is not specified in the request,
+        /// when the entity is not found in the metadata cache,
+        /// or when neither EntityFilters.Entity nor EntityFilters.Attributes is specified.
+        /// </exception>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var req = request as RetrieveEntityRequest;
@@ -66,6 +97,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             throw new Exception("At least EntityFilters.Entity or EntityFilters.Attributes must be present on EntityFilters of Request.");
         }
 
+        /// <summary>
+        /// Gets the type of organization request that this executor is responsible for handling.
+        /// </summary>
+        /// <returns>The <see cref="Type"/> of <see cref="RetrieveEntityRequest"/>.</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(RetrieveEntityRequest);

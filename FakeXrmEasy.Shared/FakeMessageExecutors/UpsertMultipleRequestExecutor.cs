@@ -12,12 +12,23 @@ namespace FakeXrmEasy.FakeMessageExecutors
     /// </summary>
     public class UpsertMultipleRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is UpsertMultipleRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is UpsertMultipleRequest ||
                    (request != null && request.RequestName == "UpsertMultiple");
         }
 
+        /// <summary>
+        /// Executes the UpsertMultipleRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>UpsertMultipleResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var upsertMultipleRequest = request as UpsertMultipleRequest;
@@ -108,6 +119,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             }
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of UpsertMultipleRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(UpsertMultipleRequest);

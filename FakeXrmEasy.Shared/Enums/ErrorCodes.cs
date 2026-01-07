@@ -1,5 +1,10 @@
 ﻿namespace FakeXrmEasy
 {
+    /// <summary>
+    /// Enumeration of CRM organization service error codes. These codes correspond to
+    /// the error codes returned by Dynamics 365 / Power Platform in OrganizationServiceFault exceptions.
+    /// Use these values with <see cref="FakeOrganizationServiceFault"/> to simulate CRM error responses in tests.
+    /// </summary>
     public enum ErrorCodes : int
     {
 
@@ -11334,7 +11339,7 @@
         ProfileRuleWorkflowAuthorGenericError = -2147086079,
 
         /// <summary>
-        /// To enable auto capture, you need to&nbsp;set up Cortana Intelligence Customer Insights in Relationship Insights settings.
+        /// To enable auto capture, you need to&#160;set up Cortana Intelligence Customer Insights in Relationship Insights settings.
         /// </summary>
         ProvisioningNotCompleted = -2146889660,
 

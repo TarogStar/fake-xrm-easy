@@ -5,13 +5,27 @@ using System.Linq;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+	/// <summary>
+	/// Fake message executor for AddMembersTeamRequest
+	/// </summary>
 	public class AddMembersTeamRequestExecutor : IFakeMessageExecutor
 	{
+		/// <summary>
+		/// Determines whether this executor can execute the given request
+		/// </summary>
+		/// <param name="request">The organization request</param>
+		/// <returns>True if the request is AddMembersTeamRequest</returns>
 		public bool CanExecute(OrganizationRequest request)
 		{
 			return request is AddMembersTeamRequest;
 		}
 
+		/// <summary>
+		/// Executes the AddMembersTeamRequest
+		/// </summary>
+		/// <param name="request">The organization request</param>
+		/// <param name="ctx">The faked context</param>
+		/// <returns>AddMembersTeamResponse</returns>
 		public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
 		{
 			var req = (AddMembersTeamRequest)request;
@@ -56,6 +70,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
 			return new AddMembersTeamResponse();
 		}
 
+		/// <summary>
+		/// Gets the type of request this executor is responsible for
+		/// </summary>
+		/// <returns>The type of AddMembersTeamRequest</returns>
 		public Type GetResponsibleRequestType()
 		{
 			return typeof(AddMembersTeamRequest);

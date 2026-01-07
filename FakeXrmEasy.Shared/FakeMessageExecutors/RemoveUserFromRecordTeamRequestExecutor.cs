@@ -7,13 +7,27 @@ using Microsoft.Crm.Sdk.Messages;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor for RemoveUserFromRecordTeamRequest
+    /// </summary>
     public class RemoveUserFromRecordTeamRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is RemoveUserFromRecordTeamRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is RemoveUserFromRecordTeamRequest;
         }
 
+        /// <summary>
+        /// Executes the RemoveUserFromRecordTeamRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>RemoveUserFromRecordTeamResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             RemoveUserFromRecordTeamRequest remReq = (RemoveUserFromRecordTeamRequest)request;
@@ -73,6 +87,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             };
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of RemoveUserFromRecordTeamRequestExecutor</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(RemoveUserFromRecordTeamRequestExecutor);

@@ -7,20 +7,32 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace FakeXrmEasy
 {
+    /// <summary>
+    /// Partial class containing plugin pipeline simulation functionality for the faked CRM context.
+    /// Provides support for simulating the Dynamics 365 plugin execution pipeline by registering
+    /// and executing plugins based on SDK message processing step configurations.
+    /// </summary>
     public partial class XrmFakedContext : IXrmContext
     {
+        /// <summary>
+        /// Gets or sets a value indicating whether pipeline simulation is enabled.
+        /// When enabled, registered plugins will be automatically executed during CRUD operations
+        /// based on their SDK Message Processing Step configuration.
+        /// </summary>
         public bool UsePipelineSimulation { get; set; }
 
         /// <summary>
-        /// Registers the <typeparamref name="TPlugin"/> as a SDK Message Processing Step for the Entity <typeparamref name="TEntity"/>.
+        /// Registers the specified plugin type as an SDK Message Processing Step for the specified entity type.
+        /// This creates the necessary sdkmessage, plugintype, and sdkmessageprocessingstep records
+        /// in the faked context to simulate plugin registration.
         /// </summary>
-        /// <typeparam name="TPlugin">The plugin to register the step for.</typeparam>
-        /// <typeparam name="TEntity">The entity to filter this step for.</typeparam>
-        /// <param name="message">The message that should trigger the execution of plugin.</param>
-        /// <param name="stage">The stage when the plugin should be executed.</param>
-        /// <param name="mode">The mode in which the plugin should be executed.</param>
-        /// <param name="rank">The order in which this plugin should be executed in comparison to other plugins registered with the same <paramref name="message"/> and <paramref name="stage"/>.</param>
-        /// <param name="filteringAttributes">When not one of these attributes is present in the execution context, the execution of the plugin is prevented.</param>
+        /// <typeparam name="TPlugin">The plugin type to register. Must implement <see cref="IPlugin"/>.</typeparam>
+        /// <typeparam name="TEntity">The entity type to filter this step for. Must inherit from <see cref="Entity"/>.</typeparam>
+        /// <param name="message">The message that should trigger the execution of the plugin (e.g., "Create", "Update", "Delete").</param>
+        /// <param name="stage">The pipeline stage when the plugin should be executed. Defaults to Post-operation.</param>
+        /// <param name="mode">The execution mode (Synchronous or Asynchronous). Defaults to Synchronous.</param>
+        /// <param name="rank">The execution order relative to other plugins registered for the same message and stage. Lower values execute first.</param>
+        /// <param name="filteringAttributes">Optional array of attribute names. If specified, the plugin only executes when at least one of these attributes is modified.</param>
         public void RegisterPluginStep<TPlugin, TEntity>(string message, ProcessingStepStage stage = ProcessingStepStage.Postoperation, ProcessingStepMode mode = ProcessingStepMode.Synchronous, int rank = 1, string[] filteringAttributes = null)
             where TPlugin : IPlugin
             where TEntity : Entity, new()
@@ -32,15 +44,17 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
-        /// Registers the <typeparamref name="TPlugin"/> as a SDK Message Processing Step.
+        /// Registers the specified plugin type as an SDK Message Processing Step.
+        /// This overload allows specifying an entity type code directly instead of using a generic type parameter.
+        /// Creates the necessary sdkmessage, plugintype, sdkmessagefilter, and sdkmessageprocessingstep records.
         /// </summary>
-        /// <typeparam name="TPlugin">The plugin to register the step for.</typeparam>
-        /// <param name="message">The message that should trigger the execution of plugin.</param>
-        /// <param name="stage">The stage when the plugin should be executed.</param>
-        /// <param name="mode">The mode in which the plugin should be executed.</param>
-        /// <param name="rank">The order in which this plugin should be executed in comparison to other plugins registered with the same <paramref name="message"/> and <paramref name="stage"/>.</param>
-        /// <param name="filteringAttributes">When not one of these attributes is present in the execution context, the execution of the plugin is prevented.</param>
-        /// <param name="primaryEntityTypeCode">The entity type code to filter this step for.</param>
+        /// <typeparam name="TPlugin">The plugin type to register. Must implement <see cref="IPlugin"/>.</typeparam>
+        /// <param name="message">The message that should trigger the execution of the plugin (e.g., "Create", "Update", "Delete").</param>
+        /// <param name="stage">The pipeline stage when the plugin should be executed. Defaults to Post-operation.</param>
+        /// <param name="mode">The execution mode (Synchronous or Asynchronous). Defaults to Synchronous.</param>
+        /// <param name="rank">The execution order relative to other plugins registered for the same message and stage. Lower values execute first.</param>
+        /// <param name="filteringAttributes">Optional array of attribute names. If specified, the plugin only executes when at least one of these attributes is modified.</param>
+        /// <param name="primaryEntityTypeCode">Optional entity type code to filter this step for. If null, the plugin will execute for all entities.</param>
         public void RegisterPluginStep<TPlugin>(string message, ProcessingStepStage stage = ProcessingStepStage.Postoperation, ProcessingStepMode mode = ProcessingStepMode.Synchronous, int rank = 1, string[] filteringAttributes = null, int? primaryEntityTypeCode = null)
             where TPlugin : IPlugin
         {
@@ -103,6 +117,14 @@ namespace FakeXrmEasy
             this.AddEntityWithDefaults(sdkMessageProcessingStep);
         }
 
+        /// <summary>
+        /// Executes registered plugins for a specific pipeline stage when processing an entity.
+        /// Retrieves and executes all matching plugins ordered by rank.
+        /// </summary>
+        /// <param name="method">The message name (e.g., "Create", "Update", "Delete").</param>
+        /// <param name="stage">The pipeline stage to execute plugins for.</param>
+        /// <param name="mode">The execution mode to filter plugins by.</param>
+        /// <param name="entity">The target entity being processed.</param>
         private void ExecutePipelineStage(string method, ProcessingStepStage stage, ProcessingStepMode mode, Entity entity)
         {
             var plugins = GetStepsForStage(method, stage, mode, entity);

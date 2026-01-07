@@ -6,16 +6,35 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace FakeXrmEasy.Services
 {
+    /// <summary>
+    /// Indicates how aggressively FakeXrmEasy should populate default values.
+    /// </summary>
     public enum EntityInitializationLevel
     {
-        Default = 0,  //Minimal initialization of common attributes
-        PerEntity = 1 //More detailed initialization of entities, on an entity per entity basis
+        /// <summary>
+        /// Minimal initialization of common attributes applied to every entity.
+        /// </summary>
+        Default = 0,
+
+        /// <summary>
+        /// Uses entity-specific services to populate richer defaults.
+        /// </summary>
+        PerEntity = 1
     }
+
+    /// <summary>
+    /// Provides default attribute values and delegates to entity-specific initializer services when configured.
+    /// </summary>
     public class DefaultEntityInitializerService : IEntityInitializerService
     {
-        
+        /// <summary>
+        /// Maps logical entity names to specialized initializer implementations.
+        /// </summary>
         public Dictionary<string, IEntityInitializerService> InitializerServiceDictionary;
 
+        /// <summary>
+        /// Creates the default initializer and wires up built-in per-entity services.
+        /// </summary>
         public DefaultEntityInitializerService()
         {
             InitializerServiceDictionary = new Dictionary<string, IEntityInitializerService>()
@@ -25,6 +44,7 @@ namespace FakeXrmEasy.Services
             };
         }
 
+        /// <inheritdoc />
         public Entity Initialize(Entity e, Guid gCallerId, XrmFakedContext ctx, bool isManyToManyRelationshipEntity = false)
         {
             //Validate primary key for dynamic entities
@@ -66,6 +86,7 @@ namespace FakeXrmEasy.Services
             return e;
         }
 
+        /// <inheritdoc />
         public Entity Initialize(Entity e, XrmFakedContext ctx, bool isManyToManyRelationshipEntity = false)
         {
             return this.Initialize(e, Guid.NewGuid(), ctx, isManyToManyRelationshipEntity);

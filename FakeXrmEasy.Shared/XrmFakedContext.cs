@@ -14,12 +14,18 @@ using System.Reflection;
 namespace FakeXrmEasy
 {
     /// <summary>
-    /// A fake context that stores In-Memory entites indexed by logical name and then Entity records, simulating
-    /// how entities are persisted in Tables (with the logical name) and then the records themselves
-    /// where the Primary Key is the Guid
+    /// The main context class for the FakeXrmEasy testing framework that simulates the Dynamics 365 CRM context.
+    /// Stores in-memory entities indexed by logical name and then by entity record GUID, simulating
+    /// how entities are persisted in Dataverse tables (with the logical name) and then the records themselves
+    /// where the Primary Key is the Guid. This class provides a complete mock of the IOrganizationService
+    /// for unit testing plugins, custom workflow activities, and other CRM-related code.
     /// </summary>
     public partial class XrmFakedContext : IXrmContext
     {
+        /// <summary>
+        /// Gets or sets the underlying <see cref="IOrganizationService"/> instance used by this context.
+        /// This service is automatically created and configured when <see cref="GetOrganizationService"/> is called.
+        /// </summary>
         protected internal IOrganizationService Service { get; set; }
 
         private IServiceEndpointNotificationService _serviceEndpointNotificationService;
@@ -31,10 +37,21 @@ namespace FakeXrmEasy
         /// </summary>
         private List<Assembly> ProxyTypesAssemblies { get; set; }
 
+        /// <summary>
+        /// Gets the tracing service used to capture trace messages during plugin and workflow activity execution.
+        /// </summary>
         protected internal XrmFakedTracingService TracingService => _tracingService.Value;
 
+        /// <summary>
+        /// Gets or sets a value indicating whether this context has been initialized with entity data.
+        /// The Initialize method can only be called once per context instance.
+        /// </summary>
         protected internal bool Initialised { get; set; }
 
+        /// <summary>
+        /// Gets or sets the in-memory data store containing all entities in this fake CRM context.
+        /// The outer dictionary is keyed by entity logical name, and the inner dictionary maps entity GUIDs to Entity objects.
+        /// </summary>
         public Dictionary<string, Dictionary<Guid, Entity>> Data { get; set; }
 
         /// <summary>
@@ -63,13 +80,23 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
-        /// Sets the user to assign the CreatedBy and ModifiedBy properties when entities are added to the context.
-        /// All requests will be executed on behalf of this user
+        /// Gets or sets the user to assign the CreatedBy and ModifiedBy properties when entities are added to the context.
+        /// All requests will be executed on behalf of this user, simulating the calling user in the CRM system.
         /// </summary>
         public EntityReference CallerId { get; set; }
 
+        /// <summary>
+        /// Gets or sets the business unit context for the current user.
+        /// This is used to simulate the business unit hierarchy in Dynamics 365.
+        /// </summary>
         public EntityReference BusinessUnitId { get; set; }
 
+        /// <summary>
+        /// Delegate type for custom service request execution handlers.
+        /// Allows registering custom logic to handle specific <see cref="OrganizationRequest"/> types.
+        /// </summary>
+        /// <param name="req">The organization request to be executed.</param>
+        /// <returns>The <see cref="OrganizationResponse"/> resulting from executing the request.</returns>
         public delegate OrganizationResponse ServiceRequestExecution(OrganizationRequest req);
 
         /// <summary>
@@ -84,13 +111,37 @@ namespace FakeXrmEasy
         private Dictionary<string, XrmFakedRelationship> Relationships { get; set; }
 
 
+        /// <summary>
+        /// Gets or sets the entity initializer service responsible for setting default values on entities
+        /// when they are created or initialized. Use this to customize how entities are populated with
+        /// default field values during testing.
+        /// </summary>
         public IEntityInitializerService EntityInitializerService { get; set; }
+
+        /// <summary>
+        /// Gets or sets the access rights repository that manages security permissions for entities.
+        /// Use this to configure and test security-related operations such as GrantAccess, ModifyAccess,
+        /// RevokeAccess, and RetrievePrincipalAccess requests.
+        /// </summary>
         public IAccessRightsRepository AccessRightsRepository { get; set; }
 
+        /// <summary>
+        /// Gets or sets the maximum number of records returned by a RetrieveMultiple operation.
+        /// Default value is 5000, which matches the Dynamics 365 default behavior.
+        /// </summary>
         public int MaxRetrieveCount { get; set; }
 
+        /// <summary>
+        /// Gets or sets the entity initialization level that determines how entities are populated
+        /// with default values when added to the context.
+        /// </summary>
         public EntityInitializationLevel InitializationLevel { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="XrmFakedContext"/> class.
+        /// Sets up default values, registers built-in message executors, and prepares the
+        /// in-memory data store for simulating Dynamics 365 operations.
+        /// </summary>
         public XrmFakedContext()
         {
             MaxRetrieveCount = 5000;
@@ -162,9 +213,13 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
-        /// Initializes the context with the provided entities
+        /// Initializes the context with the provided entities, populating the in-memory data store.
+        /// This method can only be called once per context instance and is typically called at the
+        /// beginning of a unit test to set up the test data.
         /// </summary>
-        /// <param name="entities"></param>
+        /// <param name="entities">The collection of entities to add to the fake CRM context as initial data.</param>
+        /// <exception cref="Exception">Thrown if Initialize has already been called on this context instance.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the entities parameter is null.</exception>
         public virtual void Initialize(IEnumerable<Entity> entities)
         {
             if (Initialised)
@@ -185,17 +240,24 @@ namespace FakeXrmEasy
             Initialised = true;
         }
 
+        /// <summary>
+        /// Initializes the context with a single entity, populating the in-memory data store.
+        /// This is a convenience overload that wraps the entity in a collection.
+        /// </summary>
+        /// <param name="e">The entity to add to the fake CRM context as initial data.</param>
         public void Initialize(Entity e)
         {
             this.Initialize(new List<Entity>() { e });
         }
 
         /// <summary>
-        /// Enables support for the early-cound types exposed in a specified assembly.
+        /// Enables support for the early-bound entity types exposed in a specified assembly.
+        /// Call this method to register additional assemblies containing strongly-typed entity classes
+        /// when using multiple assemblies for early-bound types.
         /// </summary>
-        /// <param name="assembly">
-        /// An assembly containing early-bound entity types.
-        /// </param>
+        /// <param name="assembly">An assembly containing early-bound entity types generated by CrmSvcUtil or similar tools.</param>
+        /// <exception cref="ArgumentNullException">Thrown if the assembly parameter is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if the specified assembly has already been enabled.</exception>
         /// <remarks>
         /// See issue #334 on GitHub. This has quite similar idea as is on SDK method
         /// https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.client.organizationserviceproxy.enableproxytypes.
@@ -215,6 +277,12 @@ namespace FakeXrmEasy
             ProxyTypesAssemblies.Add(assembly);
         }
 
+        /// <summary>
+        /// Registers a custom execution mock for a specific organization request type.
+        /// This allows you to define custom behavior for handling specific CRM requests during testing.
+        /// </summary>
+        /// <typeparam name="T">The type of <see cref="OrganizationRequest"/> to mock.</typeparam>
+        /// <param name="mock">The delegate that will be invoked when a request of type T is executed.</param>
         public void AddExecutionMock<T>(ServiceRequestExecution mock) where T : OrganizationRequest
         {
             if (!ExecutionMocks.ContainsKey(typeof(T)))
@@ -223,11 +291,21 @@ namespace FakeXrmEasy
                 ExecutionMocks[typeof(T)] = mock;
         }
 
+        /// <summary>
+        /// Removes a previously registered execution mock for a specific organization request type.
+        /// </summary>
+        /// <typeparam name="T">The type of <see cref="OrganizationRequest"/> whose mock should be removed.</typeparam>
         public void RemoveExecutionMock<T>() where T : OrganizationRequest
         {
             ExecutionMocks.Remove(typeof(T));
         }
 
+        /// <summary>
+        /// Registers a custom fake message executor for a specific organization request type.
+        /// This allows you to provide a complete implementation for handling specific CRM requests during testing.
+        /// </summary>
+        /// <typeparam name="T">The type of <see cref="OrganizationRequest"/> to handle.</typeparam>
+        /// <param name="executor">The <see cref="IFakeMessageExecutor"/> implementation that will handle requests of type T.</param>
         public void AddFakeMessageExecutor<T>(IFakeMessageExecutor executor) where T : OrganizationRequest
         {
             if (!FakeMessageExecutors.ContainsKey(typeof(T)))
@@ -236,11 +314,21 @@ namespace FakeXrmEasy
                 FakeMessageExecutors[typeof(T)] = executor;
         }
 
+        /// <summary>
+        /// Removes a previously registered fake message executor for a specific organization request type.
+        /// </summary>
+        /// <typeparam name="T">The type of <see cref="OrganizationRequest"/> whose executor should be removed.</typeparam>
         public void RemoveFakeMessageExecutor<T>() where T : OrganizationRequest
         {
             FakeMessageExecutors.Remove(typeof(T));
         }
 
+        /// <summary>
+        /// Registers a generic fake message executor for a specific message name.
+        /// This is useful for handling custom actions or messages that don't have strongly-typed request classes.
+        /// </summary>
+        /// <param name="message">The message name (e.g., "custom_Action") that the executor will handle.</param>
+        /// <param name="executor">The <see cref="IFakeMessageExecutor"/> implementation that will handle the message.</param>
         public void AddGenericFakeMessageExecutor(string message, IFakeMessageExecutor executor)
         {
             if (!GenericFakeMessageExecutors.ContainsKey(message))
@@ -249,22 +337,41 @@ namespace FakeXrmEasy
                 GenericFakeMessageExecutors[message] = executor;
         }
 
+        /// <summary>
+        /// Removes a previously registered generic fake message executor for a specific message name.
+        /// </summary>
+        /// <param name="message">The message name whose executor should be removed.</param>
         public void RemoveGenericFakeMessageExecutor(string message)
         {
             if (GenericFakeMessageExecutors.ContainsKey(message))
                 GenericFakeMessageExecutors.Remove(message);
         }
 
+        /// <summary>
+        /// Registers a relationship definition that can be used in Associate and Disassociate operations.
+        /// This is required for testing N:N (many-to-many) relationship operations.
+        /// </summary>
+        /// <param name="schemaname">The schema name of the relationship as defined in Dynamics 365.</param>
+        /// <param name="relationship">The <see cref="XrmFakedRelationship"/> definition containing relationship metadata.</param>
         public void AddRelationship(string schemaname, XrmFakedRelationship relationship)
         {
             Relationships.Add(schemaname, relationship);
         }
 
+        /// <summary>
+        /// Removes a previously registered relationship definition.
+        /// </summary>
+        /// <param name="schemaname">The schema name of the relationship to remove.</param>
         public void RemoveRelationship(string schemaname)
         {
             Relationships.Remove(schemaname);
         }
 
+        /// <summary>
+        /// Retrieves a relationship definition by its schema name.
+        /// </summary>
+        /// <param name="schemaName">The schema name of the relationship to retrieve.</param>
+        /// <returns>The <see cref="XrmFakedRelationship"/> definition if found; otherwise, null.</returns>
         public XrmFakedRelationship GetRelationship(string schemaName)
         {
             if (Relationships.ContainsKey(schemaName))
@@ -275,6 +382,16 @@ namespace FakeXrmEasy
             return null;
         }
 
+        /// <summary>
+        /// Adds an attribute mapping between source and target entities for use with InitializeFrom operations.
+        /// This simulates the attribute mapping configuration in Dynamics 365 that copies values from
+        /// one entity to another when creating related records.
+        /// </summary>
+        /// <param name="sourceEntityName">The logical name of the source entity.</param>
+        /// <param name="sourceAttributeName">The logical name of the source attribute.</param>
+        /// <param name="targetEntityName">The logical name of the target entity.</param>
+        /// <param name="targetAttributeName">The logical name of the target attribute that will receive the mapped value.</param>
+        /// <exception cref="ArgumentNullException">Thrown if any parameter is null or whitespace.</exception>
         public void AddAttributeMapping(string sourceEntityName, string sourceAttributeName, string targetEntityName, string targetAttributeName)
         {
             if (string.IsNullOrWhiteSpace(sourceEntityName))
@@ -307,6 +424,11 @@ namespace FakeXrmEasy
             AddEntityWithDefaults(attributeMap);
         }
 
+        /// <summary>
+        /// Gets or creates a mocked <see cref="IOrganizationService"/> instance configured with this fake context.
+        /// The returned service intercepts all CRM operations and executes them against the in-memory data store.
+        /// </summary>
+        /// <returns>A mocked <see cref="IOrganizationService"/> instance that can be used to perform CRM operations in tests.</returns>
         public virtual IOrganizationService GetOrganizationService()
         {
             if (this is XrmRealContext)
@@ -318,15 +440,22 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
-        /// Deprecated. Use GetOrganizationService instead
+        /// Gets a mocked <see cref="IOrganizationService"/> instance configured with this fake context.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A mocked <see cref="IOrganizationService"/> instance.</returns>
+        /// <remarks>This method is deprecated. Use <see cref="GetOrganizationService"/> instead.</remarks>
         [Obsolete("Use GetOrganizationService instead")]
         public IOrganizationService GetFakedOrganizationService()
         {
             return GetFakedOrganizationService(this);
         }
 
+        /// <summary>
+        /// Creates and configures a mocked <see cref="IOrganizationService"/> for the specified context.
+        /// Sets up fake handlers for all CRUD operations and organization requests.
+        /// </summary>
+        /// <param name="context">The <see cref="XrmFakedContext"/> to configure the service with.</param>
+        /// <returns>A mocked <see cref="IOrganizationService"/> instance.</returns>
         protected IOrganizationService GetFakedOrganizationService(XrmFakedContext context)
         {
             if (context.Service != null)
@@ -355,11 +484,15 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
-        /// Fakes the Execute method of the organization service.
-        /// Not all the OrganizationRequest are going to be implemented, so stay tunned on updates!
+        /// Configures the Execute method handler on the faked organization service.
+        /// Routes incoming <see cref="OrganizationRequest"/> objects to the appropriate executor based on request type.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="fakedService"></param>
+        /// <param name="context">The <see cref="XrmFakedContext"/> containing the executors and mocks.</param>
+        /// <param name="fakedService">The faked <see cref="IOrganizationService"/> to configure.</param>
+        /// <remarks>
+        /// Not all OrganizationRequest types are implemented. Custom executors can be added using
+        /// <see cref="AddFakeMessageExecutor{T}"/> or <see cref="AddGenericFakeMessageExecutor"/>.
+        /// </remarks>
         public static void FakeExecute(XrmFakedContext context, IOrganizationService fakedService)
         {
             OrganizationResponse response = null;
@@ -384,6 +517,12 @@ namespace FakeXrmEasy
                 .ReturnsLazily((OrganizationRequest req) => response);
         }
 
+        /// <summary>
+        /// Configures the Associate method handler on the faked organization service.
+        /// Handles Associate requests that link entities through N:N relationships.
+        /// </summary>
+        /// <param name="context">The <see cref="XrmFakedContext"/> containing the data and relationship definitions.</param>
+        /// <param name="fakedService">The faked <see cref="IOrganizationService"/> to configure.</param>
         public static void FakeAssociate(XrmFakedContext context, IOrganizationService fakedService)
         {
             A.CallTo(() => fakedService.Associate(A<string>._, A<Guid>._, A<Relationship>._, A<EntityReferenceCollection>._))
@@ -404,6 +543,12 @@ namespace FakeXrmEasy
                 });
         }
 
+        /// <summary>
+        /// Configures the Disassociate method handler on the faked organization service.
+        /// Handles Disassociate requests that unlink entities in N:N relationships.
+        /// </summary>
+        /// <param name="context">The <see cref="XrmFakedContext"/> containing the data and relationship definitions.</param>
+        /// <param name="fakedService">The faked <see cref="IOrganizationService"/> to configure.</param>
         public static void FakeDisassociate(XrmFakedContext context, IOrganizationService fakedService)
         {
             A.CallTo(() => fakedService.Disassociate(A<string>._, A<Guid>._, A<Relationship>._, A<EntityReferenceCollection>._))
@@ -424,6 +569,12 @@ namespace FakeXrmEasy
                 });
         }
 
+        /// <summary>
+        /// Configures the RetrieveMultiple method handler on the faked organization service.
+        /// Handles QueryExpression, FetchExpression, and QueryByAttribute queries against the in-memory data store.
+        /// </summary>
+        /// <param name="context">The <see cref="XrmFakedContext"/> containing the data to query.</param>
+        /// <param name="fakedService">The faked <see cref="IOrganizationService"/> to configure.</param>
         public static void FakeRetrieveMultiple(XrmFakedContext context, IOrganizationService fakedService)
         {
             EntityCollection entities = null;
@@ -443,12 +594,22 @@ namespace FakeXrmEasy
                 .ReturnsLazily((QueryBase req) => entities);
         }
 
+        /// <summary>
+        /// Gets a faked <see cref="IServiceEndpointNotificationService"/> instance for testing plugins
+        /// that use service endpoint notifications (Azure Service Bus integration).
+        /// </summary>
+        /// <returns>A faked <see cref="IServiceEndpointNotificationService"/> instance.</returns>
         public IServiceEndpointNotificationService GetFakedServiceEndpointNotificationService()
         {
             return _serviceEndpointNotificationService ??
                    (_serviceEndpointNotificationService = A.Fake<IServiceEndpointNotificationService>());
         }
 #if FAKE_XRM_EASY_9
+        /// <summary>
+        /// Gets a faked <see cref="IEntityDataSourceRetrieverService"/> instance for testing
+        /// virtual entity data providers in Dynamics 365 v9.x and later.
+        /// </summary>
+        /// <returns>A faked <see cref="IEntityDataSourceRetrieverService"/> instance configured with the current context's entity data source retriever.</returns>
         public IEntityDataSourceRetrieverService GetFakedEntityDataSourceRetrieverService()
         {
             var service = A.Fake<IEntityDataSourceRetrieverService>();

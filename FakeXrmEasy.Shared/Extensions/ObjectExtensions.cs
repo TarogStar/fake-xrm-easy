@@ -4,15 +4,20 @@ using System.Reflection;
 
 namespace FakeXrmEasy.Extensions
 {
-    //taken from:
-    //https://github.com/Burtsev-Alexey/net-object-deep-copy/blob/master/ObjectExtensions.cs
     /// <summary>
-    /// Deep cloning of the object
+    /// Provides extension methods for deep cloning objects using reflection.
+    /// Adapted from: https://github.com/Burtsev-Alexey/net-object-deep-copy/blob/master/ObjectExtensions.cs
     /// </summary>
     public static class ObjectExtensions
     {
         private static readonly MethodInfo CloneMethod = typeof(Object).GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance);
 
+        /// <summary>
+        /// Determines whether a type is considered primitive for cloning purposes.
+        /// Strings are treated as primitive (immutable), along with value types that are also primitives.
+        /// </summary>
+        /// <param name="type">The type to check.</param>
+        /// <returns><c>true</c> if the type is primitive or string; otherwise <c>false</c>.</returns>
         public static bool IsPrimitive(this Type type)
         {
             if (type == typeof(String)) return true;
@@ -45,6 +50,14 @@ namespace FakeXrmEasy.Extensions
             return propertyInfo;
         }
 
+        /// <summary>
+        /// Gets the value of a field from an object using reflection, traversing the type hierarchy if necessary.
+        /// </summary>
+        /// <param name="obj">The object from which to retrieve the field value.</param>
+        /// <param name="fieldName">The name of the field to retrieve.</param>
+        /// <returns>The value of the field.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when obj is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the field is not found in the type hierarchy.</exception>
         public static object GetFieldValue(this object obj, string fieldName)
         {
             if (obj == null)
@@ -57,6 +70,15 @@ namespace FakeXrmEasy.Extensions
             return fieldInfo.GetValue(obj);
         }
 
+        /// <summary>
+        /// Sets the value of a field or property on an object using reflection.
+        /// Attempts to find a field first, then a property, then a backing field pattern (_fieldName).
+        /// </summary>
+        /// <param name="obj">The object on which to set the field value.</param>
+        /// <param name="fieldName">The name of the field or property to set.</param>
+        /// <param name="val">The value to assign.</param>
+        /// <exception cref="ArgumentNullException">Thrown when obj is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when neither field nor property is found.</exception>
         public static void SetFieldValue(this object obj, string fieldName, object val)
         {
             if (obj == null)
@@ -96,6 +118,11 @@ namespace FakeXrmEasy.Extensions
         }
 
 
+        /// <summary>
+        /// Creates a deep copy of an object, cloning all fields recursively while handling circular references.
+        /// </summary>
+        /// <param name="originalObject">The object to clone.</param>
+        /// <returns>A deep copy of the original object, or null if the original is null.</returns>
         public static Object Copy(this Object originalObject)
         {
             return InternalCopy(originalObject, new Dictionary<Object, Object>(new ReferenceEqualityComparer()));
@@ -145,19 +172,40 @@ namespace FakeXrmEasy.Extensions
             }
         }
 
+        /// <summary>
+        /// Creates a deep copy of an object with strongly-typed return value.
+        /// </summary>
+        /// <typeparam name="T">The type of the object to clone.</typeparam>
+        /// <param name="original">The object to clone.</param>
+        /// <returns>A deep copy of the original object cast to type T.</returns>
         public static T Copy<T>(this T original)
         {
             return (T)Copy((Object)original);
         }
     }
 
+    /// <summary>
+    /// An equality comparer that compares objects by reference identity rather than value equality.
+    /// Used during deep cloning to detect and handle circular references.
+    /// </summary>
     public class ReferenceEqualityComparer : EqualityComparer<Object>
     {
+        /// <summary>
+        /// Determines whether two objects are the same instance.
+        /// </summary>
+        /// <param name="x">The first object to compare.</param>
+        /// <param name="y">The second object to compare.</param>
+        /// <returns><c>true</c> if both references point to the same object; otherwise <c>false</c>.</returns>
         public override bool Equals(object x, object y)
         {
             return ReferenceEquals(x, y);
         }
 
+        /// <summary>
+        /// Returns the hash code for an object.
+        /// </summary>
+        /// <param name="obj">The object for which to get the hash code.</param>
+        /// <returns>The hash code of the object, or 0 if the object is null.</returns>
         public override int GetHashCode(object obj)
         {
             if (obj == null) return 0;
@@ -165,8 +213,16 @@ namespace FakeXrmEasy.Extensions
         }
     }
 
+    /// <summary>
+    /// Provides extension methods for working with arrays, particularly multi-dimensional arrays.
+    /// </summary>
     public static class ArrayExtensions
     {
+        /// <summary>
+        /// Iterates over all elements in a multi-dimensional array, invoking an action for each element.
+        /// </summary>
+        /// <param name="array">The array to iterate over.</param>
+        /// <param name="action">The action to invoke for each element, receiving the array and the current indices.</param>
         public static void ForEach(this Array array, Action<Array, int[]> action)
         {
             if (array.LongLength == 0) return;

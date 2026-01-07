@@ -1,17 +1,44 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Crm.Sdk.Messages;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Implements a fake message executor for the CRM QualifyLeadRequest message.
+    /// This executor simulates the lead qualification process in Dynamics 365 / Power Platform,
+    /// which converts a lead into account, contact, and/or opportunity records based on the request parameters.
+    /// </summary>
     public class QualifyLeadRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can handle the specified organization request.
+        /// </summary>
+        /// <param name="request">The organization request to evaluate.</param>
+        /// <returns><c>true</c> if the request is a <see cref="QualifyLeadRequest"/>; otherwise, <c>false</c>.</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is QualifyLeadRequest;
         }
 
+        /// <summary>
+        /// Executes the QualifyLeadRequest against the faked CRM context.
+        /// This method qualifies a lead by optionally creating account, contact, and/or opportunity records
+        /// based on the request properties. The lead's status is updated to reflect the qualification.
+        /// Created entities are linked to the original lead via the originatingleadid attribute.
+        /// </summary>
+        /// <param name="request">The organization request to execute. Must be a <see cref="QualifyLeadRequest"/>.</param>
+        /// <param name="ctx">The faked XRM context that simulates the CRM environment.</param>
+        /// <returns>
+        /// A <see cref="QualifyLeadResponse"/> containing the CreatedEntities collection with references
+        /// to any account, contact, and/or opportunity records that were created during qualification.
+        /// </returns>
+        /// <exception cref="Exception">
+        /// Thrown when the LeadId is null, when no lead exists with the specified ID, when multiple leads
+        /// exist with the same ID, or when the OpportunityCustomerId references an entity type other than
+        /// account or contact.
+        /// </exception>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var req = request as QualifyLeadRequest;
@@ -104,6 +131,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return response;
         }
 
+        /// <summary>
+        /// Gets the type of organization request that this executor is responsible for handling.
+        /// </summary>
+        /// <returns>The <see cref="Type"/> of <see cref="QualifyLeadRequest"/>.</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(QualifyLeadRequest);

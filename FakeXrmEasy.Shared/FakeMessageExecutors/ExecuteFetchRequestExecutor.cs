@@ -10,15 +10,29 @@ using System.Xml.Linq;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor for ExecuteFetchRequest
+    /// </summary>
     public class ExecuteFetchRequestExecutor : IFakeMessageExecutor
     {
         private Dictionary<string, int?> _typeCodes = new Dictionary<string, int?>();
 
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is ExecuteFetchRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is ExecuteFetchRequest;
         }
 
+        /// <summary>
+        /// Executes the ExecuteFetchRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>ExecuteFetchResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var executeFetchRequest = (ExecuteFetchRequest)request;
@@ -110,6 +124,13 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return row;
         }
 
+        /// <summary>
+        /// Converts an attribute value to a FetchXML result element
+        /// </summary>
+        /// <param name="entAtt">The entity attribute key-value pair</param>
+        /// <param name="formattedValues">The formatted values collection</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>XElement representing the attribute value</returns>
         public XElement AttributeValueToFetchResult(KeyValuePair<string, object> entAtt, FormattedValueCollection formattedValues, XrmFakedContext ctx)
         {
             XElement attributeValueElement;
@@ -199,6 +220,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return attributeValueElement;
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of ExecuteFetchRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(ExecuteFetchRequest);

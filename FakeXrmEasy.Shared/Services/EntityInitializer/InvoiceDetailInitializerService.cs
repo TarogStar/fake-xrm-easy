@@ -6,10 +6,17 @@ using System.Text;
 
 namespace FakeXrmEasy.Services
 {
+    /// <summary>
+    /// Emulates server-side defaults for invoice line items, including pricing and totals.
+    /// </summary>
     public class InvoiceDetailInitializerService : IEntityInitializerService
     {
+        /// <summary>
+        /// Logical name for invoice detail entities.
+        /// </summary>
         public const string EntityLogicalName = "invoicedetail";
 
+        /// <inheritdoc />
         public Entity Initialize(Entity e, Guid gCallerId, XrmFakedContext ctx, bool isManyToManyRelationshipEntity = false)
         {
             Entity invoice = null;
@@ -115,6 +122,7 @@ namespace FakeXrmEasy.Services
             return e;
         }
 
+        /// <inheritdoc />
         public Entity Initialize(Entity e, XrmFakedContext ctx, bool isManyToManyRelationshipEntity = false)
         {
             return this.Initialize(e, Guid.NewGuid(), ctx, isManyToManyRelationshipEntity);

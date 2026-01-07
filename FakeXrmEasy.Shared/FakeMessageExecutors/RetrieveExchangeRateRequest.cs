@@ -8,13 +8,27 @@ using Microsoft.Xrm.Sdk.Query;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
+    /// <summary>
+    /// Fake message executor for RetrieveExchangeRateRequest
+    /// </summary>
     public class RetrieveExchangeRateRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can execute the given request
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <returns>True if the request is RetrieveExchangeRateRequest</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is RetrieveExchangeRateRequest;
         }
 
+        /// <summary>
+        /// Executes the RetrieveExchangeRateRequest
+        /// </summary>
+        /// <param name="request">The organization request</param>
+        /// <param name="ctx">The faked context</param>
+        /// <returns>RetrieveExchangeRateResponse</returns>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var retrieveExchangeRateRequest = (RetrieveExchangeRateRequest)request;
@@ -56,6 +70,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             };
         }
 
+        /// <summary>
+        /// Gets the type of request this executor is responsible for
+        /// </summary>
+        /// <returns>The type of RetrieveExchangeRateRequest</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(RetrieveExchangeRateRequest);

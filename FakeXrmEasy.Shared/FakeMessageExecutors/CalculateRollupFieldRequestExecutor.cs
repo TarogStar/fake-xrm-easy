@@ -43,11 +43,37 @@ namespace FakeXrmEasy.FakeMessageExecutors
     /// </summary>
     public class CalculateRollupFieldRequestExecutor : IFakeMessageExecutor
     {
+        /// <summary>
+        /// Determines whether this executor can handle the specified organization request.
+        /// </summary>
+        /// <param name="request">The organization request to evaluate.</param>
+        /// <returns><c>true</c> if the request is a <see cref="CalculateRollupFieldRequest"/>; otherwise, <c>false</c>.</returns>
         public bool CanExecute(OrganizationRequest request)
         {
             return request is CalculateRollupFieldRequest;
         }
 
+        /// <summary>
+        /// Executes the CalculateRollupField request, simulating the recalculation of a rollup field value.
+        /// </summary>
+        /// <param name="request">The <see cref="CalculateRollupFieldRequest"/> containing the target entity reference and field name.</param>
+        /// <param name="ctx">The <see cref="XrmFakedContext"/> providing the in-memory CRM context for the operation.</param>
+        /// <returns>
+        /// A <see cref="CalculateRollupFieldResponse"/> containing the entity with its current rollup field value.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">Thrown when Target or FieldName is null or empty.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the target entity does not exist in the context.</exception>
+        /// <remarks>
+        /// <para>
+        /// This is a simplified mock implementation that preserves any pre-populated rollup field value
+        /// rather than performing actual rollup calculations. For testing scenarios, pre-populate the
+        /// rollup field value in your test data before calling this executor.
+        /// </para>
+        /// <para>
+        /// In a real Dynamics 365 system, CalculateRollupField would query related records, apply filters,
+        /// and execute aggregation functions (SUM, COUNT, MIN, MAX, AVG) based on the rollup field definition.
+        /// </para>
+        /// </remarks>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
             var rollupRequest = (CalculateRollupFieldRequest)request;
@@ -111,6 +137,10 @@ namespace FakeXrmEasy.FakeMessageExecutors
             return response;
         }
 
+        /// <summary>
+        /// Gets the type of organization request that this executor is responsible for handling.
+        /// </summary>
+        /// <returns>The <see cref="Type"/> of <see cref="CalculateRollupFieldRequest"/>.</returns>
         public Type GetResponsibleRequestType()
         {
             return typeof(CalculateRollupFieldRequest);

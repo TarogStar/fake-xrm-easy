@@ -7,12 +7,17 @@ using System.Linq;
 
 namespace FakeXrmEasy
 {
+    /// <summary>
+    /// Partial class containing plugin execution functionality for the faked CRM context.
+    /// Provides methods to execute Dynamics 365 plugins in an in-memory test environment.
+    /// </summary>
     public partial class XrmFakedContext : IXrmContext
     {
         /// <summary>
-        /// Returns a plugin context with default properties one can override
+        /// Returns a plugin execution context with default properties that can be customized for testing.
+        /// The context includes standard properties like Depth, UserId, BusinessUnitId, and empty parameter collections.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A new <see cref="XrmFakedPluginExecutionContext"/> instance with default values populated.</returns>
         public XrmFakedPluginExecutionContext GetDefaultPluginContext()
         {
             var userId = CallerId?.Id ?? Guid.NewGuid();
@@ -35,6 +40,12 @@ namespace FakeXrmEasy
             };
         }
 
+        /// <summary>
+        /// Creates a faked <see cref="IPluginExecutionContext"/> from the provided faked plugin execution context.
+        /// Uses FakeItEasy to mock the interface and populate all properties from the source context.
+        /// </summary>
+        /// <param name="ctx">The faked plugin execution context containing the property values to use.</param>
+        /// <returns>A mocked <see cref="IPluginExecutionContext"/> with all properties configured.</returns>
         protected IPluginExecutionContext GetFakedPluginContext(XrmFakedPluginExecutionContext ctx)
         {
             var context = A.Fake<IPluginExecutionContext4>();
@@ -65,6 +76,13 @@ namespace FakeXrmEasy
             return context;
         }
 
+        /// <summary>
+        /// Populates a mocked execution context with property values from a faked plugin execution context.
+        /// Configures all standard execution context properties including user information, message details,
+        /// input/output parameters, and entity images.
+        /// </summary>
+        /// <param name="context">The mocked execution context to populate with values.</param>
+        /// <param name="ctx">The source faked plugin execution context containing the property values.</param>
         protected void PopulateExecutionContextPropertiesFromFakedContext(IExecutionContext context, XrmFakedPluginExecutionContext ctx)
         {
             var newUserId = Guid.NewGuid();
@@ -112,6 +130,12 @@ namespace FakeXrmEasy
             }
         }
 
+        /// <summary>
+        /// Creates a faked <see cref="IExecutionContext"/> from the provided faked plugin execution context.
+        /// This provides a simpler execution context interface compared to the full plugin execution context.
+        /// </summary>
+        /// <param name="ctx">The faked plugin execution context containing the property values to use.</param>
+        /// <returns>A mocked <see cref="IExecutionContext"/> with properties configured from the source context.</returns>
         protected IExecutionContext GetFakedExecutionContext(XrmFakedPluginExecutionContext ctx)
         {
             var context = A.Fake<IExecutionContext>();
@@ -122,11 +146,13 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
-        /// Executes a plugin passing a custom context. This is useful whenever we need to mock more complex plugin contexts (ex: passing MessageName, plugin Depth, InitiatingUserId etc...)
+        /// Executes a plugin of the specified type with a custom plugin execution context.
+        /// This is useful when you need to mock complex plugin contexts with specific values for
+        /// MessageName, plugin Depth, InitiatingUserId, and other context properties.
         /// </summary>
-        /// <typeparam name="T">Must be a plugin</typeparam>
-        /// <param name="ctx"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">The plugin type to execute. Must implement <see cref="IPlugin"/> and have a parameterless constructor.</typeparam>
+        /// <param name="ctx">The custom plugin execution context. If null, a default context will be created.</param>
+        /// <returns>The executed plugin instance wrapped in a FakeItEasy fake.</returns>
         public IPlugin ExecutePluginWith<T>(XrmFakedPluginExecutionContext ctx = null)
             where T : IPlugin, new()
         {
@@ -139,11 +165,13 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
-        /// Executes a plugin passing a custom context. This is useful whenever we need to mock more complex plugin contexts (ex: passing MessageName, plugin Depth, InitiatingUserId etc...)
+        /// Executes a specific plugin instance with a custom plugin execution context.
+        /// This overload allows passing a pre-constructed plugin instance, which is useful when
+        /// the plugin requires constructor parameters or specific initialization.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="instance"></param>
-        /// <returns></returns>
+        /// <param name="ctx">The custom plugin execution context containing message details, parameters, and images.</param>
+        /// <param name="instance">The pre-constructed plugin instance to execute.</param>
+        /// <returns>The executed plugin instance wrapped in a FakeItEasy fake.</returns>
         public IPlugin ExecutePluginWith(XrmFakedPluginExecutionContext ctx, IPlugin instance)
         {
             var fakedServiceProvider = GetFakedServiceProvider(ctx);
@@ -160,6 +188,16 @@ namespace FakeXrmEasy
             return fakedPlugin;
         }
 
+        /// <summary>
+        /// Executes a plugin of the specified type with explicit input parameters, output parameters, and entity images.
+        /// This method creates a default plugin context and populates it with the provided collections.
+        /// </summary>
+        /// <typeparam name="T">The plugin type to execute. Must implement <see cref="IPlugin"/> and have a parameterless constructor.</typeparam>
+        /// <param name="inputParameters">The input parameters to pass to the plugin (e.g., Target entity).</param>
+        /// <param name="outputParameters">The output parameters collection for plugin output.</param>
+        /// <param name="preEntityImages">The pre-entity images available to the plugin.</param>
+        /// <param name="postEntityImages">The post-entity images available to the plugin.</param>
+        /// <returns>The executed plugin instance wrapped in a FakeItEasy fake.</returns>
         public IPlugin ExecutePluginWith<T>(ParameterCollection inputParameters, ParameterCollection outputParameters, EntityImageCollection preEntityImages, EntityImageCollection postEntityImages)
             where T : IPlugin, new()
         {
@@ -183,6 +221,16 @@ namespace FakeXrmEasy
             return fakedPlugin;
         }
 
+        /// <summary>
+        /// Executes a plugin of the specified type with secure and unsecure configuration strings.
+        /// The plugin must have a constructor that accepts two string parameters (unsecure and secure configuration).
+        /// </summary>
+        /// <typeparam name="T">The plugin type to execute. Must implement <see cref="IPlugin"/> and have a constructor accepting two string parameters.</typeparam>
+        /// <param name="plugCtx">The custom plugin execution context.</param>
+        /// <param name="unsecureConfiguration">The unsecure configuration string to pass to the plugin constructor.</param>
+        /// <param name="secureConfiguration">The secure configuration string to pass to the plugin constructor.</param>
+        /// <returns>The executed plugin instance wrapped in a FakeItEasy fake.</returns>
+        /// <exception cref="ArgumentException">Thrown when the plugin type does not have a constructor accepting two string parameters.</exception>
         public IPlugin ExecutePluginWithConfigurations<T>(XrmFakedPluginExecutionContext plugCtx, string unsecureConfiguration, string secureConfiguration)
             where T : class, IPlugin
         {
@@ -199,6 +247,16 @@ namespace FakeXrmEasy
             return this.ExecutePluginWith(plugCtx, pluginInstance);
         }
 
+        /// <summary>
+        /// Executes a pre-constructed plugin instance with configuration strings.
+        /// </summary>
+        /// <typeparam name="T">The plugin type. Must implement <see cref="IPlugin"/>.</typeparam>
+        /// <param name="plugCtx">The custom plugin execution context.</param>
+        /// <param name="instance">The pre-constructed plugin instance to execute.</param>
+        /// <param name="unsecureConfiguration">The unsecure configuration string (not used in this overload, retained for API compatibility).</param>
+        /// <param name="secureConfiguration">The secure configuration string (not used in this overload, retained for API compatibility).</param>
+        /// <returns>The executed plugin instance wrapped in a FakeItEasy fake.</returns>
+        /// <exception cref="ArgumentException">Thrown when the plugin type does not have a constructor accepting two string parameters.</exception>
         [Obsolete("Use ExecutePluginWith(XrmFakedPluginExecutionContext ctx, IPlugin instance).")]
         public IPlugin ExecutePluginWithConfigurations<T>(XrmFakedPluginExecutionContext plugCtx, T instance, string unsecureConfiguration="", string secureConfiguration="")
             where T : class, IPlugin
@@ -226,6 +284,16 @@ namespace FakeXrmEasy
             return fakedPlugin;
         }
 
+        /// <summary>
+        /// Executes a plugin of the specified type with a target entity and custom plugin context.
+        /// The target entity is automatically added to the InputParameters collection.
+        /// </summary>
+        /// <typeparam name="T">The plugin type to execute. Must implement <see cref="IPlugin"/> and have a parameterless constructor.</typeparam>
+        /// <param name="ctx">The custom plugin execution context to use.</param>
+        /// <param name="target">The target entity to execute the plugin against.</param>
+        /// <param name="messageName">The message name (e.g., "Create", "Update", "Delete"). Defaults to "Create".</param>
+        /// <param name="stage">The pipeline stage (e.g., 10 for Pre-validation, 20 for Pre-operation, 40 for Post-operation). Defaults to 40.</param>
+        /// <returns>The executed plugin instance wrapped in a FakeItEasy fake.</returns>
         public IPlugin ExecutePluginWithTarget<T>(XrmFakedPluginExecutionContext ctx, Entity target, string messageName = "Create", int stage = 40)
           where T : IPlugin, new()
         {
@@ -408,10 +476,14 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
-        /// Returns a faked plugin with a target and the specified pre entity images
+        /// Executes a plugin with a target and pre-entity images.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">The plugin type to execute. Must implement <see cref="IPlugin"/> and have a parameterless constructor.</typeparam>
+        /// <param name="target">The target object (Entity or EntityReference) to execute the plugin against.</param>
+        /// <param name="preEntityImages">The pre-entity images collection to include in the context.</param>
+        /// <param name="messageName">The message name. Defaults to "Create".</param>
+        /// <param name="stage">The pipeline stage. Defaults to 40 (Post-operation).</param>
+        /// <returns>The executed plugin instance wrapped in a FakeItEasy fake.</returns>
         [Obsolete]
         public IPlugin ExecutePluginWithTargetAndPreEntityImages<T>(object target, EntityImageCollection preEntityImages, string messageName = "Create", int stage = 40)
             where T : IPlugin, new()
@@ -427,10 +499,14 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
-        /// Returns a faked plugin with a target and the specified post entity images
+        /// Executes a plugin with a target and post-entity images.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">The plugin type to execute. Must implement <see cref="IPlugin"/> and have a parameterless constructor.</typeparam>
+        /// <param name="target">The target object (Entity or EntityReference) to execute the plugin against.</param>
+        /// <param name="postEntityImages">The post-entity images collection to include in the context.</param>
+        /// <param name="messageName">The message name. Defaults to "Create".</param>
+        /// <param name="stage">The pipeline stage. Defaults to 40 (Post-operation).</param>
+        /// <returns>The executed plugin instance wrapped in a FakeItEasy fake.</returns>
         [Obsolete]
         public IPlugin ExecutePluginWithTargetAndPostEntityImages<T>(object target, EntityImageCollection postEntityImages, string messageName = "Create", int stage = 40)
             where T : IPlugin, new()
@@ -445,6 +521,15 @@ namespace FakeXrmEasy
             return this.ExecutePluginWith<T>(ctx);
         }
 
+        /// <summary>
+        /// Executes a plugin with a target entity and additional input parameters.
+        /// </summary>
+        /// <typeparam name="T">The plugin type to execute. Must implement <see cref="IPlugin"/> and have a parameterless constructor.</typeparam>
+        /// <param name="target">The target entity to execute the plugin against.</param>
+        /// <param name="inputParameters">Additional input parameters to include in the context.</param>
+        /// <param name="messageName">The message name. Defaults to "Create".</param>
+        /// <param name="stage">The pipeline stage. Defaults to 40 (Post-operation).</param>
+        /// <returns>The executed plugin instance wrapped in a FakeItEasy fake.</returns>
         [Obsolete]
         public IPlugin ExecutePluginWithTargetAndInputParameters<T>(Entity target, ParameterCollection inputParameters, string messageName = "Create", int stage = 40)
             where T : IPlugin, new()
@@ -456,6 +541,14 @@ namespace FakeXrmEasy
             return this.ExecutePluginWithTarget<T>(ctx, target, messageName, stage);
         }
 
+        /// <summary>
+        /// Creates a faked service provider for plugin execution.
+        /// The service provider can resolve IOrganizationService, ITracingService, IPluginExecutionContext,
+        /// IOrganizationServiceFactory, and IServiceEndpointNotificationService.
+        /// </summary>
+        /// <param name="plugCtx">The plugin execution context to use when resolving context-related services.</param>
+        /// <returns>A mocked <see cref="IServiceProvider"/> that can resolve CRM plugin services.</returns>
+        /// <exception cref="PullRequestException">Thrown when an unsupported service type is requested.</exception>
         protected IServiceProvider GetFakedServiceProvider(XrmFakedPluginExecutionContext plugCtx)
         {
             var fakedServiceProvider = A.Fake<IServiceProvider>();
@@ -511,9 +604,18 @@ namespace FakeXrmEasy
         }
 
 #if FAKE_XRM_EASY_9
+        /// <summary>
+        /// Gets or sets the entity used by the EntityDataSourceRetrieverService for virtual entity data sources.
+        /// Only available in Dynamics 365 v9.x and later.
+        /// </summary>
         public Entity EntityDataSourceRetriever { get; set; }
 #endif
 
+        /// <summary>
+        /// Gets the faked tracing service used by plugins during execution.
+        /// The tracing service captures all trace messages written by plugins for verification in tests.
+        /// </summary>
+        /// <returns>The <see cref="XrmFakedTracingService"/> instance used by this context.</returns>
         public XrmFakedTracingService GetFakeTracingService()
         {
             return TracingService;
