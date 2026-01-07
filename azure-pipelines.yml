@@ -35,7 +35,7 @@ variables:
   buildConfiguration: 'Release'
   nugetVersion: '6.x'
   # Update this to match your Azure Artifacts feed name
-  artifactsFeed: 'FakeXrmEasy-Community'
+  artifactsFeed: 'PrenticeWorxCore'
 
 stages:
 # =============================================================================
