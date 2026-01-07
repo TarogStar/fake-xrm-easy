@@ -191,7 +191,7 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 | 460 | last-x-weeks operator | Date | **FIXED** - Already implemented (TranslateConditionExpressionLast) |
 | 476 | Fiscal period operators | Date | **FIXED** - InFiscalPeriod, InFiscalPeriodAndYear, This/Last/NextFiscalPeriod |
 | 509 | LIKE wildcards [X-Y] | Query | **FIXED** - Underscore, [a-z] ranges, [abc] sets, [^abc] negation |
-| NEW | Any/All related-record filtering | Query | Deferred to P3 - AnyAllFilterLinkEntity requires substantial LINQ changes |
+| NEW | Any/All related-record filtering | Query | **PLANNED v1.2.0** - See Phase 2 below |
 
 ### P3 — Developer Experience / Sustainability (COMPLETE)
 
@@ -202,13 +202,85 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 | NEW | ExecuteMultiple ContinueOnError | Messages | **FIXED** - Response key fix + proper fault extraction |
 | NEW | README placeholder cleanup | Docs | **FIXED** - Removed YOUR_ORG placeholders |
 
-### Not Tracked - New SDK Features to Consider
+---
+
+## v1.2.0 Roadmap
+
+### Phase 1 — Quick Wins & Cleanup (1-2 days)
+
+| # | Title | Category | Effort | Notes |
+|---|-------|----------|--------|-------|
+| 569 | ObjectTypeCode casting | Query | Low | Investigate & fix/document |
+| 566 | Upsert alt key copy | CRUD | Low | Verify if already fixed with #615 |
+
+### Phase 2 — Any/All Filter Operators (4-6 days)
+
+| Feature | Category | Effort | Notes |
+|---------|----------|--------|-------|
+| AnyAllFilterLinkEntity | Query | Medium | Any/NotAny/All/NotAll existence filters |
+
+**Constraints (verified via XrmToolbox testing):**
+- Any/All LinkEntity must be child of `<filter>` node, NOT `<link-entity>`
+- No attributes/columns allowed in Any/All LinkEntity
+- No nested link-entities allowed under Any/All
+- Filters ARE supported inside the Any/All LinkEntity
+- Translates to SQL EXISTS/NOT EXISTS subqueries
+
+**Implementation approach:**
+1. Parse `FilterExpression.AnyAllFilterLinkEntity` in filter translation
+2. Generate `.Any()` / `.All()` LINQ predicates with inner filter conditions
+3. FetchXML: Handle `<link-entity link-type="any|all|not-any|not-all">` inside `<filter>` nodes
+4. Validation: Reject nested links, attributes, order clauses with clear error messages
+
+**FetchXML structure:**
+```xml
+<fetch>
+  <entity name="account">
+    <filter>
+      <link-entity name="contact" from="parentcustomerid" to="accountid" link-type="any">
+        <filter>
+          <condition attribute="statecode" operator="eq" value="0" />
+        </filter>
+      </link-entity>
+    </filter>
+  </entity>
+</fetch>
+```
+
+### Phase 3 — Key Constraints & Validation (2-3 days)
+
+| Feature | Category | Effort | Notes |
+|---------|----------|--------|-------|
+| Alternate key limits | Metadata | Medium | 10 keys/table, 16 columns/key |
+| Key attribute validation | Metadata | Low | No FLS on key attributes |
+| Key type enforcement | Metadata | Low | Only Decimal/Int/String/DateTime/Lookup/OptionSet |
+
+### Phase 4 — Metadata CRUD (Future)
+
+| Message | Priority | Notes |
+|---------|----------|-------|
+| CreateEntity, UpdateEntity, DeleteEntity | Medium | Entity metadata manipulation |
+| CreateAttribute, UpdateAttribute, DeleteAttribute | Medium | Attribute metadata manipulation |
+| RetrieveAllEntities | Medium | Bulk metadata retrieval |
+| RetrieveEntityChanges | Medium | Change tracking / delta sync |
+
+### Phase 5 — Coverage Map & Documentation (Ongoing)
+
+Formalize the testing coverage into a structured map:
+- ✅ Supported (with test coverage)
+- ⚠️ Supported with differences (documented)
+- ❌ Not supported (documented)
+- 🧪 Needs verification
+
+---
+
+### Not Tracked - Lower Priority SDK Features
 
 | Feature | Category | Notes |
 |---------|----------|-------|
-| AnyAllFilterLinkEntity | Query | Any/NotAny/All/NotAll join operators |
-| ExecuteMultiple semantics | Messages | ContinueOnError, per-request faults |
-| Alternate key metadata fidelity | Metadata | Rich attribute metadata for alt keys |
+| Encryption messages | Security | IsDataEncryptionActive, etc. - rarely tested |
+| Relationship validation | Metadata | CanBeReferenced, CanManyToMany, etc. |
+| Managed properties | Metadata | RetrieveManagedProperty, etc. |
 
 ### SDK Message Implementation Status
 
