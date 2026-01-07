@@ -25,6 +25,18 @@ namespace FakeXrmEasy.Models
         public bool IsOuter { get; set; }
 
         /// <summary>
+        /// Gets or sets the attribute name for column-to-column comparison (FetchXML valueof attribute).
+        /// When set, the condition compares the attribute value against another column's value
+        /// instead of a constant value. Addresses upstream issue #514.
+        /// </summary>
+        public string ValueOfAttribute { get; set; }
+
+        /// <summary>
+        /// Gets whether this condition is a column-to-column comparison.
+        /// </summary>
+        public bool IsColumnComparison => !string.IsNullOrEmpty(ValueOfAttribute);
+
+        /// <summary>
         /// Initializes a new instance of the TypedConditionExpression class with the specified condition expression.
         /// </summary>
         /// <param name="c">The ConditionExpression to wrap.</param>
@@ -32,6 +44,7 @@ namespace FakeXrmEasy.Models
         {
             IsOuter = false;
             CondExpression = c;
+            ValueOfAttribute = null;
         }
     }
 }

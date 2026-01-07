@@ -12,7 +12,7 @@ This document consolidates the status of issues and PRs from the archived [jordi
 | Category | Total | Fixed | TODO | Won't Fix |
 |----------|-------|-------|------|-----------|
 | Plugin/Pipeline | 12 | 4 | 3 | 0 |
-| Query Engine | 20 | 16 | 1 | 0 |
+| Query Engine | 20 | 17 | 0 | 0 |
 | Date/Time | 7 | 7 | 0 | 0 |
 | Message Executors | 12 | 9 | 2 | 0 |
 | Metadata | 10 | 5 | 3 | 2 |
@@ -107,6 +107,12 @@ This document consolidates the status of issues and PRs from the archived [jordi
 | 606 | Complex nested filters | **FIXED** | Recursive filter processing + #547 fix covers this |
 | 612 | StateCode cast error | **FIXED** | StateCode/StatusCode properly mapped to OptionSetValue in query engine |
 
+### Query Engine - Column Comparison
+
+| # | Title | Status | Implementation |
+|---|-------|--------|----------------|
+| 514 | FetchXml valueof column comparison | **FIXED** | `TranslateColumnComparisonExpression` supports valueof attribute and SDK CompareColumns property |
+
 ---
 
 ## TODO Items (Remaining Work)
@@ -115,7 +121,6 @@ This document consolidates the status of issues and PRs from the archived [jordi
 
 | # | Title | Category | Notes |
 |---|-------|----------|-------|
-| 514 | FetchXml valueof column comparison | Query | Column-to-column comparison |
 | 562 | Min date validation 01/01/1753 | Core | CRM minimum date |
 | 508 | Alternate keys in AssociateRequest | Core | Currently not supported |
 | 557 | Expose Metadata generation | Metadata | PR exists |
@@ -225,6 +230,13 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 (Part 4)
+- Fixed: #514 - FetchXML valueof attribute for column-to-column comparison
+  - Supports operators: eq, ne, gt, ge, lt, le
+  - Handles various value types: string, int, Money, DateTime, EntityReference
+  - Also supports SDK QueryExpression's `CompareColumns` property
+  - Added 11 test cases covering both FetchXML and QueryExpression approaches
 
 ### 2026-01-07 (Part 3)
 - Verified: #615 - UpsertRequest issues already fixed with UpsertRequestExecutor + alternate key support

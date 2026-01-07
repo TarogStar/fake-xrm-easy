@@ -852,6 +852,18 @@ namespace FakeXrmEasy
 
             Expression operatorExpression = null;
 
+            // Handle column-to-column comparison (FetchXML valueof attribute)
+            // Addresses upstream issue #514
+            if (c.IsColumnComparison)
+            {
+                operatorExpression = TranslateColumnComparisonExpression(c, entity, attributesProperty, containsAttributeExpression);
+                if (operatorExpression != null)
+                {
+                    return operatorExpression;
+                }
+                // If the operator is not supported for column comparison, fall through to throw an error
+            }
+
             switch (c.CondExpression.Operator)
             {
                 case ConditionOperator.Equal:
@@ -2458,9 +2470,24 @@ namespace FakeXrmEasy
             foreach (var c in conditions)
             {
                 var cEntityName = sEntityName;
-                //Create a new typed expression 
+                //Create a new typed expression
                 var typedExpression = new TypedConditionExpression(c);
                 typedExpression.IsOuter = bIsOuter;
+
+                // Check for column-to-column comparison
+                // Method 1: FetchXML valueof attribute - ColumnComparisonValue marker is stored in the Values array
+                if (c.Values != null && c.Values.Count == 1 && c.Values[0] is ColumnComparisonValue)
+                {
+                    typedExpression.ValueOfAttribute = ((ColumnComparisonValue)c.Values[0]).ColumnName;
+                }
+#if FAKE_XRM_EASY_9
+                // Method 2: SDK QueryExpression CompareColumns property (D365 v9.x+)
+                // When CompareColumns is true, the first value in Values is the column name to compare against
+                else if (c.CompareColumns && c.Values != null && c.Values.Count == 1 && c.Values[0] is string)
+                {
+                    typedExpression.ValueOfAttribute = (string)c.Values[0];
+                }
+#endif
 
                 string sAttributeName = c.AttributeName;
 
@@ -2792,5 +2819,208 @@ namespace FakeXrmEasy
                                Expression.Constant(true))));
         }
 #endif
+
+        /// <summary>
+        /// Translates a column-to-column comparison expression (FetchXML valueof attribute).
+        /// Compares one column's value against another column's value in the same entity row.
+        /// Addresses upstream issue #514.
+        /// </summary>
+        /// <param name="c">The typed condition expression with ValueOfAttribute set.</param>
+        /// <param name="entity">The entity parameter expression.</param>
+        /// <param name="attributesProperty">Expression to access the entity's Attributes collection.</param>
+        /// <param name="containsLeftAttributeExpr">Expression to check if left attribute exists.</param>
+        /// <returns>The translated expression, or null if the operator is not supported for column comparison.</returns>
+        protected static Expression TranslateColumnComparisonExpression(TypedConditionExpression c, ParameterExpression entity, Expression attributesProperty, Expression containsLeftAttributeExpr)
+        {
+            // Get the comparison column name from ValueOfAttribute
+            var valueOfColumnName = c.ValueOfAttribute;
+
+            // Supported operators for column comparison
+            var supportedOperators = new[]
+            {
+                ConditionOperator.Equal,
+                ConditionOperator.NotEqual,
+                ConditionOperator.GreaterThan,
+                ConditionOperator.GreaterEqual,
+                ConditionOperator.LessThan,
+                ConditionOperator.LessEqual
+            };
+
+            if (!supportedOperators.Contains(c.CondExpression.Operator))
+            {
+                return null; // Operator not supported for column comparison
+            }
+
+            // Build expression to check if the valueof column exists
+            Expression containsRightAttributeExpr = Expression.Call(
+                attributesProperty,
+                typeof(AttributeCollection).GetMethod("ContainsKey", new Type[] { typeof(string) }),
+                Expression.Constant(valueOfColumnName)
+            );
+
+            // Get the left attribute value (the condition attribute)
+            Expression getLeftAttributeValueExpr = Expression.Property(
+                attributesProperty, "Item",
+                Expression.Constant(c.CondExpression.AttributeName, typeof(string))
+            );
+
+            // Get the right attribute value (the valueof column)
+            Expression getRightAttributeValueExpr = Expression.Property(
+                attributesProperty, "Item",
+                Expression.Constant(valueOfColumnName, typeof(string))
+            );
+
+            // Unwrap AliasedValue for both sides if present
+            Expression unwrapLeftExpr = UnwrapAliasedValue(getLeftAttributeValueExpr);
+            Expression unwrapRightExpr = UnwrapAliasedValue(getRightAttributeValueExpr);
+
+            // Get comparable values for both sides (handles EntityReference, Money, OptionSetValue, etc.)
+            Expression comparableLeftExpr = GetComparableValueExpression(unwrapLeftExpr);
+            Expression comparableRightExpr = GetComparableValueExpression(unwrapRightExpr);
+
+            // Build the comparison expression based on operator
+            Expression comparisonExpr;
+            switch (c.CondExpression.Operator)
+            {
+                case ConditionOperator.Equal:
+                    comparisonExpr = Expression.Call(
+                        typeof(object).GetMethod("Equals", new[] { typeof(object), typeof(object) }),
+                        comparableLeftExpr,
+                        comparableRightExpr
+                    );
+                    break;
+                case ConditionOperator.NotEqual:
+                    comparisonExpr = Expression.Not(
+                        Expression.Call(
+                            typeof(object).GetMethod("Equals", new[] { typeof(object), typeof(object) }),
+                            comparableLeftExpr,
+                            comparableRightExpr
+                        )
+                    );
+                    break;
+                case ConditionOperator.GreaterThan:
+                    comparisonExpr = BuildComparableComparisonExpression(comparableLeftExpr, comparableRightExpr, ExpressionType.GreaterThan);
+                    break;
+                case ConditionOperator.GreaterEqual:
+                    comparisonExpr = BuildComparableComparisonExpression(comparableLeftExpr, comparableRightExpr, ExpressionType.GreaterThanOrEqual);
+                    break;
+                case ConditionOperator.LessThan:
+                    comparisonExpr = BuildComparableComparisonExpression(comparableLeftExpr, comparableRightExpr, ExpressionType.LessThan);
+                    break;
+                case ConditionOperator.LessEqual:
+                    comparisonExpr = BuildComparableComparisonExpression(comparableLeftExpr, comparableRightExpr, ExpressionType.LessThanOrEqual);
+                    break;
+                default:
+                    return null;
+            }
+
+            // Both attributes must exist and be non-null for comparison to succeed
+            return Expression.AndAlso(
+                containsLeftAttributeExpr,
+                Expression.AndAlso(
+                    containsRightAttributeExpr,
+                    Expression.AndAlso(
+                        Expression.NotEqual(getLeftAttributeValueExpr, Expression.Constant(null)),
+                        Expression.AndAlso(
+                            Expression.NotEqual(getRightAttributeValueExpr, Expression.Constant(null)),
+                            comparisonExpr
+                        )
+                    )
+                )
+            );
+        }
+
+        /// <summary>
+        /// Unwraps an AliasedValue to get the underlying value.
+        /// Returns the original expression if not an AliasedValue.
+        /// </summary>
+        private static Expression UnwrapAliasedValue(Expression input)
+        {
+            var getValueFromAliasedValueExpr = Expression.Call(
+                Expression.Convert(input, typeof(AliasedValue)),
+                typeof(AliasedValue).GetMethod("get_Value")
+            );
+
+            return Expression.Condition(
+                Expression.TypeIs(input, typeof(AliasedValue)),
+                getValueFromAliasedValueExpr,
+                input
+            );
+        }
+
+        /// <summary>
+        /// Gets a comparable value expression that extracts the underlying value from
+        /// EntityReference (Id), Money (Value), OptionSetValue (Value), etc.
+        /// </summary>
+        private static Expression GetComparableValueExpression(Expression input)
+        {
+            // Handle EntityReference -> Guid
+            var entityRefExpr = Expression.Condition(
+                Expression.TypeIs(input, typeof(EntityReference)),
+                Expression.Convert(
+                    Expression.Call(Expression.TypeAs(input, typeof(EntityReference)),
+                        typeof(EntityReference).GetMethod("get_Id")),
+                    typeof(object)
+                ),
+                input
+            );
+
+            // Handle Money -> decimal
+            var moneyExpr = Expression.Condition(
+                Expression.TypeIs(entityRefExpr, typeof(Money)),
+                Expression.Convert(
+                    Expression.Call(Expression.TypeAs(entityRefExpr, typeof(Money)),
+                        typeof(Money).GetMethod("get_Value")),
+                    typeof(object)
+                ),
+                entityRefExpr
+            );
+
+            // Handle OptionSetValue -> int
+            var optionSetExpr = Expression.Condition(
+                Expression.TypeIs(moneyExpr, typeof(OptionSetValue)),
+                Expression.Convert(
+                    Expression.Call(Expression.TypeAs(moneyExpr, typeof(OptionSetValue)),
+                        typeof(OptionSetValue).GetMethod("get_Value")),
+                    typeof(object)
+                ),
+                moneyExpr
+            );
+
+            return optionSetExpr;
+        }
+
+        /// <summary>
+        /// Builds a comparison expression for IComparable types (gt, ge, lt, le).
+        /// Uses IComparable.CompareTo for runtime comparison.
+        /// </summary>
+        private static Expression BuildComparableComparisonExpression(Expression left, Expression right, ExpressionType comparisonType)
+        {
+            // Call IComparable.CompareTo on the left value
+            var compareToMethod = typeof(IComparable).GetMethod("CompareTo", new[] { typeof(object) });
+
+            // Cast left to IComparable and call CompareTo
+            var compareToExpr = Expression.Call(
+                Expression.Convert(left, typeof(IComparable)),
+                compareToMethod,
+                right
+            );
+
+            // Build comparison: CompareTo(right) > 0, >= 0, < 0, or <= 0
+            int threshold = 0;
+            switch (comparisonType)
+            {
+                case ExpressionType.GreaterThan:
+                    return Expression.GreaterThan(compareToExpr, Expression.Constant(threshold));
+                case ExpressionType.GreaterThanOrEqual:
+                    return Expression.GreaterThanOrEqual(compareToExpr, Expression.Constant(threshold));
+                case ExpressionType.LessThan:
+                    return Expression.LessThan(compareToExpr, Expression.Constant(threshold));
+                case ExpressionType.LessThanOrEqual:
+                    return Expression.LessThanOrEqual(compareToExpr, Expression.Constant(threshold));
+                default:
+                    throw new NotSupportedException($"Comparison type {comparisonType} is not supported");
+            }
+        }
     }
 }

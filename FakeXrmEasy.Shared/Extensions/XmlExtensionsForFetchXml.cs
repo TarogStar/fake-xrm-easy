@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;
 using System.Globalization;
+using FakeXrmEasy.Models;
 
 namespace FakeXrmEasy.Extensions.FetchXml
 {
@@ -538,9 +539,17 @@ namespace FakeXrmEasy.Extensions.FetchXml
             ConditionOperator op = ConditionOperator.Equal;
 
             string value = null;
+            string valueOfColumn = null;
+
             if (elem.GetAttribute("value") != null)
             {
                 value = elem.GetAttribute("value").Value;
+            }
+            // Support for FetchXML valueof attribute (column-to-column comparison)
+            // Addresses upstream issue #514
+            if (elem.GetAttribute("valueof") != null)
+            {
+                valueOfColumn = elem.GetAttribute("valueof").Value;
             }
             if (elem.GetAttribute("entityname") != null)
             {
@@ -769,6 +778,25 @@ namespace FakeXrmEasy.Extensions.FetchXml
                         .ToArray();
 
 
+            // Handle column-to-column comparison (valueof attribute)
+            // Store the column name as a ColumnComparisonValue marker in the Values array
+            if (valueOfColumn != null)
+            {
+                var columnComparisonValue = new ColumnComparisonValue(valueOfColumn);
+#if FAKE_XRM_EASY_2013 || FAKE_XRM_EASY_2015 || FAKE_XRM_EASY_2016 || FAKE_XRM_EASY_365 || FAKE_XRM_EASY_9
+                if (string.IsNullOrWhiteSpace(conditionEntityName))
+                {
+                    return new ConditionExpression(attributeName, op, columnComparisonValue);
+                }
+                else
+                {
+                    return new ConditionExpression(conditionEntityName, attributeName, op, columnComparisonValue);
+                }
+#else
+                return new ConditionExpression(attributeName, op, columnComparisonValue);
+#endif
+            }
+
             //Otherwise, a single value was used
             if (value != null)
             {
@@ -784,7 +812,7 @@ namespace FakeXrmEasy.Extensions.FetchXml
 
 #else
                 return new ConditionExpression(attributeName, op, GetConditionExpressionValueCast(value, ctx, entityName, attributeName, op));
-           
+
 #endif
             }
 
