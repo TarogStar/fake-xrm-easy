@@ -9,8 +9,37 @@ using System.Reflection;
 
 namespace FakeXrmEasy.Metadata
 {
-    internal class MetadataGenerator
+    /// <summary>
+    /// Provides static methods for generating Dynamics 365 metadata from early-bound entity types.
+    /// This class can be used to programmatically create EntityMetadata and AttributeMetadata
+    /// from assemblies containing early-bound entity classes for use in test setups.
+    /// </summary>
+    /// <remarks>
+    /// This class is exposed publicly to allow users to generate metadata for their own test setups
+    /// without needing to go through XrmFakedContext. Typical use cases include:
+    /// - Generating metadata for a subset of entities
+    /// - Creating metadata for custom entity types
+    /// - Building metadata programmatically for specific test scenarios
+    /// </remarks>
+    public class MetadataGenerator
     {
+        /// <summary>
+        /// Generates EntityMetadata for all early-bound entity types found in the specified assembly.
+        /// Reflects over the assembly to find classes decorated with EntityLogicalNameAttribute
+        /// and creates corresponding metadata including attributes and relationships.
+        /// </summary>
+        /// <param name="earlyBoundEntitiesAssembly">The assembly containing early-bound entity classes.</param>
+        /// <returns>A collection of EntityMetadata for all entity types found in the assembly.</returns>
+        /// <example>
+        /// <code>
+        /// // Generate metadata from an assembly containing early-bound types
+        /// var metadata = MetadataGenerator.FromEarlyBoundEntities(typeof(Account).Assembly);
+        ///
+        /// // Use with XrmFakedContext
+        /// var context = new XrmFakedContext();
+        /// context.InitializeMetadata(metadata);
+        /// </code>
+        /// </example>
         public static IEnumerable<EntityMetadata> FromEarlyBoundEntities(Assembly earlyBoundEntitiesAssembly)
         {
             List<EntityMetadata> entityMetadatas = new List<EntityMetadata>();
@@ -72,7 +101,7 @@ namespace FakeXrmEasy.Metadata
                         }
                         else
                         {
-                            attributeMetadata = CreateAttributeMetadata(property.PropertyType);
+                            attributeMetadata = CreateAttributeMetadataByType(property.PropertyType);
                         }
 
                         attributeMetadata.SetFieldValue("EntityLogicalName", entityLogicalNameAttribute.LogicalName);
@@ -124,12 +153,207 @@ namespace FakeXrmEasy.Metadata
             return entityMetadatas;
         }
 
-        private static T GetCustomAttribute<T>(MemberInfo member) where T : Attribute
+        /// <summary>
+        /// Generates EntityMetadata for a single early-bound entity type.
+        /// This is useful when you need metadata for just one specific entity.
+        /// </summary>
+        /// <typeparam name="T">The early-bound entity type (must be decorated with EntityLogicalNameAttribute).</typeparam>
+        /// <returns>The EntityMetadata for the specified type, or null if the type is not an early-bound entity.</returns>
+        /// <example>
+        /// <code>
+        /// // Generate metadata for a single entity type
+        /// var accountMetadata = MetadataGenerator.FromEarlyBoundEntity&lt;Account&gt;();
+        ///
+        /// // Use with XrmFakedContext
+        /// var context = new XrmFakedContext();
+        /// context.InitializeMetadata(accountMetadata);
+        /// </code>
+        /// </example>
+        public static EntityMetadata FromEarlyBoundEntity<T>() where T : Entity
+        {
+            return FromEarlyBoundEntity(typeof(T));
+        }
+
+        /// <summary>
+        /// Generates EntityMetadata for a single early-bound entity type.
+        /// This is useful when you need metadata for just one specific entity.
+        /// </summary>
+        /// <param name="earlyBoundType">The early-bound entity type (must be decorated with EntityLogicalNameAttribute).</param>
+        /// <returns>The EntityMetadata for the specified type, or null if the type is not an early-bound entity.</returns>
+        /// <example>
+        /// <code>
+        /// // Generate metadata for a single entity type
+        /// var accountMetadata = MetadataGenerator.FromEarlyBoundEntity(typeof(Account));
+        ///
+        /// // Use with XrmFakedContext
+        /// var context = new XrmFakedContext();
+        /// context.InitializeMetadata(accountMetadata);
+        /// </code>
+        /// </example>
+        public static EntityMetadata FromEarlyBoundEntity(Type earlyBoundType)
+        {
+            EntityLogicalNameAttribute entityLogicalNameAttribute = GetCustomAttribute<EntityLogicalNameAttribute>(earlyBoundType);
+            if (entityLogicalNameAttribute == null) return null;
+
+            EntityMetadata metadata = new EntityMetadata();
+            metadata.LogicalName = entityLogicalNameAttribute.LogicalName;
+
+            FieldInfo entityTypeCode = earlyBoundType.GetField("EntityTypeCode", BindingFlags.Static | BindingFlags.Public);
+            if (entityTypeCode != null)
+            {
+                metadata.SetFieldValue("ObjectTypeCode", entityTypeCode.GetValue(null));
+            }
+
+            List<AttributeMetadata> attributeMetadatas = new List<AttributeMetadata>();
+            List<ManyToManyRelationshipMetadata> manyToManyRelationshipMetadatas = new List<ManyToManyRelationshipMetadata>();
+            List<OneToManyRelationshipMetadata> oneToManyRelationshipMetadatas = new List<OneToManyRelationshipMetadata>();
+            List<OneToManyRelationshipMetadata> manyToOneRelationshipMetadatas = new List<OneToManyRelationshipMetadata>();
+
+            var idProperty = earlyBoundType.GetProperty("Id");
+            AttributeLogicalNameAttribute attributeLogicalNameAttribute;
+            if (idProperty != null && (attributeLogicalNameAttribute = GetCustomAttribute<AttributeLogicalNameAttribute>(idProperty)) != null)
+            {
+                metadata.SetFieldValue("PrimaryIdAttribute", attributeLogicalNameAttribute.LogicalName);
+            }
+
+            var properties = earlyBoundType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                                .Where(x => x.Name != "Id" && Attribute.IsDefined(x, typeof(AttributeLogicalNameAttribute))
+                                         || Attribute.IsDefined(x, typeof(RelationshipSchemaNameAttribute)));
+
+            foreach (var property in properties)
+            {
+                RelationshipSchemaNameAttribute relationshipSchemaNameAttribute = GetCustomAttribute<RelationshipSchemaNameAttribute>(property);
+                attributeLogicalNameAttribute = GetCustomAttribute<AttributeLogicalNameAttribute>(property);
+
+                if (relationshipSchemaNameAttribute == null)
+                {
+#if !FAKE_XRM_EASY
+                    if (property.PropertyType == typeof(byte[]))
+                    {
+                        metadata.SetFieldValue("PrimaryImageAttribute", attributeLogicalNameAttribute.LogicalName);
+                    }
+#endif
+                    AttributeMetadata attributeMetadata;
+                    if (attributeLogicalNameAttribute.LogicalName == "statecode")
+                    {
+                        attributeMetadata = new StateAttributeMetadata();
+                    }
+                    else if (attributeLogicalNameAttribute.LogicalName == "statuscode")
+                    {
+                        attributeMetadata = new StatusAttributeMetadata();
+                    }
+                    else if (attributeLogicalNameAttribute.LogicalName == metadata.PrimaryIdAttribute)
+                    {
+                        attributeMetadata = new AttributeMetadata();
+                        attributeMetadata.SetSealedPropertyValue("AttributeType", AttributeTypeCode.Uniqueidentifier);
+                    }
+                    else
+                    {
+                        attributeMetadata = CreateAttributeMetadataByType(property.PropertyType);
+                    }
+
+                    attributeMetadata.SetFieldValue("EntityLogicalName", entityLogicalNameAttribute.LogicalName);
+                    attributeMetadata.SetFieldValue("LogicalName", attributeLogicalNameAttribute.LogicalName);
+
+                    attributeMetadatas.Add(attributeMetadata);
+                }
+                else
+                {
+                    if (property.PropertyType.Name == "IEnumerable`1")
+                    {
+                        PropertyInfo peerProperty = property.PropertyType.GetGenericArguments()[0].GetProperties().SingleOrDefault(x => x.PropertyType == earlyBoundType && GetCustomAttribute<RelationshipSchemaNameAttribute>(x)?.SchemaName == relationshipSchemaNameAttribute.SchemaName);
+                        if (peerProperty == null || peerProperty.PropertyType.Name == "IEnumerable`1") // N:N relationship
+                        {
+                            ManyToManyRelationshipMetadata relationshipMetadata = new ManyToManyRelationshipMetadata();
+                            relationshipMetadata.SchemaName = relationshipSchemaNameAttribute.SchemaName;
+
+                            manyToManyRelationshipMetadatas.Add(relationshipMetadata);
+                        }
+                        else // 1:N relationship
+                        {
+                            AddOneToManyRelationshipMetadata(earlyBoundType, property, property.PropertyType.GetGenericArguments()[0], peerProperty, oneToManyRelationshipMetadatas);
+                        }
+                    }
+                    else //N:1 Property
+                    {
+                        AddOneToManyRelationshipMetadata(property.PropertyType, property.PropertyType.GetProperties().SingleOrDefault(x => x.PropertyType.GetGenericArguments().SingleOrDefault() == earlyBoundType && GetCustomAttribute<RelationshipSchemaNameAttribute>(x)?.SchemaName == relationshipSchemaNameAttribute.SchemaName), earlyBoundType, property, manyToOneRelationshipMetadatas);
+                    }
+                }
+            }
+            if (attributeMetadatas.Any())
+            {
+                metadata.SetSealedPropertyValue("Attributes", attributeMetadatas.ToArray());
+            }
+            if (manyToManyRelationshipMetadatas.Any())
+            {
+                metadata.SetSealedPropertyValue("ManyToManyRelationships", manyToManyRelationshipMetadatas.ToArray());
+            }
+            if (manyToOneRelationshipMetadatas.Any())
+            {
+                metadata.SetSealedPropertyValue("ManyToOneRelationships", manyToOneRelationshipMetadatas.ToArray());
+            }
+            if (oneToManyRelationshipMetadatas.Any())
+            {
+                metadata.SetSealedPropertyValue("OneToManyRelationships", oneToManyRelationshipMetadatas.ToArray());
+            }
+
+            return metadata;
+        }
+
+        /// <summary>
+        /// Gets a custom attribute of the specified type from a member (property, field, type, etc.).
+        /// This is a utility method for working with reflection on early-bound entity types.
+        /// </summary>
+        /// <typeparam name="T">The type of attribute to retrieve.</typeparam>
+        /// <param name="member">The member to get the attribute from.</param>
+        /// <returns>The attribute instance if found, otherwise null.</returns>
+        public static T GetCustomAttribute<T>(MemberInfo member) where T : Attribute
         {
             return (T)Attribute.GetCustomAttribute(member, typeof(T));
         }
 
-        private static AttributeMetadata CreateAttributeMetadata(Type propertyType)
+        /// <summary>
+        /// Creates an AttributeMetadata instance based on a CLR property type.
+        /// Maps common .NET types to their corresponding Dynamics 365 attribute metadata types.
+        /// </summary>
+        /// <param name="propertyType">The CLR type of the property (e.g., typeof(string), typeof(int?), typeof(EntityReference)).</param>
+        /// <returns>An AttributeMetadata instance appropriate for the given property type.</returns>
+        /// <exception cref="Exception">Thrown when the property type cannot be mapped to a known AttributeMetadata type.</exception>
+        /// <example>
+        /// <code>
+        /// // Get the appropriate metadata type for a string property
+        /// var stringMetadata = MetadataGenerator.CreateAttributeMetadataByType(typeof(string));
+        /// // Returns StringAttributeMetadata
+        ///
+        /// // Get metadata for a nullable integer
+        /// var intMetadata = MetadataGenerator.CreateAttributeMetadataByType(typeof(int?));
+        /// // Returns IntegerAttributeMetadata
+        ///
+        /// // Get metadata for an EntityReference (lookup)
+        /// var lookupMetadata = MetadataGenerator.CreateAttributeMetadataByType(typeof(EntityReference));
+        /// // Returns LookupAttributeMetadata
+        /// </code>
+        /// </example>
+        /// <remarks>
+        /// The following type mappings are supported:
+        /// - string -> StringAttributeMetadata
+        /// - EntityReference -> LookupAttributeMetadata
+        /// - OptionSetValue -> PicklistAttributeMetadata
+        /// - Money -> MoneyAttributeMetadata
+        /// - int? -> IntegerAttributeMetadata
+        /// - double? -> DoubleAttributeMetadata
+        /// - bool? -> BooleanAttributeMetadata
+        /// - decimal? -> DecimalAttributeMetadata
+        /// - DateTime? -> DateTimeAttributeMetadata
+        /// - Guid? -> LookupAttributeMetadata
+        /// - long? -> BigIntAttributeMetadata
+        /// - Nullable{Enum} -> StateAttributeMetadata
+        /// - IEnumerable{T} -> LookupAttributeMetadata (PartyList)
+        /// - BooleanManagedProperty -> BooleanAttributeMetadata (ManagedProperty)
+        /// - byte[] -> ImageAttributeMetadata (v9.x only)
+        /// - OptionSetValueCollection -> MultiSelectPicklistAttributeMetadata (v9.x only)
+        /// </remarks>
+        public static AttributeMetadata CreateAttributeMetadataByType(Type propertyType)
         {
             if (typeof(string) == propertyType)
             {

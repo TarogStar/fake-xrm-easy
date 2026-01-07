@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
 using System;
 using System.Linq;
 
@@ -69,6 +70,13 @@ namespace FakeXrmEasy.FakeMessageExecutors
                 throw new Exception(string.Format("The attribute {0} wasn't found in entity metadata with logical name {1}. ", req.LogicalName, req.EntityLogicalName));
             }
 
+            // For EnumAttributeMetadata types (PicklistAttributeMetadata, StateAttributeMetadata, StatusAttributeMetadata),
+            // ensure the OptionSet is populated from OptionSetValuesMetadata if not already set
+            if (attributeMetadata is EnumAttributeMetadata enumAttribute)
+            {
+                PopulateOptionSetFromValuesMetadata(enumAttribute, req.EntityLogicalName, req.LogicalName, ctx);
+            }
+
             var response = new RetrieveAttributeResponse()
             {
                 Results = new ParameterCollection
@@ -87,6 +95,50 @@ namespace FakeXrmEasy.FakeMessageExecutors
         public Type GetResponsibleRequestType()
         {
             return typeof(RetrieveAttributeRequest);
+        }
+
+        /// <summary>
+        /// Populates the OptionSet property of an EnumAttributeMetadata from the OptionSetValuesMetadata dictionary
+        /// if the OptionSet is not already populated with options.
+        /// </summary>
+        /// <param name="enumAttribute">The enum attribute metadata to populate.</param>
+        /// <param name="entityLogicalName">The logical name of the entity.</param>
+        /// <param name="attributeLogicalName">The logical name of the attribute.</param>
+        /// <param name="ctx">The faked XRM context containing the OptionSetValuesMetadata.</param>
+        private void PopulateOptionSetFromValuesMetadata(EnumAttributeMetadata enumAttribute, string entityLogicalName, string attributeLogicalName, XrmFakedContext ctx)
+        {
+            // Check if OptionSet already has options
+            if (enumAttribute.OptionSet?.Options != null && enumAttribute.OptionSet.Options.Count > 0)
+            {
+                return; // Already populated
+            }
+
+            // Try to get options from OptionSetValuesMetadata using the entity#attribute key pattern
+            var key = $"{entityLogicalName}#{attributeLogicalName}";
+            if (ctx.OptionSetValuesMetadata.ContainsKey(key))
+            {
+                var optionSetMetadata = ctx.OptionSetValuesMetadata[key];
+                if (optionSetMetadata?.Options != null && optionSetMetadata.Options.Count > 0)
+                {
+                    // Create a new OptionSetMetadata with the options
+                    var newOptionSet = new OptionSetMetadata(optionSetMetadata.Options);
+                    enumAttribute.OptionSet = newOptionSet;
+                }
+            }
+            // Also check if the attribute references a global option set
+            else if (!string.IsNullOrEmpty(enumAttribute.OptionSet?.Name) && ctx.OptionSetValuesMetadata.ContainsKey(enumAttribute.OptionSet.Name))
+            {
+                var optionSetMetadata = ctx.OptionSetValuesMetadata[enumAttribute.OptionSet.Name];
+                if (optionSetMetadata?.Options != null && optionSetMetadata.Options.Count > 0)
+                {
+                    // Create a new OptionSetMetadata with the options, preserving the name
+                    var newOptionSet = new OptionSetMetadata(optionSetMetadata.Options)
+                    {
+                        Name = enumAttribute.OptionSet.Name
+                    };
+                    enumAttribute.OptionSet = newOptionSet;
+                }
+            }
         }
     }
 }

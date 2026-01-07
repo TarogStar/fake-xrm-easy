@@ -2,7 +2,6 @@
 
 A truly open-source testing framework for Dynamics 365 / Power Platform that makes unit testing plugins, workflows, and custom code simple and fast.
 
-[![Build Status](https://github.com/YOUR_ORG/fake-xrm-easy/actions/workflows/build.yml/badge.svg)](https://github.com/YOUR_ORG/fake-xrm-easy/actions)
 [![NuGet](https://img.shields.io/nuget/v/FakeXrmEasy.Community.svg)](https://www.nuget.org/packages/FakeXrmEasy.Community)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -302,17 +301,19 @@ We welcome contributions! This is a truly open-source project maintained by the 
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
-## Sponsorship
+## Support
 
-If you or your organization uses FakeXrmEasy and finds it valuable, please consider sponsoring the project to support continued development and maintenance.
+If you or your organization uses FakeXrmEasy.Community and finds it valuable, consider contributing to the project by:
 
-[Become a Sponsor](https://github.com/sponsors/YOUR_ORG)
+- Submitting bug fixes and new features
+- Improving documentation
+- Sharing your testing patterns with the community
+- Reporting issues and providing feedback
 
 ## Community
 
-- **Issues**: [Report bugs or request features](https://github.com/YOUR_ORG/fake-xrm-easy/issues)
-- **Discussions**: [Join the community discussions](https://github.com/YOUR_ORG/fake-xrm-easy/discussions)
-- **Twitter**: Follow [@fakexrmeasy](https://twitter.com/fakexrmeasy) for updates
+- **NuGet Package**: [FakeXrmEasy.Community on NuGet](https://www.nuget.org/packages/FakeXrmEasy.Community)
+- **Documentation**: See [CLAUDE.md](CLAUDE.md) for development guidelines and architecture details
 
 ## Acknowledgments
 

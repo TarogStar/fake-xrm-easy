@@ -75,9 +75,27 @@ namespace FakeXrmEasy.FakeMessageExecutors
                         response.Results["IsFaulted"] = true;
                     }
 
+                    // Extract fault details from the exception
+                    OrganizationServiceFault fault;
+                    var faultException = ex as FaultException<OrganizationServiceFault>;
+                    if (faultException != null && faultException.Detail != null)
+                    {
+                        // Preserve the original fault information
+                        fault = new OrganizationServiceFault
+                        {
+                            Message = faultException.Detail.Message ?? ex.Message,
+                            ErrorCode = faultException.Detail.ErrorCode,
+                            TraceText = faultException.Detail.TraceText
+                        };
+                    }
+                    else
+                    {
+                        fault = new OrganizationServiceFault { Message = ex.Message };
+                    }
+
                     response.Responses.Add(new ExecuteMultipleResponseItem
                     {
-                        Fault = new OrganizationServiceFault { Message = ex.Message },
+                        Fault = fault,
                         RequestIndex = i
                     });
 
@@ -88,18 +106,23 @@ namespace FakeXrmEasy.FakeMessageExecutors
                 }
             }
 
-            // Implement response behaviour as in https://msdn.microsoft.com/en-us/library/jj863631.aspx
-            if (executeMultipleRequest.Settings.ReturnResponses)
+            // When ReturnResponses is false and no faults occurred, clear the responses
+            // When ReturnResponses is false and faults occurred, only keep the fault responses
+            // The Responses collection was already populated correctly during execution
+            if (!executeMultipleRequest.Settings.ReturnResponses)
             {
-                response.Results["response.Responses"] = response.Responses;
-            }
-            else if (response.Responses.Any(resp => resp.Fault != null))
-            {
-                var failures = new ExecuteMultipleResponseItemCollection();
-
-                failures.AddRange(response.Responses.Where(resp => resp.Fault != null));
-
-                response.Results["response.Responses"] = failures;
+                if (response.Responses.Any(resp => resp.Fault != null))
+                {
+                    // Keep only fault responses
+                    var failures = new ExecuteMultipleResponseItemCollection();
+                    failures.AddRange(response.Responses.Where(resp => resp.Fault != null));
+                    response.Results["Responses"] = failures;
+                }
+                else
+                {
+                    // Clear responses when ReturnResponses is false and no faults
+                    response.Results["Responses"] = new ExecuteMultipleResponseItemCollection();
+                }
             }
 
             return response;

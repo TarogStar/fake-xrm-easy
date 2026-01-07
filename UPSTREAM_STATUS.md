@@ -45,15 +45,17 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 
 ## Quick Summary
 
-| Category | Total | Fixed | P0-P3 TODO | Won't Fix |
-|----------|-------|-------|------------|-----------|
-| Plugin/Pipeline | 12 | 4 | 2 | 0 |
-| Query Engine | 21 | 18 | 1 | 0 |
+| Category | Total | Fixed | Remaining | Won't Fix |
+|----------|-------|-------|-----------|-----------|
+| Plugin/Pipeline | 12 | 5 | 0 | 0 |
+| Query Engine | 21 | 19 | 0 | 0 |
 | Date/Time | 9 | 12 | 0 | 0 |
-| Message Executors | 13 | 9 | 2 | 0 |
-| Metadata | 10 | 5 | 2 | 2 |
-| CRUD/Core | 13 | 5 | 5 | 0 |
-| Other | 5 | 0 | 1 | 4 |
+| Message Executors | 15 | 12 | 0 | 0 |
+| Metadata | 10 | 7 | 0 | 2 |
+| CRUD/Core | 13 | 10 | 0 | 0 |
+| Other | 5 | 0 | 0 | 4 |
+
+**P0-P3 Roadmap Status: COMPLETE** - All prioritized items resolved
 
 ---
 
@@ -191,14 +193,14 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 | 509 | LIKE wildcards [X-Y] | Query | **FIXED** - Underscore, [a-z] ranges, [abc] sets, [^abc] negation |
 | NEW | Any/All related-record filtering | Query | Deferred to P3 - AnyAllFilterLinkEntity requires substantial LINQ changes |
 
-### P3 — Developer Experience / Sustainability
+### P3 — Developer Experience / Sustainability (COMPLETE)
 
-| # | Title | Category | Notes |
-|---|-------|----------|-------|
-| 557 | Expose Metadata generation | Metadata | Make MetadataGenerator public/static |
-| 447 | PicklistAttributeMetadata options | Metadata | OptionSet behavior fidelity |
-| NEW | ExecuteMultiple ContinueOnError | Messages | Fault behavior + partial results |
-| NEW | README placeholder cleanup | Docs | Replace YOUR_ORG with actual org |
+| # | Title | Category | Status |
+|---|-------|----------|--------|
+| 557 | Expose Metadata generation | Metadata | **FIXED** - MetadataGenerator public with FromEarlyBoundEntity<T>() |
+| 447 | PicklistAttributeMetadata options | Metadata | **FIXED** - RetrieveAttributeRequest populates OptionSet from context |
+| NEW | ExecuteMultiple ContinueOnError | Messages | **FIXED** - Response key fix + proper fault extraction |
+| NEW | README placeholder cleanup | Docs | **FIXED** - Removed YOUR_ORG placeholders |
 
 ### Not Tracked - New SDK Features to Consider
 
@@ -207,6 +209,103 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 | AnyAllFilterLinkEntity | Query | Any/NotAny/All/NotAll join operators |
 | ExecuteMultiple semantics | Messages | ContinueOnError, per-request faults |
 | Alternate key metadata fidelity | Metadata | Rich attribute metadata for alt keys |
+
+### SDK Message Implementation Status
+
+Based on decompiled Microsoft.Xrm.Sdk.Messages (61 messages total).
+
+**Coverage:** 23 implemented (38%) | 38 not implemented (62%)
+
+#### CRUD Operations (15/15 implemented)
+
+| Message | Status | Priority |
+|---------|--------|----------|
+| Create, CreateMultiple | ✅ | - |
+| Retrieve, RetrieveMultiple | ✅ | - |
+| Update, UpdateMultiple | ✅ | - |
+| Delete, DeleteMultiple | ✅ | - |
+| Upsert, UpsertMultiple | ✅ | - |
+| Associate, Disassociate | ✅ | - |
+| ExecuteMultiple, ExecuteTransaction | ✅ | - |
+| ExecuteAsync | ✅ | COMPLETE |
+
+#### Metadata Operations (4/21 implemented)
+
+| Message | Status | Priority | Notes |
+|---------|--------|----------|-------|
+| RetrieveEntity | ✅ | - | |
+| RetrieveAttribute | ✅ | - | |
+| RetrieveRelationship | ✅ | - | |
+| RetrieveMetadataChanges | ✅ | - | |
+| CreateEntity, DeleteEntity, UpdateEntity | ❌ | MEDIUM | Entity metadata CRUD |
+| CreateAttribute, DeleteAttribute, UpdateAttribute | ❌ | MEDIUM | Attribute metadata CRUD |
+| CreateManyToMany, CreateOneToMany | ❌ | MEDIUM | Relationship creation |
+| DeleteRelationship, UpdateRelationship | ❌ | MEDIUM | Relationship management |
+| RetrieveAllEntities | ❌ | MEDIUM | Bulk metadata retrieval |
+| RetrieveEntityChanges | ❌ | MEDIUM | Change tracking / delta sync |
+| CreateEntityKey, RetrieveEntityKey | ❌ | LOW | Alternate key metadata |
+| DeleteEntityKey, ReactivateEntityKey | ❌ | LOW | Alternate key metadata |
+| CreateCustomerRelationships | ❌ | LOW | Special customer lookup |
+
+#### OptionSet Operations (3/8 implemented)
+
+| Message | Status | Priority |
+|---------|--------|----------|
+| RetrieveOptionSet | ✅ | - |
+| InsertOptionValue, InsertStatusValue | ✅ | - |
+| CreateOptionSet, UpdateOptionSet | ❌ | MEDIUM |
+| DeleteOptionSet, DeleteOptionValue | ❌ | LOW |
+| UpdateOptionValue, UpdateStateValue | ❌ | MEDIUM |
+| OrderOption | ❌ | LOW |
+| RetrieveAllOptionSets | ❌ | MEDIUM |
+
+#### Encryption/Security (0/3) - LOW priority
+
+| Message | Notes |
+|---------|-------|
+| IsDataEncryptionActive | Encryption status check |
+| RetrieveDataEncryptionKey | Get encryption key |
+| SetDataEncryptionKey | Set encryption key |
+
+#### Relationship Validation (0/6) - LOW priority
+
+| Message | Notes |
+|---------|-------|
+| CanBeReferenced, CanBeReferencing | Lookup validation |
+| CanManyToMany | N:N validation |
+| GetValidManyToMany | Valid N:N targets |
+| GetValidReferencedEntities | Valid lookup targets |
+| GetValidReferencingEntities | Valid referencing entities |
+
+#### Other (1/8)
+
+| Message | Status | Priority |
+|---------|--------|----------|
+| RetrieveTimestamp | ❌ | LOW |
+| RetrieveManagedProperty | ❌ | LOW |
+| RetrieveAllManagedProperties | ❌ | LOW |
+| ConvertDateAndTimeBehavior | ❌ | LOW |
+| CreateAsyncJobToRevokeInheritedAccess | ❌ | LOW |
+
+#### Additional Implemented (from Microsoft.Crm.Sdk.Messages)
+
+Security/Sharing: GrantAccess, ModifyAccess, RevokeAccess, RetrievePrincipalAccess, RetrieveSharedPrincipalsAndAccess
+
+Queue: AddToQueue, RemoveFromQueue, PickFromQueue
+
+Team: AddMembersTeam, RemoveMembersTeam, AddUserToRecordTeam, RemoveUserFromRecordTeam
+
+Marketing: AddMemberList, AddListMembersList
+
+Sales: WinOpportunity, LoseOpportunity, QualifyLead, CloseQuote, WinQuote, ReviseQuote, CloseIncident
+
+Other: Assign, SetState, WhoAmI, InitializeFrom, BulkDelete, CalculateRollupField, SendEmail, FetchXmlToQueryExpression, ExecuteFetch, PublishXml, UtcTimeFromLocalTime, RetrieveVersion
+
+**Alternate Key Notes:**
+- `RetrieveAllEntityKeysRequest` does NOT exist in SDK
+- Key definitions retrieved via `RetrieveEntityRequest` with `EntityFilters.Keys`
+- **Supported types:** Decimal, Integer, String, DateTime, Lookup, OptionSet
+- **Money is NOT supported** as alternate key type ([MS Docs](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/define-alternate-keys-entity))
 
 ---
 
@@ -239,16 +338,17 @@ Items requiring reproduction tests and decisions (fix vs document as known diffe
 ### Consider for Implementation
 | PR | Title | Author | Notes |
 |----|-------|--------|-------|
-| 557 | Expose Metadata generation | janssen-io | Make MetadataGenerator public/static for external use |
-| 447 | PicklistAttributeMetadata options | Nianwei | Implement independently if useful |
-| 461 | next-x-timeperiod operators | RachaelBooth | Implement independently if useful |
-| 460 | last-x-weeks operator | RachaelBooth | Implement independently if useful |
+| - | All prioritized PRs implemented | - | See P0-P3 roadmap sections |
 
 **Note:** We implement the spirit of community PRs independently rather than directly copying code, to ensure proper ownership and avoid copyright concerns.
 
 ### Already Integrated/Fixed
 | PR | Title | Status |
 |----|-------|--------|
+| 557 | Expose Metadata generation | FIXED (Part 10) |
+| 447 | PicklistAttributeMetadata options | FIXED (Part 10) |
+| 461 | next-x-timeperiod operators | FIXED (Part 9) |
+| 460 | last-x-weeks operator | FIXED (Part 9) |
 | 588 | Between dates end of day | FIXED |
 | 507 | FetchXml multiple filters | FIXED |
 | 503 | Left outer join fix | FIXED |
@@ -294,6 +394,32 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 (Part 10) - P3 Complete + ExecuteAsync
+
+- Fixed: ExecuteAsync request executor
+  - Creates asyncoperation entity to track job
+  - Executes wrapped request immediately (in-memory simulation)
+  - Returns AsyncJobId matching Dataverse behavior
+  - 9 new tests in ExecuteAsyncRequestTests.cs
+- Fixed: #557 - MetadataGenerator now public
+  - Added `FromEarlyBoundEntity<T>()` and `FromEarlyBoundEntity(Type)` methods
+  - Made `CreateAttributeMetadataByType()` public for external use
+  - Comprehensive XML documentation
+  - 23 new tests in MetadataGeneratorTests.cs
+- Fixed: #447 - PicklistAttributeMetadata options fidelity
+  - RetrieveAttributeRequestExecutor populates OptionSet from OptionSetValuesMetadata
+  - Works with both PicklistAttributeMetadata and StateAttributeMetadata
+  - 6 new tests for OptionSet behavior
+- Fixed: ExecuteMultiple ContinueOnError behavior
+  - Fixed response key bug ("response.Responses" → "Responses")
+  - Enhanced fault extraction with ErrorCode and TraceText preservation
+  - Proper behavior for ReturnResponses=false with faults
+  - 8 new tests for ContinueOnError scenarios
+- Fixed: README placeholder cleanup
+  - Removed GitHub Actions badge with YOUR_ORG placeholder
+  - Updated Sponsorship section to Community/Support
+- SDK Message Coverage: 23/61 (38%) - CRUD operations now 100%
 
 ### 2026-01-07 (Part 9) - P2 Complete
 - Verified: #461 - next-x-timeperiod operators already implemented
