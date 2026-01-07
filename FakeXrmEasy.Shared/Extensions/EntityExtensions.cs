@@ -67,7 +67,14 @@ namespace FakeXrmEasy.Extensions
                 {
                     case DateTimeAttributeBehavior.DateOnly:
                         var currentValue = (DateTime)e[attribute];
-                        e[attribute] = new DateTime(currentValue.Year, currentValue.Month, currentValue.Day, 0, 0, 0, DateTimeKind.Utc);
+                        // Use DateTimeKind.Unspecified to match Dataverse behavior for DateOnly fields
+                        e[attribute] = new DateTime(currentValue.Year, currentValue.Month, currentValue.Day, 0, 0, 0, DateTimeKind.Unspecified);
+                        break;
+
+                    case DateTimeAttributeBehavior.TimeZoneIndependent:
+                        var tziValue = (DateTime)e[attribute];
+                        // TimeZoneIndependent fields return Unspecified Kind
+                        e[attribute] = DateTime.SpecifyKind(tziValue, DateTimeKind.Unspecified);
                         break;
 
                     default:

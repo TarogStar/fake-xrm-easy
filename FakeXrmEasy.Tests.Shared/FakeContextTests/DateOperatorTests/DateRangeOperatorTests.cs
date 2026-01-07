@@ -147,11 +147,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
         {
             // Arrange
             var context = new XrmFakedContext();
-            var today = DateTime.Today;
+            // Use UTC dates - Dataverse stores all dates as UTC
+            var today = DateTime.UtcNow.Date;
 
-            // Get this week's boundaries
-            var firstDayOfWeek = today.ToFirstDayOfDeltaWeek();
-            var lastDayOfWeek = today.ToLastDayOfDeltaWeek();
+            // Get this week's boundaries (specify UTC kind to avoid conversion)
+            var firstDayOfWeek = DateTime.SpecifyKind(today.ToFirstDayOfDeltaWeek(), DateTimeKind.Utc);
+            var lastDayOfWeek = DateTime.SpecifyKind(today.ToLastDayOfDeltaWeek(), DateTimeKind.Utc);
 
             var entities = new List<Entity>
             {
@@ -238,10 +239,11 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
         {
             // Arrange
             var context = new XrmFakedContext();
-            var today = DateTime.Today;
+            // Use UTC dates - Dataverse stores all dates as UTC
+            var today = DateTime.UtcNow.Date;
 
-            var firstDayLastWeek = today.ToFirstDayOfDeltaWeek(-1);
-            var lastDayLastWeek = today.ToLastDayOfDeltaWeek(-1);
+            var firstDayLastWeek = DateTime.SpecifyKind(today.ToFirstDayOfDeltaWeek(-1), DateTimeKind.Utc);
+            var lastDayLastWeek = DateTime.SpecifyKind(today.ToLastDayOfDeltaWeek(-1), DateTimeKind.Utc);
 
             var entities = new List<Entity>
             {
@@ -258,7 +260,7 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
                 new Entity("account")
                 {
                     Id = Guid.NewGuid(),
-                    ["createdon"] = today // This week
+                    ["createdon"] = DateTime.SpecifyKind(today, DateTimeKind.Utc) // This week
                 }
             };
 

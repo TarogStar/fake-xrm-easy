@@ -69,9 +69,10 @@ namespace FakeXrmEasy.Tests.FakeContextTests.PickFromQueueRequestTests
                 WorkerId = user.Id,
             };
 
-            var before = DateTime.Now.Ticks;
+            // Use UTC - Dataverse stores all dates as UTC
+            var before = DateTime.UtcNow.Ticks;
             executor.Execute(req, context);
-            var after = DateTime.Now.Ticks;
+            var after = DateTime.UtcNow.Ticks;
 
             var queueItemUpdated = service.Retrieve(Crm.QueueItem.EntityLogicalName, queueItem.Id, new ColumnSet(true));
 

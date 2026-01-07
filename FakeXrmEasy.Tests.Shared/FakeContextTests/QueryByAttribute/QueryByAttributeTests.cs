@@ -22,14 +22,14 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryByAttributeTests
             {
                 Id = Guid.NewGuid(),
                 LastName = "Old",
-                BirthDate = new DateTime(1980)
+                BirthDate = new DateTime(1980, 1, 1) // Year 1980
             };
 
             var contact2 = new Contact
             {
                 Id = Guid.NewGuid(),
                 LastName = "Young",
-                BirthDate = new DateTime(1981)
+                BirthDate = new DateTime(1981, 1, 1) // Year 1981
             };
 
             fakedContext.Initialize(new List<Entity> { contact1, contact2 });

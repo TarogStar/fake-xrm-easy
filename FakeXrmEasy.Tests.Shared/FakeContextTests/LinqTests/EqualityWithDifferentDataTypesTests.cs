@@ -154,8 +154,10 @@ namespace FakeXrmEasy.Tests.FakeContextTests.LinqTests
         {
             var fakedContext = new XrmFakedContext();
             var guid = Guid.NewGuid();
+            // Use UTC - Dataverse stores all dates as UTC
+            var today = DateTime.UtcNow.Date;
             fakedContext.Initialize(new List<Entity>() {
-                new Contact() { Id = guid, BirthDate = DateTime.Today },
+                new Contact() { Id = guid, BirthDate = today },
                 new Contact() { Id = Guid.NewGuid()}  //To test also nulls
             });
 
@@ -164,7 +166,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.LinqTests
             using (XrmServiceContext ctx = new XrmServiceContext(service))
             {
                 var contact = (from c in ctx.CreateQuery<Contact>()
-                               where c.BirthDate != null && c.BirthDate == DateTime.Today
+                               where c.BirthDate != null && c.BirthDate == today
                                select c).ToList();
 
                 Assert.True(contact.Count == 1);

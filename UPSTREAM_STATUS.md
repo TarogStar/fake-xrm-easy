@@ -21,18 +21,38 @@ This framework aims for high fidelity but is not a perfect emulator. Known diffe
 - Some advanced metadata scenarios require explicit `InitializeMetadata()` calls
 - Async plugin execution is synchronous in tests
 
+### Known Limitations
+
+**#293 - Plugin Output Parameters:** The convenience method `ExecutePluginWithTarget<T>(Entity target)` does not provide access to plugin output parameters. If your plugin sets output parameters that you need to verify, use the full overload instead:
+
+```csharp
+// ❌ Cannot access output parameters with this convenience method
+context.ExecutePluginWithTarget<MyPlugin>(target);
+
+// ✓ Use this approach when you need output parameters
+var pluginContext = context.GetDefaultPluginContext();
+pluginContext.InputParameters["Target"] = target;
+context.ExecutePluginWith<MyPlugin>(pluginContext);
+var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
+```
+
+**#491 - DateTime Kind on Input:** ~~Resolved~~ The framework now handles DateTime.Kind correctly based on verified Dataverse behavior:
+- `DateTimeKind.Local` → Converted to UTC using `ToUniversalTime()` (matches real Dataverse)
+- `DateTimeKind.Utc` → Stored as-is
+- `DateTimeKind.Unspecified` → Treated as UTC (stored raw, marked as UTC)
+
 ---
 
 ## Quick Summary
 
 | Category | Total | Fixed | P0-P3 TODO | Won't Fix |
 |----------|-------|-------|------------|-----------|
-| Plugin/Pipeline | 12 | 4 | 3 | 0 |
+| Plugin/Pipeline | 12 | 4 | 2 | 0 |
 | Query Engine | 21 | 17 | 2 | 0 |
-| Date/Time | 9 | 7 | 4 | 0 |
+| Date/Time | 9 | 9 | 2 | 0 |
 | Message Executors | 13 | 9 | 2 | 0 |
 | Metadata | 10 | 5 | 2 | 2 |
-| CRUD/Core | 13 | 3 | 7 | 0 |
+| CRUD/Core | 13 | 5 | 5 | 0 |
 | Other | 5 | 0 | 1 | 4 |
 
 ---
@@ -79,6 +99,8 @@ This framework aims for high fidelity but is not a perfect emulator. Known diffe
 | 543 | Week operators failing | **FIXED** | Culture-aware `ToFirstDayOfDeltaWeek()` |
 | 539 | UTC timezone handling | **FIXED** | `SystemTimeZone` property on context |
 | 588 | Between dates (PR) | **FIXED** | Integrated |
+| 458 | DateTime.Kind differences | **FIXED** | DateOnly/TimeZoneIndependent return `Unspecified`; UserLocal returns `Utc` |
+| 491 | UTC conversion on input | **FIXED** | `ConvertToUtc()` converts Local→UTC; Utc/Unspecified stored as-is |
 
 ### Plugin/Pipeline
 
@@ -87,6 +109,7 @@ This framework aims for high fidelity but is not a perfect emulator. Known diffe
 | 500 | PreValidation steps ignored | **FIXED** | Pipeline executes PreValidation stage |
 | 496 | Plugin Images + PreValidation (PR) | **FIXED** | We went further with auto-populate |
 | 451 | 1:N relationship metadata missing | **FIXED** | `AutoRegisterRelationshipsFromMetadata()` |
+| 573 | Pipeline NRE | **FIXED** | Null-safe EntityTypeCode in `RegisterPluginStep<TPlugin, TEntity>` |
 
 ### CRUD/Core
 
@@ -95,6 +118,8 @@ This framework aims for high fidelity but is not a perfect emulator. Known diffe
 | 555 | EntityReference.Name not populated | **FIXED** | `PopulateEntityReferenceNames()` in Retrieve executors |
 | 524 | Duplicate intersect records | **FIXED** | AssociateRequest checks for duplicates |
 | 554 | N:N duplicate fix (PR) | **FIXED** | Integrated |
+| 479 | Statecode on create | **FIXED** | Throws FaultException for non-Active statecode; matches Dataverse Create+Update pattern |
+| 562 | Min date validation 01/01/1753 | **FIXED** | `ValidateDateTime()` throws FaultException for dates before SQL Server minimum |
 
 ### Message Executors
 
@@ -137,14 +162,14 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 
 ### P0 — Parity Bugs (Most likely to break real projects)
 
-| # | Title | Category | Notes |
-|---|-------|----------|-------|
-| 293 | Output parameters lost | Pipeline | Critical for chained plugin logic |
-| 479 | Statecode on create | Core | Affects downstream behaviors and queries |
-| 458 | DateTime.Kind differences | Date | Top source of cross-environment test drift |
-| 491 | UTC conversion issues | Date | Related to #458 |
-| 573 | Pipeline NRE | Pipeline | Instability undermines confidence |
-| 562 | Min date validation 01/01/1753 | Core | Prevents false-positive tests |
+| # | Title | Category | Status |
+|---|-------|----------|--------|
+| 293 | Output parameters lost | Pipeline | DOCUMENTED - Use full overload for output params (see Known Limitations) |
+| 479 | Statecode on create | Core | **FIXED** - Throws for non-Active state |
+| 458 | DateTime.Kind differences | Date | **FIXED** - DateOnly/TZI return Unspecified |
+| 491 | UTC conversion issues | Date | **FIXED** - Local→UTC conversion verified against real Dataverse |
+| 573 | Pipeline NRE | Pipeline | **FIXED** - Null-safe EntityTypeCode |
+| 562 | Min date validation 01/01/1753 | Core | **FIXED** - ValidateDateTime throws FaultException |
 
 ### P1 — Modern Data/Key Scenarios (Common in cloud)
 
@@ -207,13 +232,9 @@ Items requiring reproduction tests and decisions (fix vs document as known diffe
 | 569 | ObjectTypeCode casting | Query engine |
 | 566 | Upsert alt key copy | May be fixed with #615 |
 | 521 | Composite alternate keys | Check with UpsertMultiple |
-| 479 | Statecode on create | Core CRUD |
 | 472 | OwningBusinessUnit on assign | Core CRUD |
 | 470 | Alt key with early-bound | Core CRUD |
-| 458 | DateTime.Kind differences | Date handling |
-| 491 | UTC conversion | Date handling |
-| 573 | Pipeline NRE | Plugin pipeline |
-| 293 | Output parameters lost | Plugin pipeline |
+| 293 | Output parameters lost | Plugin pipeline - see Known Limitation below |
 
 ---
 
@@ -277,6 +298,34 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 (Part 7) - P0 Complete
+- Documented: #293 - Added Known Limitation section with workaround for output parameters
+- Fixed: #491 - DateTime Kind conversion now matches real Dataverse behavior
+  - Created integration tests in `IntegrationTests/DataverseDateTimeInvestigation.cs`
+  - Verified against real Dataverse: Local→UTC converted, Utc/Unspecified stored as-is
+  - Updated `ConvertToUtc()` to properly handle DateTimeKind.Local
+  - Fixed 5 tests that were using Local kind (now use UTC for Dataverse parity)
+- P0 status: 5 fixed, 1 documented
+
+### 2026-01-07 (Part 6) - P0 Parity Bug Fixes
+- Fixed: #479 - Statecode on Create now matches Dataverse behavior
+  - Allow explicit Active state (0) on Create
+  - Throw FaultException for Inactive state (1+) - Dataverse requires Create+Update pattern
+  - System still defaults to Active if not specified
+- Fixed: #562 - Min date validation 01/01/1753
+  - Added CrmMinDateTime constant and ValidateDateTime method
+  - Throws FaultException for dates before 1753 (SQL Server limitation)
+  - Validates during Create, Update, and Initialize operations
+- Fixed: #573 - Pipeline NRE in RegisterPluginStep<TPlugin, TEntity>
+  - Added null-safe EntityTypeCode field access
+  - Provides descriptive error message with resolution steps
+- Fixed: #458 - DateTime.Kind differences for DateOnly/TimeZoneIndependent fields
+  - DateOnly fields now return DateTimeKind.Unspecified (was incorrectly UTC)
+  - Added TimeZoneIndependent behavior support (also returns Unspecified)
+  - UserLocal fields continue to return DateTimeKind.Utc
+- Deferred: #491 - UTC conversion (needs migration planning to avoid breaking changes)
+- Bug fix: QueryByAttributeTests - DateTime(1980) was creating ticks, not year
 
 ### 2026-01-07 (Part 5)
 - Restructured TODO into Prioritized Roadmap (P0-P3) based on modern SDK analysis

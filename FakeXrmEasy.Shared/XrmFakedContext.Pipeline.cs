@@ -38,7 +38,24 @@ namespace FakeXrmEasy
             where TEntity : Entity, new()
         {
             var entity = new TEntity();
-            var entityTypeCode = (int)entity.GetType().GetField("EntityTypeCode").GetValue(entity);
+            var entityTypeCodeField = entity.GetType().GetField("EntityTypeCode");
+            if (entityTypeCodeField == null)
+            {
+                throw new InvalidOperationException(
+                    $"The entity type '{typeof(TEntity).Name}' does not have an EntityTypeCode field. " +
+                    "Please regenerate your early-bound classes with EntityTypeCode generation enabled, " +
+                    "or use the RegisterPluginStep<TPlugin> overload with an explicit primaryEntityTypeCode parameter.");
+            }
+
+            var entityTypeCodeValue = entityTypeCodeField.GetValue(entity);
+            if (entityTypeCodeValue == null)
+            {
+                throw new InvalidOperationException(
+                    $"The EntityTypeCode for entity type '{typeof(TEntity).Name}' is null. " +
+                    "Please use the RegisterPluginStep<TPlugin> overload with an explicit primaryEntityTypeCode parameter.");
+            }
+
+            var entityTypeCode = (int)entityTypeCodeValue;
 
             RegisterPluginStep<TPlugin>(message, stage, mode, rank, filteringAttributes, entityTypeCode);
         }

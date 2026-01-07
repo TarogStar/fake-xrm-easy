@@ -29,6 +29,11 @@ namespace FakeXrmEasy
         protected const int EntityInactiveStateCode = 1;
 
         /// <summary>
+        /// The minimum DateTime value supported by CRM/Dataverse (SQL Server datetime limitation).
+        /// </summary>
+        protected static readonly DateTime CrmMinDateTime = new DateTime(1753, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        /// <summary>
         /// Gets or sets a value indicating whether entity references should be validated when creating or updating entities.
         /// When set to true, the context will verify that referenced entities exist in the in-memory data store
         /// before allowing the operation to proceed.
@@ -226,7 +231,9 @@ namespace FakeXrmEasy
                     }
                     else if (attribute is DateTime)
                     {
-                        cachedEntity[sAttributeName] = ConvertToUtc((DateTime)e[sAttributeName]);
+                        var dateValue = (DateTime)e[sAttributeName];
+                        ValidateDateTime(dateValue, sAttributeName);
+                        cachedEntity[sAttributeName] = ConvertToUtc(dateValue);
                     }
                     else
                     {
@@ -562,10 +569,24 @@ namespace FakeXrmEasy
                 throw new InvalidOperationException($"There is already a record of entity {clone.LogicalName} with id {clone.Id}, can't create with this Id.");
             }
 
-            // Create specific validations
+            // Dataverse enforces state/status code rules on Create:
+            // - statecode defaults to Active (0) if not provided
+            // - Cannot create inactive records (statecode != 0) directly
+            // - statuscode must be valid for the state
+            // See: https://github.com/DynamicsValue/fake-xrm-easy/issues/479
             if (clone.Attributes.ContainsKey("statecode"))
             {
-                throw new InvalidOperationException($"When creating an entity with logical name '{clone.LogicalName}', or any other entity, it is not possible to create records with the statecode property. Statecode must be set after creation.");
+                var stateValue = clone.GetAttributeValue<OptionSetValue>("statecode")?.Value
+                    ?? (clone["statecode"] is int ? (int)clone["statecode"] : 0);
+
+                if (stateValue != 0)
+                {
+                    throw new FaultException<OrganizationServiceFault>(
+                        new OrganizationServiceFault(),
+                        $"Cannot create entity '{clone.LogicalName}' with statecode {stateValue}. " +
+                        "Dataverse requires records to be created in Active state. " +
+                        "To create inactive records, first create with Active state then update the statecode.");
+                }
             }
 
             AddEntityWithDefaults(clone, false, this.UsePipelineSimulation);
@@ -684,7 +705,9 @@ namespace FakeXrmEasy
                 var attribute = e[sAttributeName];
                 if (attribute is DateTime)
                 {
-                    e[sAttributeName] = ConvertToUtc((DateTime)e[sAttributeName]);
+                    var dateValue = (DateTime)e[sAttributeName];
+                    ValidateDateTime(dateValue, sAttributeName);
+                    e[sAttributeName] = ConvertToUtc(dateValue);
                 }
                 if (attribute is EntityReference && ValidateReferences)
                 {
@@ -840,19 +863,48 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
-        /// Converts a DateTime value to UTC by specifying its kind as <see cref="DateTimeKind.Utc"/>.
-        /// This method is used to ensure all DateTime values stored in the in-memory data store
-        /// are consistent with Dynamics 365 behavior, which stores dates in UTC format.
+        /// Converts a DateTime value to UTC matching real Dataverse behavior.
         /// </summary>
         /// <param name="attribute">The DateTime value to convert.</param>
-        /// <returns>A new DateTime with the same ticks but with <see cref="DateTimeKind.Utc"/> specified.</returns>
+        /// <returns>A DateTime in UTC format.</returns>
         /// <remarks>
-        /// Note that this method does not perform timezone conversion; it simply marks the DateTime
-        /// as UTC. The actual date and time values remain unchanged.
+        /// Verified against real Dataverse (Issue #491):
+        /// - DateTimeKind.Local → Converted to UTC using ToUniversalTime()
+        /// - DateTimeKind.Utc → Stored as-is
+        /// - DateTimeKind.Unspecified → Treated as UTC (stored raw, marked as UTC)
         /// </remarks>
         protected internal DateTime ConvertToUtc(DateTime attribute)
         {
-            return DateTime.SpecifyKind(attribute, DateTimeKind.Utc);
+            switch (attribute.Kind)
+            {
+                case DateTimeKind.Local:
+                    // Dataverse converts Local to UTC
+                    return attribute.ToUniversalTime();
+
+                case DateTimeKind.Utc:
+                case DateTimeKind.Unspecified:
+                default:
+                    // Dataverse treats Utc and Unspecified as already UTC
+                    return DateTime.SpecifyKind(attribute, DateTimeKind.Utc);
+            }
+        }
+
+        /// <summary>
+        /// Validates that a DateTime value is within the range supported by CRM/Dataverse.
+        /// </summary>
+        /// <param name="dateTime">The DateTime value to validate.</param>
+        /// <param name="attributeName">The name of the attribute being validated (for error messages).</param>
+        /// <exception cref="FaultException{OrganizationServiceFault}">
+        /// Thrown when the DateTime value is less than the minimum supported date (01/01/1753).
+        /// </exception>
+        protected void ValidateDateTime(DateTime dateTime, string attributeName)
+        {
+            if (dateTime < CrmMinDateTime)
+            {
+                throw new FaultException<OrganizationServiceFault>(
+                    new OrganizationServiceFault(),
+                    $"Date is less than the minimum value supported by CrmDateTime. Actual value: {dateTime:MM/dd/yyyy HH:mm:ss}, Minimum value supported: 01/01/1753 00:00:00");
+            }
         }
         #endregion
     }

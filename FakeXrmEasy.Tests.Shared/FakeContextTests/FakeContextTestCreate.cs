@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.ServiceModel;
 using Xunit;
 
 namespace FakeXrmEasy.Tests
@@ -101,20 +102,84 @@ namespace FakeXrmEasy.Tests
         }
 
         [Fact]
-        public void When_Creating_With_A_StateCode_Property_Exception_Is_Thrown()
+        public void When_Creating_With_Active_StateCode_Property_It_Should_Be_Preserved()
+        {
+            // Dataverse allows creating with Active state (0)
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            var account = new Entity("account")
+            {
+                Id = Guid.NewGuid(),
+                ["name"] = "Test Account",
+                ["statecode"] = new OptionSetValue(0) // Active
+            };
+
+            var id = service.Create(account);
+            var retrieved = service.Retrieve("account", id, new ColumnSet(true));
+
+            Assert.Equal(0, retrieved.GetAttributeValue<OptionSetValue>("statecode").Value);
+        }
+
+        [Fact]
+        public void When_Creating_With_Inactive_StateCode_Exception_Is_Thrown()
+        {
+            // Dataverse does NOT allow creating inactive records directly
+            // You must create Active, then update to Inactive
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            var account = new Entity("account")
+            {
+                Id = Guid.NewGuid(),
+                ["name"] = "Test Account",
+                ["statecode"] = new OptionSetValue(1) // Inactive - not allowed on Create
+            };
+
+            var ex = Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Create(account));
+            Assert.Contains("Cannot create entity", ex.Message);
+            Assert.Contains("statecode 1", ex.Message);
+        }
+
+        [Fact]
+        public void When_Creating_With_Active_StateCode_And_StatusCode_Both_Should_Be_Preserved()
+        {
+            // Dataverse allows setting statuscode with valid Active state
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            var account = new Entity("account")
+            {
+                Id = Guid.NewGuid(),
+                ["name"] = "Test Account",
+                ["statecode"] = new OptionSetValue(0),  // Active
+                ["statuscode"] = new OptionSetValue(1)  // Active status reason
+            };
+
+            var id = service.Create(account);
+            var retrieved = service.Retrieve("account", id, new ColumnSet(true));
+
+            Assert.Equal(0, retrieved.GetAttributeValue<OptionSetValue>("statecode").Value);
+            Assert.Equal(1, retrieved.GetAttributeValue<OptionSetValue>("statuscode").Value);
+        }
+
+        [Fact]
+        public void When_Creating_Without_StateCode_It_Defaults_To_Active()
         {
             var context = new XrmFakedContext();
             var service = context.GetOrganizationService();
-            var accId = Guid.NewGuid();
 
-            var account = new Account
+            var account = new Entity("account")
             {
-                Name = "TestAcc",
-                Id = accId
+                Id = Guid.NewGuid(),
+                ["name"] = "Test Account"
             };
-            account["statecode"] = 2;
 
-            Assert.Throws<InvalidOperationException>(() => service.Create(account));
+            var id = service.Create(account);
+            var retrieved = service.Retrieve("account", id, new ColumnSet(true));
+
+            // Statecode should default to Active (0)
+            Assert.Equal(0, retrieved.GetAttributeValue<OptionSetValue>("statecode").Value);
         }
 
         [Fact]
@@ -404,7 +469,8 @@ namespace FakeXrmEasy.Tests
             var ctx = new XrmFakedContext();
             var service = ctx.GetOrganizationService();
 
-            var now = DateTime.Now.Date;
+            // Use UTC - Dataverse stores all dates as UTC
+            var now = DateTime.UtcNow.Date;
 
             var account = new Account()
             {
