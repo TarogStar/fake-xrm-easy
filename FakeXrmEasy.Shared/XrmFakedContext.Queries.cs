@@ -453,6 +453,17 @@ namespace FakeXrmEasy
 
 
                     break;
+
+                case JoinOperator.Any:
+                case JoinOperator.NotAny:
+                case JoinOperator.All:
+                case JoinOperator.NotAll:
+                    // Any/All operators use existence checks rather than actual joins
+                    // They filter the parent entity based on existence/non-existence of related records
+                    query = TranslateAnyAllLinkedEntityToLinq(context, le, query, linkFromAlias);
+                    // Any/All link entities cannot have nested link-entities, so we return early
+                    return query;
+
                 default: //This shouldn't be reached as there are only 3 types of Join...
                     throw new PullRequestException(string.Format("The join operator {0} is currently not supported. Feel free to implement and send a PR.", le.JoinOperator));
 
@@ -476,6 +487,218 @@ namespace FakeXrmEasy
             }
 
             return query;
+        }
+
+        /// <summary>
+        /// Translates Any/All/NotAny/NotAll link entity operators to LINQ existence checks.
+        /// These operators filter the parent entity based on existence/non-existence of related records
+        /// that match the filter criteria in the link-entity.
+        ///
+        /// Constraints from real Dataverse:
+        /// - Any/All LinkEntity CAN ONLY be a direct child of the root entity (top level)
+        /// - Any/All LinkEntity CANNOT have link-entity as parent (no nesting)
+        /// - Any/All LinkEntity CANNOT have nested child link-entities
+        /// - No attributes/columns allowed on Any/All link-entities
+        /// - Filters ARE supported inside Any/All link-entities
+        ///
+        /// Semantics:
+        /// - Any: Records that have AT LEAST ONE matching related record
+        /// - NotAny: Records that have NO matching related records
+        /// - All: Records where ALL related records match the filter (or no related records exist)
+        ///        Implemented as NOT EXISTS (related records that DON'T match)
+        /// - NotAll: Records where AT LEAST ONE related record does NOT match the filter
+        /// </summary>
+        /// <param name="context">The XrmFakedContext containing metadata and in-memory data.</param>
+        /// <param name="le">The LinkEntity with Any/All operator.</param>
+        /// <param name="query">The current LINQ query to filter.</param>
+        /// <param name="linkFromAlias">The attribute path for the join key on the parent entity.</param>
+        /// <returns>The filtered query.</returns>
+        private static IQueryable<Entity> TranslateAnyAllLinkedEntityToLinq(
+            XrmFakedContext context,
+            LinkEntity le,
+            IQueryable<Entity> query,
+            string linkFromAlias)
+        {
+            // Get the related entity collection from in-memory data
+            IQueryable<Entity> relatedEntities = context.CreateQuery<Entity>(le.LinkToEntityName);
+
+            // Apply the filter from the link-entity if present
+            if (le.LinkCriteria != null && (le.LinkCriteria.Conditions.Count > 0 || le.LinkCriteria.Filters.Count > 0))
+            {
+                // Create a temporary QueryExpression to translate the filter
+                var filterQe = new QueryExpression(le.LinkToEntityName);
+                filterQe.Criteria = le.LinkCriteria;
+
+                // Create parameter for related entity
+                ParameterExpression relatedEntityParam = Expression.Parameter(typeof(Entity), "relatedEntity");
+
+                // Translate the filter expression
+                var filterExpression = TranslateFilterExpressionToExpression(
+                    filterQe, context, le.LinkToEntityName, le.LinkCriteria, relatedEntityParam, false);
+
+                // Create the filter lambda
+                Expression<Func<Entity, bool>> filterLambda =
+                    Expression.Lambda<Func<Entity, bool>>(filterExpression, relatedEntityParam);
+
+                // Apply the filter to related entities
+                relatedEntities = relatedEntities.Where(filterLambda);
+            }
+
+            // Get the link attribute names for the key comparison
+            var parentKeyAttribute = linkFromAlias;
+            var relatedKeyAttribute = le.LinkToAttributeName.ToLower();
+
+            // Materialize the filtered related entities for efficient lookups
+            // We need to do this because LINQ to Objects doesn't support complex nested queries on IQueryable
+            var filteredRelatedList = relatedEntities.ToList();
+
+            // Build a lookup of related entity keys for efficient matching
+            var filteredRelatedKeys = new HashSet<object>(
+                filteredRelatedList.Select(e => e.KeySelector(relatedKeyAttribute, context))
+                                   .Where(k => k != null)
+                                   .Select(k => NormalizeKey(k)));
+
+            // Build the existence check based on the join operator
+            switch (le.JoinOperator)
+            {
+                case JoinOperator.Any:
+                    // Any: Records that have AT LEAST ONE matching related record
+                    // Filter parent records where there exists a matching related record
+                    query = query.Where(parentEntity =>
+                        filteredRelatedKeys.Contains(NormalizeKey(parentEntity.KeySelector(parentKeyAttribute, context))));
+                    break;
+
+                case JoinOperator.NotAny:
+                    // NotAny: Records that have NO matching related records
+                    // Filter parent records where NO matching related record exists
+                    query = query.Where(parentEntity =>
+                        !filteredRelatedKeys.Contains(NormalizeKey(parentEntity.KeySelector(parentKeyAttribute, context))));
+                    break;
+
+                case JoinOperator.All:
+                    // All: Records where ALL related records match the filter (or no related records exist)
+                    // This is equivalent to: NOT EXISTS (related records that DON'T match the filter)
+                    // Since we've already filtered relatedEntities to only matching records,
+                    // we need to check that there are no UNfiltered related records that aren't in our filtered set
+
+                    // Get all related entities (unfiltered) and build lookup
+                    var allRelatedList = context.CreateQuery<Entity>(le.LinkToEntityName).ToList();
+
+                    // Build a dictionary from parent key to count of all related records
+                    var allRelatedCountByParentKey = allRelatedList
+                        .GroupBy(e => NormalizeKey(e.KeySelector(relatedKeyAttribute, context)))
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    // Build a dictionary from parent key to count of filtered (matching) related records
+                    var filteredCountByParentKey = filteredRelatedList
+                        .GroupBy(e => NormalizeKey(e.KeySelector(relatedKeyAttribute, context)))
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    // Use AsEnumerable() to switch to in-memory LINQ for complex predicate
+                    query = query.AsEnumerable().Where(parentEntity =>
+                        EvaluateAllOperator(parentEntity, parentKeyAttribute, context,
+                            allRelatedCountByParentKey, filteredCountByParentKey)).AsQueryable();
+                    break;
+
+                case JoinOperator.NotAll:
+                    // NotAll: Records where AT LEAST ONE related record does NOT match the filter
+                    // This is the inverse of All: EXISTS (related records that DON'T match the filter)
+
+                    // Get all related entities (unfiltered) and build lookup
+                    var allRelatedForNotAllList = context.CreateQuery<Entity>(le.LinkToEntityName).ToList();
+
+                    // Build a dictionary from parent key to count of all related records
+                    var allCountByKey = allRelatedForNotAllList
+                        .GroupBy(e => NormalizeKey(e.KeySelector(relatedKeyAttribute, context)))
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    // Build a dictionary from parent key to count of filtered (matching) related records
+                    var matchingCountByKey = filteredRelatedList
+                        .GroupBy(e => NormalizeKey(e.KeySelector(relatedKeyAttribute, context)))
+                        .ToDictionary(g => g.Key, g => g.Count());
+
+                    // Use AsEnumerable() to switch to in-memory LINQ for complex predicate
+                    query = query.AsEnumerable().Where(parentEntity =>
+                        EvaluateNotAllOperator(parentEntity, parentKeyAttribute, context,
+                            allCountByKey, matchingCountByKey)).AsQueryable();
+                    break;
+            }
+
+            return query;
+        }
+
+        /// <summary>
+        /// Normalizes a key value for use in HashSet comparisons.
+        /// Extracts the underlying comparable value from complex types like EntityReference.
+        /// Used by Any/All operators for efficient key matching.
+        /// </summary>
+        /// <param name="key">The key value to normalize.</param>
+        /// <returns>A normalized key value suitable for HashSet operations.</returns>
+        private static object NormalizeKey(object key)
+        {
+            if (key == null)
+                return null;
+
+            // Extract Id from EntityReference for consistent comparison
+            if (key is EntityReference er)
+                return er.Id;
+
+            return key;
+        }
+
+        /// <summary>
+        /// Evaluates the "All" operator for a parent entity.
+        /// Returns true if all related records match the filter (or no related records exist).
+        /// </summary>
+        private static bool EvaluateAllOperator(
+            Entity parentEntity,
+            string parentKeyAttribute,
+            XrmFakedContext context,
+            Dictionary<object, int> allRelatedCountByKey,
+            Dictionary<object, int> filteredCountByKey)
+        {
+            var parentKey = NormalizeKey(parentEntity.KeySelector(parentKeyAttribute, context));
+
+            // Get count of all related records for this parent
+            var allCount = allRelatedCountByKey.ContainsKey(parentKey)
+                ? allRelatedCountByKey[parentKey]
+                : 0;
+
+            // Get count of matching (filtered) related records
+            var matchingCount = filteredCountByKey.ContainsKey(parentKey)
+                ? filteredCountByKey[parentKey]
+                : 0;
+
+            // All: either no related records exist, or all related records match the filter
+            return allCount == matchingCount;
+        }
+
+        /// <summary>
+        /// Evaluates the "NotAll" operator for a parent entity.
+        /// Returns true if at least one related record does not match the filter.
+        /// </summary>
+        private static bool EvaluateNotAllOperator(
+            Entity parentEntity,
+            string parentKeyAttribute,
+            XrmFakedContext context,
+            Dictionary<object, int> allCountByKey,
+            Dictionary<object, int> matchingCountByKey)
+        {
+            var parentKey = NormalizeKey(parentEntity.KeySelector(parentKeyAttribute, context));
+
+            // Get count of all related records for this parent
+            var allCount = allCountByKey.ContainsKey(parentKey)
+                ? allCountByKey[parentKey]
+                : 0;
+
+            // Get count of matching (filtered) related records
+            var matchingCount = matchingCountByKey.ContainsKey(parentKey)
+                ? matchingCountByKey[parentKey]
+                : 0;
+
+            // NotAll: at least one related record doesn't match
+            // There must be related records AND count of all related != count of matching
+            return allCount > 0 && allCount != matchingCount;
         }
 
         private static string EnsureUniqueLinkedEntityAlias(IDictionary<string, int> linkedEntities, string entityName)
@@ -3062,6 +3285,16 @@ namespace FakeXrmEasy
             var linkedEntitiesQueryExpressions = new List<Expression>();
             foreach (var le in qe.LinkEntities)
             {
+                // Skip Any/All/NotAny/NotAll link entities - their filters are applied during the existence check,
+                // not as WHERE clauses on the parent entity
+                if (le.JoinOperator == JoinOperator.Any ||
+                    le.JoinOperator == JoinOperator.NotAny ||
+                    le.JoinOperator == JoinOperator.All ||
+                    le.JoinOperator == JoinOperator.NotAll)
+                {
+                    continue;
+                }
+
                 var listOfExpressions = TranslateLinkedEntityFilterExpressionToExpression(qe, context, le, entity);
                 linkedEntitiesQueryExpressions.AddRange(listOfExpressions);
             }

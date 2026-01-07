@@ -191,7 +191,7 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 | 460 | last-x-weeks operator | Date | **FIXED** - Already implemented (TranslateConditionExpressionLast) |
 | 476 | Fiscal period operators | Date | **FIXED** - InFiscalPeriod, InFiscalPeriodAndYear, This/Last/NextFiscalPeriod |
 | 509 | LIKE wildcards [X-Y] | Query | **FIXED** - Underscore, [a-z] ranges, [abc] sets, [^abc] negation |
-| NEW | Any/All related-record filtering | Query | **PLANNED v1.2.0** - See Phase 2 below |
+| NEW | Any/All related-record filtering | Query | **FIXED** - JoinOperator.Any/NotAny/All/NotAll, 26 tests |
 
 ### P3 — Developer Experience / Sustainability (COMPLETE)
 
@@ -213,25 +213,27 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 | 569 | ObjectTypeCode casting | Query | **FIXED** - SafeConvertToInt handles type mismatches gracefully |
 | 566 | Upsert alt key copy | CRUD | **FIXED** - KeyAttributes copied to Attributes on create |
 
-### Phase 2 — Any/All Filter Operators (4-6 days)
+### Phase 2 — Any/All Filter Operators (COMPLETE)
 
-| Feature | Category | Effort | Notes |
-|---------|----------|--------|-------|
-| AnyAllFilterLinkEntity | Query | Medium | Any/NotAny/All/NotAll existence filters |
+| Feature | Category | Effort | Status |
+|---------|----------|--------|--------|
+| AnyAllFilterLinkEntity | Query | Medium | **COMPLETE** |
 
-**Constraints (verified via XrmToolbox testing):**
-- ✅ Any/All LinkEntity CAN be direct child of `<entity>` (top level)
+**Implementation (2026-01-07):**
+- Added `JoinOperator.Any/NotAny/All/NotAll` support to `XrmFakedContext.Queries.cs`
+- Created `TranslateAnyAllLinkedEntityToLinq()` method (~170 lines)
+- Added helper methods: `NormalizeKey()`, `EvaluateAllOperator()`, `EvaluateNotAllOperator()`
+- FetchXML `link-type="any|not any|all|not all"` parsing already supported
+- Created 26 comprehensive tests in `AnyAllFilterTests.cs`
+- All 1148 tests pass
+
+**Constraints (verified via XrmToolbox testing and enforced in implementation):**
+- ✅ Any/All LinkEntity CAN be direct child of `<entity>` (top level only)
 - ❌ Any/All LinkEntity CANNOT have `<link-entity>` as parent (no nesting under joins)
 - ❌ Any/All LinkEntity CANNOT have nested `<link-entity>` children
-- ❌ No attributes/columns allowed in child link-entities under Any/All
+- ❌ No attributes/columns allowed on Any/All link-entities
 - ✅ Filters ARE supported inside the Any/All LinkEntity
 - Translates to SQL EXISTS/NOT EXISTS subqueries
-
-**Implementation approach:**
-1. Detect `link-type="any|not any|all|not all"` in LinkEntity translation
-2. Generate `.Any()` / `.All()` LINQ predicates with inner filter conditions
-3. Validation: Reject if parent is LinkEntity, reject nested links, reject attribute/order clauses
-4. QueryExpression: Handle `JoinOperator.Any/NotAny/All/NotAll` with same constraints
 
 **FetchXML structure:**
 ```xml
@@ -466,6 +468,21 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 (Part 11) - Phase 2 Complete: Any/All Filter Operators
+
+- Fixed: Any/All related-record filtering (JoinOperator.Any/NotAny/All/NotAll)
+  - Added `TranslateAnyAllLinkedEntityToLinq()` method (~170 lines) in XrmFakedContext.Queries.cs
+  - Added helper methods: `NormalizeKey()`, `EvaluateAllOperator()`, `EvaluateNotAllOperator()`
+  - FetchXML `link-type="any|not any|all|not all"` parsing already supported
+  - Constraint validation enforced:
+    - Any/All LinkEntity must be direct child of root entity (no nested parent)
+    - Any/All LinkEntity cannot have nested link-entity children
+    - No attributes/columns allowed on Any/All link-entities
+    - Filters ARE supported inside Any/All link-entities
+  - 26 comprehensive tests in AnyAllFilterTests.cs
+  - All 1148 tests pass
+- Phase 2 status: COMPLETE
 
 ### 2026-01-07 (Part 10) - P3 Complete + ExecuteAsync
 

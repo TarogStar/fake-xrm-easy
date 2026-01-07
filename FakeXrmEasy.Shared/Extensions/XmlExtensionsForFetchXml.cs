@@ -379,10 +379,31 @@ namespace FakeXrmEasy.Extensions.FetchXml
             //Join operator
             if (el.GetAttribute("link-type") != null)
             {
-                switch (el.GetAttribute("link-type").Value)
+                switch (el.GetAttribute("link-type").Value.ToLowerInvariant())
                 {
                     case "outer":
                         linkEntity.JoinOperator = JoinOperator.LeftOuter;
+                        break;
+                    case "any":
+                        linkEntity.JoinOperator = JoinOperator.Any;
+                        break;
+                    case "not any":
+                        linkEntity.JoinOperator = JoinOperator.NotAny;
+                        break;
+                    case "all":
+                        linkEntity.JoinOperator = JoinOperator.All;
+                        break;
+                    case "not all":
+                        linkEntity.JoinOperator = JoinOperator.NotAll;
+                        break;
+                    case "exists":
+                        linkEntity.JoinOperator = JoinOperator.Exists;
+                        break;
+                    case "in":
+                        linkEntity.JoinOperator = JoinOperator.In;
+                        break;
+                    case "matchfirstrowusingcrossapply":
+                        linkEntity.JoinOperator = JoinOperator.MatchFirstRowUsingCrossApply;
                         break;
                     default:
                         linkEntity.JoinOperator = JoinOperator.Inner;
