@@ -14,13 +14,13 @@
     <!-- NuGet package metadata -->
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>FakeXrmEasy.Community</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
     <Authors>FakeXrmEasy Community Contributors</Authors>
     <Company>FakeXrmEasy Community</Company>
     <Product>FakeXrmEasy Community Edition</Product>
     <Description>A truly open-source, community-driven testing framework for Dynamics 365 / Power Platform. This is a modern fork of the original FakeXrmEasy project, maintained by the community with no paid license requirements. Unit test your plugins, workflows, and custom code with ease.</Description>
-    <PackageProjectUrl>https://github.com/YOUR_ORG/fake-xrm-easy</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/YOUR_ORG/fake-xrm-easy.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/TarogStar/fake-xrm-easy</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/TarogStar/fake-xrm-easy.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>Dynamics365 CRM CommonDataService PowerPlatform UnitTesting Mocking Testing Plugins Workflows FakeXrmEasy Dataverse Community OpenSource</PackageTags>

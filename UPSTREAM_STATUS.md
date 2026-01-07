@@ -3,7 +3,7 @@
 This document consolidates the status of issues and PRs from the archived [jordimontana82/fake-xrm-easy](https://github.com/jordimontana82/fake-xrm-easy) repository (archived June 2024).
 
 **Last Updated:** 2026-01-07
-**Version:** 1.0.2+
+**Version:** 1.1.0
 
 ---
 
