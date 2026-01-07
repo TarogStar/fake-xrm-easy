@@ -8,7 +8,7 @@ A truly open-source testing framework for Dynamics 365 / Power Platform that mak
 
 ## 🎉 Version 1.0.2 - Modern Dataverse Features!
 
-**🔥 NEW in v1.0.2** (November 2025): Major enhancements for modern Dataverse testing!
+**🔥 NEW in v1.0.2** (January 2026): Major enhancements for modern Dataverse testing!
 
 ### 🚀 Simplified Plugin Testing
 - ✅ **Auto-Populate Entity Images** - No more manual pre/post image setup boilerplate!
@@ -22,7 +22,15 @@ All optimized bulk operations now supported:
 - ✅ **DeleteMultiple** - Transactional bulk deletes
 - ✅ **UpsertMultiple** - Bulk upsert with create/update detection
 
-See [ENHANCEMENTS.md](ENHANCEMENTS.md) for complete details and examples!
+### 🔧 Query Engine Fixes
+Major improvements from upstream issues:
+- ✅ **FetchXML Multiple Filters** - Multiple filter nodes now correctly combined with AND
+- ✅ **Left Outer Joins** - Proper GroupJoin pattern for aggregate queries
+- ✅ **Between Dates** - End dates include full day (23:59:59.999)
+- ✅ **Date Operators** - ThisMonth, LastMonth, ThisWeek, LastWeek all working with timezone support
+- ✅ **EntityReference.Name** - Automatically populated from PrimaryNameAttribute on retrieve
+
+See [UPSTREAM_STATUS.md](UPSTREAM_STATUS.md) for full tracking of upstream issues!
 
 ### Previous Features (v1.0.1)
 - ✅ **CalculateRollupFieldRequest support** - test rollup field calculations
