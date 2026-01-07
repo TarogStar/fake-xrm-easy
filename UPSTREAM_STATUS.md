@@ -7,16 +7,32 @@ This document consolidates the status of issues and PRs from the archived [jordi
 
 ---
 
+## Platform Parity Target
+
+- **Target Platform:** Dynamics 365 v9.x+ / Dataverse (cloud)
+- **Framework:** .NET Framework 4.6.2
+- **SDK:** Microsoft.CrmSdk.CoreAssemblies 9.0.2.60+
+- **Approach:** Strictly parity-focused (throw/fault like Dataverse)
+
+### Known Differences
+
+This framework aims for high fidelity but is not a perfect emulator. Known differences:
+- Virtual entities require manual `IEntityDataSourceRetrieverService` setup
+- Some advanced metadata scenarios require explicit `InitializeMetadata()` calls
+- Async plugin execution is synchronous in tests
+
+---
+
 ## Quick Summary
 
-| Category | Total | Fixed | TODO | Won't Fix |
-|----------|-------|-------|------|-----------|
+| Category | Total | Fixed | P0-P3 TODO | Won't Fix |
+|----------|-------|-------|------------|-----------|
 | Plugin/Pipeline | 12 | 4 | 3 | 0 |
-| Query Engine | 20 | 17 | 0 | 0 |
-| Date/Time | 7 | 7 | 0 | 0 |
-| Message Executors | 12 | 9 | 2 | 0 |
-| Metadata | 10 | 5 | 3 | 2 |
-| CRUD/Core | 13 | 3 | 6 | 0 |
+| Query Engine | 21 | 17 | 2 | 0 |
+| Date/Time | 9 | 7 | 4 | 0 |
+| Message Executors | 13 | 9 | 2 | 0 |
+| Metadata | 10 | 5 | 2 | 2 |
+| CRUD/Core | 13 | 3 | 7 | 0 |
 | Other | 5 | 0 | 1 | 4 |
 
 ---
@@ -115,26 +131,57 @@ This document consolidates the status of issues and PRs from the archived [jordi
 
 ---
 
-## TODO Items (Remaining Work)
+## Prioritized Roadmap
 
-### Medium Priority
+Based on analysis of modern Dataverse SDK requirements and real-world usage patterns.
 
-| # | Title | Category | Notes |
-|---|-------|----------|-------|
-| 562 | Min date validation 01/01/1753 | Core | CRM minimum date |
-| 508 | Alternate keys in AssociateRequest | Core | Currently not supported |
-| 557 | Expose Metadata generation | Metadata | PR exists |
-| 447 | PicklistAttributeMetadata options | Metadata | PR from Nianwei |
-
-### Lower Priority
+### P0 — Parity Bugs (Most likely to break real projects)
 
 | # | Title | Category | Notes |
 |---|-------|----------|-------|
-| 553 | RowVersion property | Core | Low user demand |
-| 476 | Fiscal period operators | Date | Beyond fiscal year |
-| 509 | LIKE wildcards [X-Y] | Query | Advanced patterns |
+| 293 | Output parameters lost | Pipeline | Critical for chained plugin logic |
+| 479 | Statecode on create | Core | Affects downstream behaviors and queries |
+| 458 | DateTime.Kind differences | Date | Top source of cross-environment test drift |
+| 491 | UTC conversion issues | Date | Related to #458 |
+| 573 | Pipeline NRE | Pipeline | Instability undermines confidence |
+| 562 | Min date validation 01/01/1753 | Core | Prevents false-positive tests |
+
+### P1 — Modern Data/Key Scenarios (Common in cloud)
+
+| # | Title | Category | Notes |
+|---|-------|----------|-------|
+| 508 | Alternate keys in AssociateRequest | Core | Needed now that we support alt-key Upsert |
+| 521 | Composite alternate keys | Core | Check with UpsertMultiple |
+| 470 | Alt key with early-bound | Core | Early-bound alternate key resolution |
+| 553 | RowVersion / optimistic concurrency | Core | Increasingly used in enterprise code |
+| 472 | OwningBusinessUnit on assign | Core | Security + ownership logic |
+
+### P2 — Query Completeness / Advanced Operators
+
+| # | Title | Category | Notes |
+|---|-------|----------|-------|
 | 461 | next-x-timeperiod operators | Date | PR from RachaelBooth |
 | 460 | last-x-weeks operator | Date | PR from RachaelBooth |
+| 476 | Fiscal period operators | Date | Beyond fiscal year |
+| 509 | LIKE wildcards [X-Y] | Query | Advanced patterns |
+| NEW | Any/All related-record filtering | Query | AnyAllFilterLinkEntity support |
+
+### P3 — Developer Experience / Sustainability
+
+| # | Title | Category | Notes |
+|---|-------|----------|-------|
+| 557 | Expose Metadata generation | Metadata | Make MetadataGenerator public/static |
+| 447 | PicklistAttributeMetadata options | Metadata | OptionSet behavior fidelity |
+| NEW | ExecuteMultiple ContinueOnError | Messages | Fault behavior + partial results |
+| NEW | README placeholder cleanup | Docs | Replace YOUR_ORG with actual org |
+
+### Not Tracked - New SDK Features to Consider
+
+| Feature | Category | Notes |
+|---------|----------|-------|
+| AnyAllFilterLinkEntity | Query | Any/NotAny/All/NotAll join operators |
+| ExecuteMultiple semantics | Messages | ContinueOnError, per-request faults |
+| Alternate key metadata fidelity | Metadata | Rich attribute metadata for alt keys |
 
 ---
 
@@ -153,7 +200,7 @@ This document consolidates the status of issues and PRs from the archived [jordi
 
 ## Needs Investigation
 
-These items need verification against the current codebase:
+Items requiring reproduction tests and decisions (fix vs document as known difference):
 
 | # | Title | Category |
 |---|-------|----------|
@@ -230,6 +277,15 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 (Part 5)
+- Restructured TODO into Prioritized Roadmap (P0-P3) based on modern SDK analysis
+- Added Platform Parity Target section with known differences
+- Added new SDK features to consider: AnyAllFilterLinkEntity, ExecuteMultiple semantics
+- P0 priorities: #293, #479, #458, #491, #573, #562 (parity bugs)
+- P1 priorities: #508, #521, #470, #553, #472 (modern key scenarios)
+- P2 priorities: #461, #460, #476, #509, Any/All filtering (query completeness)
+- P3 priorities: #557, #447, ExecuteMultiple ContinueOnError (DX improvements)
 
 ### 2026-01-07 (Part 4)
 - Fixed: #514 - FetchXML valueof attribute for column-to-column comparison
