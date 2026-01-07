@@ -116,7 +116,8 @@ namespace FakeXrmEasy.Tests
 
             var result = service.Retrieve("account", guid, new ColumnSet(true));
             Assert.Equal(result.Id, data.FirstOrDefault().Id);
-            Assert.Equal(7, result.Attributes.Count);
+            // 8 default attributes: accountid, createdon, modifiedon, createdby, modifiedby, ownerid, statecode, versionnumber
+            Assert.Equal(8, result.Attributes.Count);
         }
 
         [Fact]

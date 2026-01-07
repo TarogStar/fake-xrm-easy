@@ -57,6 +57,27 @@ namespace FakeXrmEasy.FakeMessageExecutors
 
             foreach (var relatedEntityReference in associateRequest.RelatedEntities)
             {
+                // Try to resolve alternate keys, fallback to .Id if not found
+                var targetId = associateRequest.Target.Id;
+                if (associateRequest.Target.KeyAttributes != null && associateRequest.Target.KeyAttributes.Count > 0)
+                {
+                    var resolvedId = ctx.GetRecordUniqueId(associateRequest.Target, validate: false);
+                    if (resolvedId != Guid.Empty)
+                    {
+                        targetId = resolvedId;
+                    }
+                }
+
+                var relatedEntityId = relatedEntityReference.Id;
+                if (relatedEntityReference.KeyAttributes != null && relatedEntityReference.KeyAttributes.Count > 0)
+                {
+                    var resolvedId = ctx.GetRecordUniqueId(relatedEntityReference, validate: false);
+                    if (resolvedId != Guid.Empty)
+                    {
+                        relatedEntityId = resolvedId;
+                    }
+                }
+
                 if (fakeRelationShip.RelationshipType == XrmFakedRelationship.enmFakeRelationshipType.ManyToMany)
                 {
                     var isFrom1to2 = associateRequest.Target.LogicalName == fakeRelationShip.Entity1LogicalName
@@ -69,29 +90,29 @@ namespace FakeXrmEasy.FakeMessageExecutors
 
                     //Check records exist
                     var targetExists = ctx.CreateQuery(fromEntityName)
-                                                .Where(e => e.Id == associateRequest.Target.Id)
+                                                .Where(e => e.Id == targetId)
                                                 .FirstOrDefault() != null;
 
                     if (!targetExists)
                     {
-                        throw new Exception(string.Format("{0} with Id {1} doesn't exist", fromEntityName, associateRequest.Target.Id.ToString()));
+                        throw new Exception(string.Format("{0} with Id {1} doesn't exist", fromEntityName, targetId.ToString()));
                     }
 
                     var relatedExists = ctx.CreateQuery(toEntityName)
-                                                .Where(e => e.Id == relatedEntityReference.Id)
+                                                .Where(e => e.Id == relatedEntityId)
                                                 .FirstOrDefault() != null;
 
                     if (!relatedExists)
                     {
-                        throw new Exception(string.Format("{0} with Id {1} doesn't exist", toEntityName, relatedEntityReference.Id.ToString()));
+                        throw new Exception(string.Format("{0} with Id {1} doesn't exist", toEntityName, relatedEntityId.ToString()));
                     }
 
                     var association = new Entity(fakeRelationShip.IntersectEntity)
                     {
                         Attributes = new AttributeCollection
                         {
-                            { fromAttribute, associateRequest.Target.Id },
-                            { toAttribute, relatedEntityReference.Id }
+                            { fromAttribute, targetId },
+                            { toAttribute, relatedEntityId }
                         }
                     };
 
@@ -103,7 +124,7 @@ namespace FakeXrmEasy.FakeMessageExecutors
                     //Get entity to update
                     var entityToUpdate = new Entity(relatedEntityReference.LogicalName)
                     {
-                        Id = relatedEntityReference.Id
+                        Id = relatedEntityId
                     };
 
                     entityToUpdate[fakeRelationShip.Entity2Attribute] = associateRequest.Target;

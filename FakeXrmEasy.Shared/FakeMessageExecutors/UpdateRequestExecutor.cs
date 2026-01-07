@@ -1,6 +1,7 @@
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using System;
+using System.ServiceModel;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
@@ -12,6 +13,7 @@ namespace FakeXrmEasy.FakeMessageExecutors
     /// The executor modifies an existing entity record in the in-memory context based on
     /// the attributes provided in the Target entity. Only the attributes included in the
     /// Target are updated; other attributes on the existing record remain unchanged.
+    /// Supports optimistic concurrency via ConcurrencyBehavior.IfRowVersionMatches.
     /// </remarks>
     public class UpdateRequestExecutor : IFakeMessageExecutor
     {
@@ -38,6 +40,8 @@ namespace FakeXrmEasy.FakeMessageExecutors
         /// <remarks>
         /// The Target property of the <see cref="UpdateRequest"/> must contain an entity with a valid Id
         /// and the attributes to be updated. The entity must already exist in the context.
+        /// When ConcurrencyBehavior is set to IfRowVersionMatches, the RowVersion property must be provided
+        /// and must match the current version of the record, or a ConcurrencyVersionMismatch fault is thrown.
         /// </remarks>
         public OrganizationResponse Execute(OrganizationRequest request, XrmFakedContext ctx)
         {
@@ -45,10 +49,65 @@ namespace FakeXrmEasy.FakeMessageExecutors
 
             var target = (Entity)request.Parameters["Target"];
 
+            // Check for ConcurrencyBehavior
+            if (updateRequest.ConcurrencyBehavior == ConcurrencyBehavior.IfRowVersionMatches)
+            {
+                ValidateConcurrency(target, ctx);
+            }
+
             var service = ctx.GetOrganizationService();
             service.Update(target);
 
             return new UpdateResponse();
+        }
+
+        /// <summary>
+        /// Validates the concurrency by comparing the provided RowVersion with the stored version.
+        /// </summary>
+        /// <param name="target">The entity being updated.</param>
+        /// <param name="ctx">The fake context containing the stored entity.</param>
+        /// <exception cref="FaultException{OrganizationServiceFault}">
+        /// Thrown when the RowVersion is not provided or when it doesn't match the stored version.
+        /// </exception>
+        private void ValidateConcurrency(Entity target, XrmFakedContext ctx)
+        {
+            // Check if RowVersion was provided
+            if (!target.Contains("versionnumber") && string.IsNullOrEmpty(target.RowVersion))
+            {
+                throw new FaultException<OrganizationServiceFault>(
+                    new OrganizationServiceFault(),
+                    "The RowVersion property must be provided when the value of ConcurrencyBehavior is IfVersionMatches.");
+            }
+
+            // Get stored entity
+            if (!ctx.Data.ContainsKey(target.LogicalName) ||
+                !ctx.Data[target.LogicalName].ContainsKey(target.Id))
+            {
+                return; // Let normal update handle missing entity
+            }
+
+            var storedEntity = ctx.Data[target.LogicalName][target.Id];
+            var storedVersion = storedEntity.Contains("versionnumber")
+                ? storedEntity.GetAttributeValue<long>("versionnumber")
+                : 0L;
+
+            // Get provided version
+            long providedVersion = 0L;
+            if (!string.IsNullOrEmpty(target.RowVersion))
+            {
+                long.TryParse(target.RowVersion, out providedVersion);
+            }
+            else if (target.Contains("versionnumber"))
+            {
+                providedVersion = target.GetAttributeValue<long>("versionnumber");
+            }
+
+            if (storedVersion != providedVersion)
+            {
+                throw new FaultException<OrganizationServiceFault>(
+                    new OrganizationServiceFault(),
+                    "The version of the existing record doesn't match the RowVersion property provided.");
+            }
         }
 
         /// <summary>

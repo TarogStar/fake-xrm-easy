@@ -77,6 +77,9 @@ namespace FakeXrmEasy.Services
             e.SetValueIfEmpty("ownerid", CallerId);
             e.SetValueIfEmpty("statecode", new OptionSetValue(0)); //Active by default
 
+            // Add versionnumber for optimistic concurrency support
+            e.SetValueIfEmpty("versionnumber", ctx.GetNextVersionNumber());
+
             if (ctx.InitializationLevel == EntityInitializationLevel.PerEntity)
             {
                 if (!string.IsNullOrEmpty(e.LogicalName) && InitializerServiceDictionary.ContainsKey(e.LogicalName))

@@ -81,5 +81,53 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AssignRequestTests
             AssignRequest req = new AssignRequest() { Target = new EntityReference(), Assignee = null };
             Assert.Throws<FaultException<OrganizationServiceFault>>(() => executor.Execute(req, context));
         }
+
+        [Fact]
+        public void When_Assigned_User_As_Owner_OwningBusinessUnit_Is_Set_To_User_BusinessUnit()
+        {
+            var context = new XrmFakedContext();
+
+            var businessUnit1 = new BusinessUnit { Id = Guid.NewGuid(), Name = "BU1" };
+            var businessUnit2 = new BusinessUnit { Id = Guid.NewGuid(), Name = "BU2" };
+            var user1 = new SystemUser { Id = Guid.NewGuid(), FirstName = "User1", BusinessUnitId = businessUnit1.ToEntityReference() };
+            var user2 = new SystemUser { Id = Guid.NewGuid(), FirstName = "User2", BusinessUnitId = businessUnit2.ToEntityReference() };
+            var account1 = new Account { Id = Guid.NewGuid(), Name = "Acc1", OwnerId = user1.ToEntityReference() };
+
+            context.Initialize(new List<Entity> {
+                businessUnit1, businessUnit2, user1, user2, account1
+            });
+
+            var executor = new AssignRequestExecutor();
+            AssignRequest req = new AssignRequest() { Target = account1.ToEntityReference(), Assignee = user2.ToEntityReference() };
+            executor.Execute(req, context);
+
+            var acc_Fresh = context.GetOrganizationService().Retrieve(account1.LogicalName, account1.Id, new Microsoft.Xrm.Sdk.Query.ColumnSet(true));
+            Assert.Equal(user2.Id, acc_Fresh.GetAttributeValue<EntityReference>("owninguser").Id);
+            Assert.Equal(businessUnit2.Id, acc_Fresh.GetAttributeValue<EntityReference>("owningbusinessunit").Id);
+        }
+
+        [Fact]
+        public void When_Assigned_Team_As_Owner_OwningBusinessUnit_Is_Set_To_Team_BusinessUnit()
+        {
+            var context = new XrmFakedContext();
+
+            var businessUnit1 = new BusinessUnit { Id = Guid.NewGuid(), Name = "BU1" };
+            var businessUnit2 = new BusinessUnit { Id = Guid.NewGuid(), Name = "BU2" };
+            var user1 = new SystemUser { Id = Guid.NewGuid(), FirstName = "User1", BusinessUnitId = businessUnit1.ToEntityReference() };
+            var team1 = new Team { Id = Guid.NewGuid(), Name = "Team1", BusinessUnitId = businessUnit2.ToEntityReference() };
+            var account1 = new Account { Id = Guid.NewGuid(), Name = "Acc1", OwnerId = user1.ToEntityReference() };
+
+            context.Initialize(new List<Entity> {
+                businessUnit1, businessUnit2, user1, team1, account1
+            });
+
+            var executor = new AssignRequestExecutor();
+            AssignRequest req = new AssignRequest() { Target = account1.ToEntityReference(), Assignee = team1.ToEntityReference() };
+            executor.Execute(req, context);
+
+            var acc_Fresh = context.GetOrganizationService().Retrieve(account1.LogicalName, account1.Id, new Microsoft.Xrm.Sdk.Query.ColumnSet(true));
+            Assert.Equal(team1.Id, acc_Fresh.GetAttributeValue<EntityReference>("owningteam").Id);
+            Assert.Equal(businessUnit2.Id, acc_Fresh.GetAttributeValue<EntityReference>("owningbusinessunit").Id);
+        }
     }
 }

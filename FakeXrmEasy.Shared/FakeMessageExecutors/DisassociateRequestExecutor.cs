@@ -55,6 +55,27 @@ namespace FakeXrmEasy.FakeMessageExecutors
 
             foreach (var relatedEntity in disassociateRequest.RelatedEntities)
             {
+                // Try to resolve alternate keys, fallback to .Id if not found
+                var targetId = disassociateRequest.Target.Id;
+                if (disassociateRequest.Target.KeyAttributes != null && disassociateRequest.Target.KeyAttributes.Count > 0)
+                {
+                    var resolvedId = ctx.GetRecordUniqueId(disassociateRequest.Target, validate: false);
+                    if (resolvedId != Guid.Empty)
+                    {
+                        targetId = resolvedId;
+                    }
+                }
+
+                var relatedEntityId = relatedEntity.Id;
+                if (relatedEntity.KeyAttributes != null && relatedEntity.KeyAttributes.Count > 0)
+                {
+                    var resolvedId = ctx.GetRecordUniqueId(relatedEntity, validate: false);
+                    if (resolvedId != Guid.Empty)
+                    {
+                        relatedEntityId = resolvedId;
+                    }
+                }
+
                 var isFrom1to2 = disassociateRequest.Target.LogicalName == relationShip.Entity1LogicalName
                                       || relatedEntity.LogicalName != relationShip.Entity1LogicalName
                                       || String.IsNullOrWhiteSpace(disassociateRequest.Target.LogicalName);
@@ -68,9 +89,9 @@ namespace FakeXrmEasy.FakeMessageExecutors
                 };
 
                 query.Criteria.AddCondition(new ConditionExpression(fromAttribute,
-                    ConditionOperator.Equal, disassociateRequest.Target.Id));
+                    ConditionOperator.Equal, targetId));
                 query.Criteria.AddCondition(new ConditionExpression(toAttribute,
-                    ConditionOperator.Equal, relatedEntity.Id));
+                    ConditionOperator.Equal, relatedEntityId));
 
                 var results = service.RetrieveMultiple(query);
 

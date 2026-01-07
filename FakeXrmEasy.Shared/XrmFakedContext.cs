@@ -55,6 +55,19 @@ namespace FakeXrmEasy
         public Dictionary<string, Dictionary<Guid, Entity>> Data { get; set; }
 
         /// <summary>
+        /// Counter for generating auto-incrementing version numbers (RowVersion).
+        /// </summary>
+        private long _currentVersionNumber = 0;
+
+        /// <summary>
+        /// Generates the next version number in a thread-safe manner.
+        /// </summary>
+        protected internal long GetNextVersionNumber()
+        {
+            return System.Threading.Interlocked.Increment(ref _currentVersionNumber);
+        }
+
+        /// <summary>
         /// Specify which assembly is used to search for early-bound proxy
         /// types when used within simulated CRM context.
         ///

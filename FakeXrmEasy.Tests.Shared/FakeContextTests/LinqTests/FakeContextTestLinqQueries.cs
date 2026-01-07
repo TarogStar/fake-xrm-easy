@@ -801,7 +801,8 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.Equal(7 + 1, matches[0].Contact.Attributes.Count);
+                // 8 default attributes + 1 (FirstName)
+                Assert.Equal(8 + 1, matches[0].Contact.Attributes.Count);
             }
         }
 
@@ -841,7 +842,8 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.Equal(7 + 1, matches[0].Contact.Attributes.Count);
+                // 8 default attributes + 1 (FirstName)
+                Assert.Equal(8 + 1, matches[0].Contact.Attributes.Count);
             }
         }
 
@@ -884,7 +886,7 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.Equal(7 + 4, matches[0].Account.Attributes.Count); //7 = default attributes
+                Assert.Equal(8 + 4, matches[0].Account.Attributes.Count); //8 = default attributes (including versionnumber)
             }
         }
 
@@ -929,7 +931,7 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.Equal(7 + 4, matches[0].Account.Attributes.Count); //7 = default attributes
+                Assert.Equal(8 + 4, matches[0].Account.Attributes.Count); //8 = default attributes (including versionnumber)
             }
         }
 
@@ -972,7 +974,7 @@ namespace FakeXrmEasy.Tests
                                }).ToList();
 
                 Assert.True(matches.Count == 1);
-                Assert.Equal(7 + 4, matches[0].Account.Attributes.Count); //6 = default attributes
+                Assert.Equal(8 + 4, matches[0].Account.Attributes.Count); //8 = default attributes (including versionnumber)
             }
         }
 

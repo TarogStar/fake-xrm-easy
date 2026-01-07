@@ -173,13 +173,13 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 
 ### P1 — Modern Data/Key Scenarios (Common in cloud)
 
-| # | Title | Category | Notes |
-|---|-------|----------|-------|
-| 508 | Alternate keys in AssociateRequest | Core | Needed now that we support alt-key Upsert |
-| 521 | Composite alternate keys | Core | Check with UpsertMultiple |
-| 470 | Alt key with early-bound | Core | Early-bound alternate key resolution |
-| 553 | RowVersion / optimistic concurrency | Core | Increasingly used in enterprise code |
-| 472 | OwningBusinessUnit on assign | Core | Security + ownership logic |
+| # | Title | Category | Status |
+|---|-------|----------|--------|
+| 508 | Alternate keys in AssociateRequest | Core | **FIXED** - Associate/Disassociate resolve KeyAttributes to IDs |
+| 521 | Composite alternate keys | Core | **FIXED** - Uniqueness enforced on Create/Update, 22 tests |
+| 470 | Alt key with early-bound | Core | **FIXED** - GetRecordUniqueId throws when no match found |
+| 553 | RowVersion / optimistic concurrency | Core | **FIXED** - Auto-incrementing versionnumber + ConcurrencyBehavior validation |
+| 472 | OwningBusinessUnit on assign | Core | **FIXED** - Assign updates owningbusinessunit from new owner's BU |
 
 ### P2 — Query Completeness / Advanced Operators
 
@@ -231,10 +231,6 @@ Items requiring reproduction tests and decisions (fix vs document as known diffe
 |---|-------|----------|
 | 569 | ObjectTypeCode casting | Query engine |
 | 566 | Upsert alt key copy | May be fixed with #615 |
-| 521 | Composite alternate keys | Check with UpsertMultiple |
-| 472 | OwningBusinessUnit on assign | Core CRUD |
-| 470 | Alt key with early-bound | Core CRUD |
-| 293 | Output parameters lost | Plugin pipeline - see Known Limitation below |
 
 ---
 
@@ -273,7 +269,7 @@ Items requiring reproduction tests and decisions (fix vs document as known diffe
 - Dynamics 365 v9.x and later only
 - .NET Framework 4.6.2
 - Modern SDK-style projects
-- VS2019/VS2022
+- VS2019/VS2022/VS2026
 
 ### What We Don't Support
 - Legacy CRM versions (2011, 2013, 2015, 2016)
@@ -298,6 +294,31 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 (Part 8) - P1 Complete
+- Fixed: #521 - Composite Alternate Keys + Uniqueness Enforcement
+  - Added `FindViolatedAlternateKey()` method to check uniqueness on Create/Update
+  - Added `CompareKeyValues()` for EntityReference/OptionSetValue/Money comparison
+  - Added `AddAlternateKey()` helper methods for easier test setup
+  - Throws FaultException when duplicate key values detected
+  - 22 new tests in CompositeAlternateKeyTests.cs
+- Fixed: #553 - RowVersion / Optimistic Concurrency
+  - Added auto-incrementing `versionnumber` to all entities on Create/Update
+  - Thread-safe `GetNextVersionNumber()` using `Interlocked.Increment`
+  - `UpdateRequestExecutor` validates `ConcurrencyBehavior.IfRowVersionMatches`
+  - Throws FaultException on version mismatch or missing RowVersion
+  - 14 new tests in RowVersionTests.cs
+- Fixed: #508 - Alternate Keys in Associate/Disassociate
+  - `AssociateRequestExecutor` now resolves KeyAttributes to entity IDs
+  - `DisassociateRequestExecutor` now resolves KeyAttributes to entity IDs
+- Fixed: #472 - OwningBusinessUnit on Assign
+  - `AssignRequestExecutor` now updates `owningbusinessunit`
+  - Retrieves businessunitid from new owner's systemuser record
+  - 2 new tests for business unit ownership transfer
+- Fixed: #470 - GetRecordUniqueId Missing Throw
+  - Now throws FaultException when no matching record found for alternate key
+  - Consistent with Dataverse behavior for invalid alternate keys
+- P1 status: 5 fixed
 
 ### 2026-01-07 (Part 7) - P0 Complete
 - Documented: #293 - Added Known Limitation section with workaround for output parameters

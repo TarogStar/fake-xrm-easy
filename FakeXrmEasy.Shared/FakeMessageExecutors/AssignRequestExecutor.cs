@@ -25,7 +25,8 @@ namespace FakeXrmEasy.FakeMessageExecutors
         /// <summary>
         /// Executes the AssignRequest to change the owner of a CRM entity.
         /// Sets the ownerid attribute to the new assignee and updates owninguser or owningteam
-        /// based on whether the assignee is a systemuser or team.
+        /// based on whether the assignee is a systemuser or team. Also updates owningbusinessunit
+        /// to match the new owner's business unit.
         /// </summary>
         /// <param name="request">The AssignRequest containing the Target entity reference and the Assignee entity reference.</param>
         /// <param name="ctx">The XrmFakedContext providing the in-memory CRM context and organization service.</param>
@@ -56,6 +57,14 @@ namespace FakeXrmEasy.FakeMessageExecutors
             else if (assignee.LogicalName == "team")
                 owningX = new KeyValuePair<string, object>("owningteam", assignee);
 
+            // Get the assignee's business unit to update owningbusinessunit
+            EntityReference owningBusinessUnit = null;
+            if (ctx.Data.ContainsKey(assignee.LogicalName) && ctx.Data[assignee.LogicalName].ContainsKey(assignee.Id))
+            {
+                var assigneeEntity = ctx.Data[assignee.LogicalName][assignee.Id];
+                owningBusinessUnit = assigneeEntity.GetAttributeValue<EntityReference>("businessunitid");
+            }
+
             var assignment = new Entity
             {
                 LogicalName = target.LogicalName,
@@ -66,6 +75,12 @@ namespace FakeXrmEasy.FakeMessageExecutors
                     owningX
                 }
             };
+
+            // Set owningbusinessunit if we found the assignee's business unit
+            if (owningBusinessUnit != null)
+            {
+                assignment["owningbusinessunit"] = owningBusinessUnit;
+            }
 
             service.Update(assignment);
 

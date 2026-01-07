@@ -2,6 +2,7 @@
 using FakeXrmEasy.Extensions;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
@@ -104,7 +105,7 @@ namespace FakeXrmEasy
                             }
                             if (validate)
                             {
-                                new FaultException<OrganizationServiceFault>(new OrganizationServiceFault(), $"{record.LogicalName} with the specified Alternate Keys Does Not Exist");
+                                throw new FaultException<OrganizationServiceFault>(new OrganizationServiceFault(), $"{record.LogicalName} with the specified Alternate Keys Does Not Exist");
                             }
                         }
                     }
@@ -123,7 +124,88 @@ namespace FakeXrmEasy
             */
             
             return record.Id;
-        }   
+        }
+
+        /// <summary>
+        /// Checks if creating or updating an entity would violate any alternate key uniqueness constraints.
+        /// </summary>
+        /// <param name="entity">The entity being created or updated.</param>
+        /// <param name="excludeId">Optional ID to exclude from the check (used for updates to exclude the entity being updated).</param>
+        /// <returns>The <see cref="EntityKeyMetadata"/> that was violated, or null if no violation occurred.</returns>
+#if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013 && !FAKE_XRM_EASY_2015
+        protected internal EntityKeyMetadata FindViolatedAlternateKey(Entity entity, Guid? excludeId = null)
+        {
+            if (!EntityMetadata.ContainsKey(entity.LogicalName))
+            {
+                return null;
+            }
+
+            var metadata = EntityMetadata[entity.LogicalName];
+            if (metadata.Keys == null || metadata.Keys.Length == 0)
+            {
+                return null;
+            }
+
+            if (!Data.ContainsKey(entity.LogicalName))
+            {
+                return null;
+            }
+
+            foreach (var key in metadata.Keys)
+            {
+                // Check if entity has all the attributes required by this key
+                if (!key.KeyAttributes.All(attr =>
+                    entity.Attributes.ContainsKey(attr) && entity[attr] != null))
+                {
+                    continue; // Can't check this key - not all attributes present
+                }
+
+                // Build key values for comparison
+                var keyValues = key.KeyAttributes
+                    .Select(attr => new { Attribute = attr, Value = entity[attr] })
+                    .ToList();
+
+                // Find any existing record with matching key values
+                var duplicate = Data[entity.LogicalName].Values
+                    .Where(existing => excludeId == null || existing.Id != excludeId.Value)
+                    .FirstOrDefault(existing =>
+                        keyValues.All(kv =>
+                            existing.Attributes.ContainsKey(kv.Attribute) &&
+                            existing[kv.Attribute] != null &&
+                            CompareKeyValues(existing[kv.Attribute], kv.Value)));
+
+                if (duplicate != null)
+                {
+                    return key;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Compares two attribute values for equality, handling SDK types.
+        /// </summary>
+        /// <param name="value1">The first value to compare.</param>
+        /// <param name="value2">The second value to compare.</param>
+        /// <returns><c>true</c> if the values are equal; otherwise <c>false</c>.</returns>
+        private bool CompareKeyValues(object value1, object value2)
+        {
+            if (value1 == null && value2 == null) return true;
+            if (value1 == null || value2 == null) return false;
+
+            if (value1 is EntityReference er1 && value2 is EntityReference er2)
+                return er1.LogicalName == er2.LogicalName && er1.Id == er2.Id;
+
+            if (value1 is OptionSetValue osv1 && value2 is OptionSetValue osv2)
+                return osv1.Value == osv2.Value;
+
+            if (value1 is Money m1 && value2 is Money m2)
+                return m1.Value == m2.Value;
+
+            return value1.Equals(value2);
+        }
+#endif
 
         /// <summary>
         /// Configures the faked IOrganizationService to intercept Retrieve method calls and return entities
@@ -222,6 +304,28 @@ namespace FakeXrmEasy
 
                 // Add as many attributes to the entity as the ones received (this will keep existing ones)
                 var cachedEntity = Data[e.LogicalName][e.Id];
+
+                // Check alternate key uniqueness constraints for the merged entity
+#if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013 && !FAKE_XRM_EASY_2015
+                var mergedForKeyCheck = cachedEntity.Clone(cachedEntity.GetType());
+                foreach (var attr in e.Attributes)
+                {
+                    if (attr.Value != null)
+                    {
+                        mergedForKeyCheck[attr.Key] = attr.Value;
+                    }
+                }
+
+                var violatedKey = FindViolatedAlternateKey(mergedForKeyCheck, e.Id);
+                if (violatedKey != null)
+                {
+                    var keyDescription = string.Join(", ", violatedKey.KeyAttributes);
+                    throw new FaultException<OrganizationServiceFault>(
+                        new OrganizationServiceFault(),
+                        $"A record that has the attribute values {keyDescription} already exists. The duplicate values are in the following attributes: {keyDescription}.");
+                }
+#endif
+
                 foreach (var sAttributeName in e.Attributes.Keys.ToList())
                 {
                     var attribute = e[sAttributeName];
@@ -249,6 +353,9 @@ namespace FakeXrmEasy
                 // Update ModifiedOn
                 cachedEntity["modifiedon"] = DateTime.UtcNow;
                 cachedEntity["modifiedby"] = CallerId;
+
+                // Increment versionnumber for optimistic concurrency
+                cachedEntity["versionnumber"] = GetNextVersionNumber();
 
                 if (this.UsePipelineSimulation)
                 {
@@ -568,6 +675,18 @@ namespace FakeXrmEasy
             {
                 throw new InvalidOperationException($"There is already a record of entity {clone.LogicalName} with id {clone.Id}, can't create with this Id.");
             }
+
+            // Check alternate key uniqueness constraints
+#if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013 && !FAKE_XRM_EASY_2015
+            var violatedKey = FindViolatedAlternateKey(clone);
+            if (violatedKey != null)
+            {
+                var keyDescription = string.Join(", ", violatedKey.KeyAttributes);
+                throw new FaultException<OrganizationServiceFault>(
+                    new OrganizationServiceFault(),
+                    $"A record that has the attribute values {keyDescription} already exists. The duplicate values are in the following attributes: {keyDescription}.");
+            }
+#endif
 
             // Dataverse enforces state/status code rules on Create:
             // - statecode defaults to Active (0) if not provided

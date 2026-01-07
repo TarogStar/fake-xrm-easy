@@ -273,5 +273,57 @@ namespace FakeXrmEasy
             return new StringAttributeMetadata(sAttributeName);
         }
 
+#if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013 && !FAKE_XRM_EASY_2015
+        /// <summary>
+        /// Adds an alternate key definition to the entity metadata.
+        /// This method simplifies the setup of alternate keys for testing scenarios that require
+        /// uniqueness enforcement based on one or more attributes.
+        /// </summary>
+        /// <param name="entityLogicalName">The logical name of the entity to add the key to.</param>
+        /// <param name="keyAttributes">The array of attribute logical names that form the alternate key.</param>
+        /// <param name="keyDisplayName">Optional display name for the key (not used in uniqueness checking).</param>
+        /// <exception cref="ArgumentNullException">Thrown when entityLogicalName is null or whitespace.</exception>
+        /// <exception cref="ArgumentException">Thrown when keyAttributes is null or empty.</exception>
+        public void AddAlternateKey(string entityLogicalName, string[] keyAttributes, string keyDisplayName = null)
+        {
+            if (string.IsNullOrWhiteSpace(entityLogicalName))
+                throw new ArgumentNullException(nameof(entityLogicalName));
+            if (keyAttributes == null || keyAttributes.Length == 0)
+                throw new ArgumentException("At least one key attribute is required", nameof(keyAttributes));
+
+            if (!EntityMetadata.ContainsKey(entityLogicalName))
+            {
+                var newMetadata = new EntityMetadata { LogicalName = entityLogicalName };
+                EntityMetadata.Add(entityLogicalName, newMetadata);
+            }
+
+            var metadata = EntityMetadata[entityLogicalName];
+
+            var newKey = new EntityKeyMetadata
+            {
+                KeyAttributes = keyAttributes
+            };
+
+            var existingKeys = metadata.Keys ?? Array.Empty<EntityKeyMetadata>();
+            var newKeys = new EntityKeyMetadata[existingKeys.Length + 1];
+            existingKeys.CopyTo(newKeys, 0);
+            newKeys[existingKeys.Length] = newKey;
+
+            metadata.SetFieldValue("Keys", newKeys);
+        }
+
+        /// <summary>
+        /// Adds a simple single-attribute alternate key definition to the entity metadata.
+        /// This is a convenience overload for keys that consist of only one attribute.
+        /// </summary>
+        /// <param name="entityLogicalName">The logical name of the entity to add the key to.</param>
+        /// <param name="keyAttribute">The attribute logical name that forms the alternate key.</param>
+        /// <param name="keyDisplayName">Optional display name for the key (not used in uniqueness checking).</param>
+        public void AddAlternateKey(string entityLogicalName, string keyAttribute, string keyDisplayName = null)
+        {
+            AddAlternateKey(entityLogicalName, new[] { keyAttribute }, keyDisplayName);
+        }
+#endif
+
     }
 }
