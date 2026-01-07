@@ -275,7 +275,24 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 - FaultException thrown if unsupported attribute type used in key
 - Money attributes explicitly rejected with clear error message
 
-### Phase 4 — Metadata CRUD (Future)
+### Phase 4 — Metadata CRUD
+
+#### Phase 4a — OptionSet CRUD (COMPLETE)
+
+| Message | Status | Notes |
+|---------|--------|-------|
+| CreateOptionSetRequest | ✅ COMPLETE | Global OptionSet creation with metadata storage |
+| UpdateOptionSetRequest | ✅ COMPLETE | OptionSet label/description updates |
+| DeleteOptionSetRequest | ✅ COMPLETE | Global OptionSet deletion with validation |
+
+**Implementation (2026-01-07):**
+- Added `CreateOptionSetRequestExecutor` - creates global OptionSets in metadata repository
+- Added `UpdateOptionSetRequestExecutor` - updates DisplayName, Description, HasChanged
+- Added `DeleteOptionSetRequestExecutor` - deletes global OptionSets with existence validation
+- 24 new tests across three test files
+- All 1198 tests pass
+
+#### Phase 4b — Entity/Attribute CRUD (Future)
 
 | Message | Priority | Notes |
 |---------|----------|-------|
@@ -306,7 +323,7 @@ Formalize the testing coverage into a structured map:
 
 Based on decompiled Microsoft.Xrm.Sdk.Messages (61 messages total).
 
-**Coverage:** 23 implemented (38%) | 38 not implemented (62%)
+**Coverage:** 26 implemented (43%) | 35 not implemented (57%)
 
 #### CRUD Operations (15/15 implemented)
 
@@ -339,14 +356,16 @@ Based on decompiled Microsoft.Xrm.Sdk.Messages (61 messages total).
 | DeleteEntityKey, ReactivateEntityKey | ❌ | LOW | Alternate key metadata |
 | CreateCustomerRelationships | ❌ | LOW | Special customer lookup |
 
-#### OptionSet Operations (3/8 implemented)
+#### OptionSet Operations (6/8 implemented)
 
 | Message | Status | Priority |
 |---------|--------|----------|
 | RetrieveOptionSet | ✅ | - |
 | InsertOptionValue, InsertStatusValue | ✅ | - |
-| CreateOptionSet, UpdateOptionSet | ❌ | MEDIUM |
-| DeleteOptionSet, DeleteOptionValue | ❌ | LOW |
+| CreateOptionSet | ✅ | COMPLETE |
+| UpdateOptionSet | ✅ | COMPLETE |
+| DeleteOptionSet | ✅ | COMPLETE |
+| DeleteOptionValue | ❌ | LOW |
 | UpdateOptionValue, UpdateStateValue | ❌ | MEDIUM |
 | OrderOption | ❌ | LOW |
 | RetrieveAllOptionSets | ❌ | MEDIUM |
@@ -486,6 +505,29 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 (Part 13) - Phase 4a Complete: OptionSet CRUD Operations
+
+- Added: CreateOptionSetRequest executor
+  - Creates global OptionSets in metadata repository
+  - Validates OptionSet name uniqueness
+  - Supports OptionSetMetadata with options
+  - Returns MetadataId on success
+- Added: UpdateOptionSetRequest executor
+  - Updates DisplayName, Description, HasChanged properties
+  - Validates OptionSet existence before update
+  - Throws FaultException for non-existent OptionSets
+- Added: DeleteOptionSetRequest executor
+  - Deletes global OptionSets from metadata repository
+  - Validates existence before deletion
+  - Throws FaultException for non-existent OptionSets
+- Added: 24 new tests across three test files
+  - CreateOptionSetRequestTests.cs
+  - UpdateOptionSetRequestTests.cs
+  - DeleteOptionSetRequestTests.cs
+- SDK Message Coverage: 26/61 (43%) - OptionSet operations now 6/8
+- All 1198 tests pass
+- Phase 4a status: COMPLETE
 
 ### 2026-01-07 (Part 12) - Phase 3 Complete: Key Constraints & Validation
 
