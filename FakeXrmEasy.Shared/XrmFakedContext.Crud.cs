@@ -153,11 +153,16 @@ namespace FakeXrmEasy
 
             foreach (var key in metadata.Keys)
             {
-                // Check if entity has all the attributes required by this key
+                // Dataverse alternate key null-handling behavior:
+                // - If ANY key attribute is missing or null in the entity being created/updated,
+                //   the alternate key constraint does not apply to that record.
+                // - This means multiple records can have null values in key attributes without conflict.
+                // - Only records where ALL key attributes have non-null values are subject to uniqueness.
+                // - This matches real Dataverse behavior where null values effectively "opt out" of the key.
                 if (!key.KeyAttributes.All(attr =>
                     entity.Attributes.ContainsKey(attr) && entity[attr] != null))
                 {
-                    continue; // Can't check this key - not all attributes present
+                    continue; // Key doesn't apply - not all attributes present or have non-null values
                 }
 
                 // Build key values for comparison
@@ -165,7 +170,10 @@ namespace FakeXrmEasy
                     .Select(attr => new { Attribute = attr, Value = entity[attr] })
                     .ToList();
 
-                // Find any existing record with matching key values
+                // Find any existing record with matching key values.
+                // Note: We also require existing records to have non-null values for all key attributes.
+                // Records with null key attributes are not considered for duplicate checking,
+                // matching Dataverse behavior where null effectively opts out of the key constraint.
                 var duplicate = Data[entity.LogicalName].Values
                     .Where(existing => excludeId == null || existing.Id != excludeId.Value)
                     .FirstOrDefault(existing =>

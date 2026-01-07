@@ -129,5 +129,33 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AssignRequestTests
             Assert.Equal(team1.Id, acc_Fresh.GetAttributeValue<EntityReference>("owningteam").Id);
             Assert.Equal(businessUnit2.Id, acc_Fresh.GetAttributeValue<EntityReference>("owningbusinessunit").Id);
         }
+
+        [Fact]
+        public void When_Assigned_User_Without_BusinessUnit_OwningUser_Is_Set_But_OwningBusinessUnit_Is_Not_Updated()
+        {
+            var context = new XrmFakedContext();
+
+            var businessUnit1 = new BusinessUnit { Id = Guid.NewGuid(), Name = "BU1" };
+            var user1 = new SystemUser { Id = Guid.NewGuid(), FirstName = "User1", BusinessUnitId = businessUnit1.ToEntityReference() };
+            // User2 is created without a businessunitid attribute
+            var user2 = new SystemUser { Id = Guid.NewGuid(), FirstName = "User2" };
+            var account1 = new Account { Id = Guid.NewGuid(), Name = "Acc1", OwnerId = user1.ToEntityReference() };
+
+            context.Initialize(new List<Entity> {
+                businessUnit1, user1, user2, account1
+            });
+
+            var executor = new AssignRequestExecutor();
+            AssignRequest req = new AssignRequest() { Target = account1.ToEntityReference(), Assignee = user2.ToEntityReference() };
+
+            // Act - should not throw even though user2 has no businessunitid
+            executor.Execute(req, context);
+
+            // Assert
+            var acc_Fresh = context.GetOrganizationService().Retrieve(account1.LogicalName, account1.Id, new Microsoft.Xrm.Sdk.Query.ColumnSet(true));
+            Assert.Equal(user2.Id, acc_Fresh.GetAttributeValue<EntityReference>("owninguser").Id);
+            Assert.Null(acc_Fresh.GetAttributeValue<EntityReference>("owningteam"));
+            // owningbusinessunit should remain unchanged (null or not set) since user2 has no businessunitid
+        }
     }
 }

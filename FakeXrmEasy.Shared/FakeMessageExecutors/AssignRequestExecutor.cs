@@ -76,7 +76,9 @@ namespace FakeXrmEasy.FakeMessageExecutors
                 }
             };
 
-            // Set owningbusinessunit if we found the assignee's business unit
+            // Set owningbusinessunit if we found the assignee's business unit.
+            // Note: owningBusinessUnit may be null if the assignee entity doesn't have a businessunitid
+            // attribute set (e.g., the user or team entity wasn't fully initialized in the test data).
             if (owningBusinessUnit != null)
             {
                 assignment["owningbusinessunit"] = owningBusinessUnit;

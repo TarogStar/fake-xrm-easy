@@ -206,7 +206,9 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ConcurrencyTests
 
             // Act & Assert
             var exception = Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(request));
-            Assert.Contains("RowVersion property must be provided", exception.Message);
+            // Error message now mentions both RowVersion and versionnumber as valid options
+            Assert.Contains("RowVersion", exception.Message);
+            Assert.Contains("versionnumber", exception.Message);
         }
 
         [Fact]
@@ -336,6 +338,56 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ConcurrencyTests
             // Assert - All version numbers should be unique
             var versions = ids.Select(id => context.Data["account"][id].GetAttributeValue<long>("versionnumber")).ToList();
             Assert.Equal(100, versions.Distinct().Count());
+        }
+
+        [Fact]
+        public void When_update_with_invalid_non_numeric_rowversion_it_should_throw()
+        {
+            // Arrange
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+            var entityId = service.Create(new Entity("account") { ["name"] = "Test Account" });
+
+            var updateEntity = new Entity("account", entityId)
+            {
+                ["name"] = "Updated Account",
+                RowVersion = "invalid"  // Non-numeric RowVersion string
+            };
+
+            var request = new UpdateRequest
+            {
+                Target = updateEntity,
+                ConcurrencyBehavior = ConcurrencyBehavior.IfRowVersionMatches
+            };
+
+            // Act & Assert
+            var exception = Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(request));
+            Assert.Contains("RowVersion", exception.Message);
+        }
+
+        [Fact]
+        public void When_update_with_alphanumeric_rowversion_it_should_throw()
+        {
+            // Arrange
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+            var entityId = service.Create(new Entity("account") { ["name"] = "Test Account" });
+
+            var updateEntity = new Entity("account", entityId)
+            {
+                ["name"] = "Updated Account",
+                RowVersion = "abc123"  // Alphanumeric RowVersion string
+            };
+
+            var request = new UpdateRequest
+            {
+                Target = updateEntity,
+                ConcurrencyBehavior = ConcurrencyBehavior.IfRowVersionMatches
+            };
+
+            // Act & Assert
+            var exception = Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(request));
+            Assert.Contains("RowVersion", exception.Message);
         }
 
         #endregion

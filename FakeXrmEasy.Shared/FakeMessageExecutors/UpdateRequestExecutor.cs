@@ -76,7 +76,7 @@ namespace FakeXrmEasy.FakeMessageExecutors
             {
                 throw new FaultException<OrganizationServiceFault>(
                     new OrganizationServiceFault(),
-                    "The RowVersion property must be provided when the value of ConcurrencyBehavior is IfVersionMatches.");
+                    "When ConcurrencyBehavior is set to IfRowVersionMatches, you must provide either the RowVersion property (as a string) or the versionnumber attribute (as a long) on the target entity.");
             }
 
             // Get stored entity
