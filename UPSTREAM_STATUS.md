@@ -249,13 +249,31 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 </fetch>
 ```
 
-### Phase 3 — Key Constraints & Validation (2-3 days)
+### Phase 3 — Key Constraints & Validation (COMPLETE)
 
-| Feature | Category | Effort | Notes |
-|---------|----------|--------|-------|
-| Alternate key limits | Metadata | Medium | 10 keys/table, 16 columns/key |
-| Key attribute validation | Metadata | Low | No FLS on key attributes |
-| Key type enforcement | Metadata | Low | Only Decimal/Int/String/DateTime/Lookup/OptionSet |
+| Feature | Category | Effort | Status |
+|---------|----------|--------|--------|
+| Alternate key limits | Metadata | Medium | **COMPLETE** |
+| Key attribute validation | Metadata | Low | **COMPLETE** |
+| Key type enforcement | Metadata | Low | **COMPLETE** |
+
+**Implementation (2026-01-07):**
+- Added `ValidateAlternateKeyConstraints()` method in `XrmFakedContext.Crud.cs`
+- Maximum 10 alternate keys per entity (validated in `AddAlternateKey`)
+- Maximum 16 columns/attributes per key (validated in `AddAlternateKey`)
+- Attribute type enforcement - only allowed types:
+  - Decimal, Integer, BigInt, String, DateTime
+  - Lookup, Customer (EntityReference types)
+  - Picklist, State, Status (OptionSetValue types)
+- Removed Money support from `CompareKeyValues()` (not supported by Dataverse as key type)
+- 26 comprehensive tests in `AlternateKeyConstraintTests.cs`
+- All 1174 tests pass
+
+**Constraints enforced (verified against Microsoft documentation):**
+- FaultException thrown if entity exceeds 10 alternate keys
+- FaultException thrown if key exceeds 16 attributes
+- FaultException thrown if unsupported attribute type used in key
+- Money attributes explicitly rejected with clear error message
 
 ### Phase 4 — Metadata CRUD (Future)
 
@@ -468,6 +486,26 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 (Part 12) - Phase 3 Complete: Key Constraints & Validation
+
+- Fixed: Alternate key limits enforcement
+  - Maximum 10 alternate keys per entity
+  - Maximum 16 columns/attributes per key
+  - Validated in `AddAlternateKey()` method with FaultException on violation
+- Fixed: Attribute type enforcement for alternate keys
+  - Added `ValidateAlternateKeyConstraints()` method in XrmFakedContext.Crud.cs
+  - Only allowed types: Decimal, Integer, BigInt, String, DateTime, Lookup, Customer, Picklist, State, Status
+  - Money explicitly NOT supported (matches Dataverse behavior per MS documentation)
+- Fixed: Removed Money support from `CompareKeyValues()` with documentation
+  - Money is not a valid alternate key type in Dataverse
+- Added: 26 comprehensive tests in AlternateKeyConstraintTests.cs
+  - Tests for maximum key count limit
+  - Tests for maximum attributes per key limit
+  - Tests for each supported attribute type
+  - Tests for rejected types (Money, Boolean, etc.)
+- All 1174 tests pass
+- Phase 3 status: COMPLETE
 
 ### 2026-01-07 (Part 11) - Phase 2 Complete: Any/All Filter Operators
 

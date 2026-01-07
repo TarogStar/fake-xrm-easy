@@ -7,6 +7,7 @@ using System.Reflection;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk;
 using FakeXrmEasy.Metadata;
+using System.ServiceModel;
 
 namespace FakeXrmEasy
 {
@@ -274,6 +275,41 @@ namespace FakeXrmEasy
         }
 
 #if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013 && !FAKE_XRM_EASY_2015
+        // Dataverse Alternate Key Constraints:
+        // - Maximum 10 alternate keys per entity
+        // - Maximum 16 columns (attributes) per key
+        // - Allowed attribute types: Decimal, Integer, String, DateTime, Lookup, Picklist/OptionSet
+        // - NOT allowed: Money, Boolean, Double, Memo, PartyList, Virtual, etc.
+        // Reference: https://learn.microsoft.com/en-us/power-apps/developer/data-platform/define-alternate-keys-entity
+
+        /// <summary>
+        /// The maximum number of alternate keys allowed per entity in Dataverse.
+        /// </summary>
+        private const int MaxAlternateKeysPerEntity = 10;
+
+        /// <summary>
+        /// The maximum number of attributes allowed per alternate key in Dataverse.
+        /// </summary>
+        private const int MaxAttributesPerAlternateKey = 16;
+
+        /// <summary>
+        /// Attribute types that are allowed in alternate keys per Dataverse constraints.
+        /// Only Decimal, Integer, String, DateTime, Lookup, and Picklist/OptionSet types are supported.
+        /// </summary>
+        private static readonly HashSet<AttributeTypeCode> AllowedAlternateKeyAttributeTypes = new HashSet<AttributeTypeCode>
+        {
+            AttributeTypeCode.Decimal,
+            AttributeTypeCode.Integer,
+            AttributeTypeCode.BigInt,    // BigInt is supported for alternate keys
+            AttributeTypeCode.String,
+            AttributeTypeCode.DateTime,
+            AttributeTypeCode.Lookup,
+            AttributeTypeCode.Customer,  // Customer is a special type of Lookup
+            AttributeTypeCode.Picklist,
+            AttributeTypeCode.State,     // State is a special type of Picklist
+            AttributeTypeCode.Status     // Status is a special type of Picklist
+        };
+
         /// <summary>
         /// Adds an alternate key definition to the entity metadata.
         /// This method simplifies the setup of alternate keys for testing scenarios that require
@@ -284,6 +320,12 @@ namespace FakeXrmEasy
         /// <param name="keyDisplayName">Optional display name for the key (not used in uniqueness checking).</param>
         /// <exception cref="ArgumentNullException">Thrown when entityLogicalName is null or whitespace.</exception>
         /// <exception cref="ArgumentException">Thrown when keyAttributes is null or empty.</exception>
+        /// <exception cref="FaultException{OrganizationServiceFault}">
+        /// Thrown when:
+        /// - The entity already has 10 alternate keys (Dataverse limit)
+        /// - The key contains more than 16 attributes (Dataverse limit)
+        /// - An attribute type is not supported for alternate keys (if metadata is available)
+        /// </exception>
         public void AddAlternateKey(string entityLogicalName, string[] keyAttributes, string keyDisplayName = null)
         {
             if (string.IsNullOrWhiteSpace(entityLogicalName))
@@ -298,13 +340,16 @@ namespace FakeXrmEasy
             }
 
             var metadata = EntityMetadata[entityLogicalName];
+            var existingKeys = metadata.Keys ?? Array.Empty<EntityKeyMetadata>();
+
+            // Validate alternate key constraints before adding
+            ValidateAlternateKeyConstraints(entityLogicalName, keyAttributes, existingKeys);
 
             var newKey = new EntityKeyMetadata
             {
                 KeyAttributes = keyAttributes
             };
 
-            var existingKeys = metadata.Keys ?? Array.Empty<EntityKeyMetadata>();
             var newKeys = new EntityKeyMetadata[existingKeys.Length + 1];
             existingKeys.CopyTo(newKeys, 0);
             newKeys[existingKeys.Length] = newKey;
@@ -322,6 +367,62 @@ namespace FakeXrmEasy
         public void AddAlternateKey(string entityLogicalName, string keyAttribute, string keyDisplayName = null)
         {
             AddAlternateKey(entityLogicalName, new[] { keyAttribute }, keyDisplayName);
+        }
+
+        /// <summary>
+        /// Validates that the alternate key constraints are not violated before adding a new key.
+        /// Checks:
+        /// 1. Maximum 10 alternate keys per entity
+        /// 2. Maximum 16 attributes per key
+        /// 3. Only allowed attribute types (if metadata is available)
+        /// </summary>
+        /// <param name="entityLogicalName">The logical name of the entity.</param>
+        /// <param name="keyAttributes">The attributes to be included in the new key.</param>
+        /// <param name="existingKeys">The existing alternate keys for the entity.</param>
+        /// <exception cref="FaultException{OrganizationServiceFault}">Thrown when any constraint is violated.</exception>
+        private void ValidateAlternateKeyConstraints(string entityLogicalName, string[] keyAttributes, EntityKeyMetadata[] existingKeys)
+        {
+            // Constraint 1: Maximum 10 alternate keys per entity
+            if (existingKeys.Length >= MaxAlternateKeysPerEntity)
+            {
+                throw new FaultException<OrganizationServiceFault>(
+                    new OrganizationServiceFault(),
+                    "An entity cannot have more than 10 alternate keys.");
+            }
+
+            // Constraint 2: Maximum 16 attributes per key
+            if (keyAttributes.Length > MaxAttributesPerAlternateKey)
+            {
+                throw new FaultException<OrganizationServiceFault>(
+                    new OrganizationServiceFault(),
+                    "An alternate key cannot contain more than 16 attributes.");
+            }
+
+            // Constraint 3: Only allowed attribute types (if metadata is available)
+            if (EntityMetadata.ContainsKey(entityLogicalName))
+            {
+                var entityMeta = EntityMetadata[entityLogicalName];
+                if (entityMeta.Attributes != null && entityMeta.Attributes.Length > 0)
+                {
+                    foreach (var attributeName in keyAttributes)
+                    {
+                        var attributeMeta = entityMeta.Attributes
+                            .FirstOrDefault(a => a.LogicalName == attributeName);
+
+                        if (attributeMeta != null && attributeMeta.AttributeType.HasValue)
+                        {
+                            var attributeType = attributeMeta.AttributeType.Value;
+                            if (!AllowedAlternateKeyAttributeTypes.Contains(attributeType))
+                            {
+                                throw new FaultException<OrganizationServiceFault>(
+                                    new OrganizationServiceFault(),
+                                    $"Attribute '{attributeName}' of type '{attributeType}' cannot be used in alternate keys. " +
+                                    "Only Decimal, Integer, String, DateTime, Lookup, and OptionSet types are supported.");
+                            }
+                        }
+                    }
+                }
+            }
         }
 #endif
 

@@ -5,40 +5,123 @@ A truly open-source testing framework for Dynamics 365 / Power Platform that mak
 [![NuGet](https://img.shields.io/nuget/v/FakeXrmEasy.Community.svg)](https://www.nuget.org/packages/FakeXrmEasy.Community)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🎉 Version 1.0.2 - Modern Dataverse Features!
+## Version 1.1.0 - Enterprise Features and Query Enhancements!
 
-**🔥 NEW in v1.0.2** (January 2026): Major enhancements for modern Dataverse testing!
+**NEW in v1.1.0** (January 2026): Enterprise-grade features with advanced query capabilities!
 
-### 🚀 Simplified Plugin Testing
-- ✅ **Auto-Populate Entity Images** - No more manual pre/post image setup boilerplate!
-- ✅ **Automatic Relationship Discovery** - Initialize metadata once, relationships auto-register!
-- ✅ **Filtering Attributes Validation** - Pipeline simulation now matches real Dataverse behavior!
+### v1.1.0 New Features
 
-### 💪 Modern Bulk Operations
-All optimized bulk operations now supported:
-- ✅ **CreateMultiple** - Transactional bulk creates (no 1000 record limit!)
-- ✅ **UpdateMultiple** - Transactional bulk updates
-- ✅ **DeleteMultiple** - Transactional bulk deletes
-- ✅ **UpsertMultiple** - Bulk upsert with create/update detection
+**Async Operations and Metadata**
+- **ExecuteAsync Request Executor** - Full async operation support with AsyncOperation tracking
+- **MetadataGenerator Public API** - Generate metadata programmatically with `FromEarlyBoundEntity` and `CreateAttributeMetadataByType`
+- **PicklistAttributeMetadata OptionSet Population** - Automatically populated from context
 
-### 🔧 Query Engine Fixes
-Major improvements from upstream issues:
-- ✅ **FetchXML Multiple Filters** - Multiple filter nodes now correctly combined with AND
-- ✅ **Left Outer Joins** - Proper GroupJoin pattern for aggregate queries
-- ✅ **Between Dates** - End dates include full day (23:59:59.999)
-- ✅ **Date Operators** - ThisMonth, LastMonth, ThisWeek, LastWeek all working with timezone support
-- ✅ **EntityReference.Name** - Automatically populated from PrimaryNameAttribute on retrieve
+**Data Integrity and Validation**
+- **ExecuteMultiple ContinueOnError Fix** - Proper fault extraction and error handling
+- **Composite Alternate Key Uniqueness** - Enforcement of uniqueness constraints on composite keys
+- **RowVersion / Optimistic Concurrency** - Full support for optimistic locking patterns
+- **Alternate Keys in Associate/Disassociate** - Use alternate keys for relationship operations
+- **Min Date Validation** - Validates dates are not earlier than SQL Server minimum (01/01/1753)
+- **Statecode Validation on Create** - Enforces valid statecode values during entity creation
+
+**Advanced Query Operators**
+- **Fiscal Period Operators** - Full support for `InFiscalPeriod`, `ThisFiscalPeriod`, `InFiscalYear`, `ThisFiscalYear`, and more
+- **LIKE Wildcards Enhanced** - Character ranges `[A-Z]`, sets `[abc]`, and negation `[^abc]`
+- **DateTime.Kind Handling** - Proper handling for DateOnly and TimeZoneIndependent fields
+- **Any/All Filter Operators** - See dedicated section below for details
+
+### v1.0.2 Features
+
+**Simplified Plugin Testing**
+- **Auto-Populate Entity Images** - No more manual pre/post image setup boilerplate
+- **Automatic Relationship Discovery** - Initialize metadata once, relationships auto-register
+- **Filtering Attributes Validation** - Pipeline simulation now matches real Dataverse behavior
+
+**Modern Bulk Operations**
+- **CreateMultiple** - Transactional bulk creates (no 1000 record limit)
+- **UpdateMultiple** - Transactional bulk updates
+- **DeleteMultiple** - Transactional bulk deletes
+- **UpsertMultiple** - Bulk upsert with create/update detection
+
+**Query Engine Fixes**
+- **FetchXML Multiple Filters** - Multiple filter nodes now correctly combined with AND
+- **Left Outer Joins** - Proper GroupJoin pattern for aggregate queries
+- **Between Dates** - End dates include full day (23:59:59.999)
+- **Date Operators** - ThisMonth, LastMonth, ThisWeek, LastWeek all working with timezone support
+- **EntityReference.Name** - Automatically populated from PrimaryNameAttribute on retrieve
 
 See [UPSTREAM_STATUS.md](UPSTREAM_STATUS.md) for full tracking of upstream issues!
 
-### Previous Features (v1.0.1)
-- ✅ **CalculateRollupFieldRequest support** - test rollup field calculations
-- ✅ **SDK-style project format** - no more NuGet headaches!
-- ✅ **IPluginExecutionContext4 support** - full Azure AD integration
-- ✅ **Simplified project structure** - easier to maintain and contribute
-- ✅ **Better tooling support** - works great with VS 2019/2022
+### v1.0.1 Features
+- **CalculateRollupFieldRequest support** - test rollup field calculations
+- **SDK-style project format** - no more NuGet headaches
+- **IPluginExecutionContext4 support** - full Azure AD integration
+- **Simplified project structure** - easier to maintain and contribute
+- **Better tooling support** - works great with VS 2019/2022
 
 See [MODERNIZATION.md](MODERNIZATION.md) and [SDK_STYLE_MIGRATION.md](SDK_STYLE_MIGRATION.md) for migration details.
+
+### NEW: MetadataGenerator Usage (v1.1.0)
+
+Generate entity and attribute metadata programmatically:
+
+```csharp
+// Generate metadata from early-bound entity type
+var accountMetadata = MetadataGenerator.FromEarlyBoundEntity(typeof(Account));
+
+// Generate specific attribute metadata
+var stringAttr = MetadataGenerator.CreateAttributeMetadataByType(
+    typeof(string), "name", "Name");
+
+var picklistAttr = MetadataGenerator.CreateAttributeMetadataByType(
+    typeof(OptionSetValue), "statuscode", "Status Reason");
+
+// Initialize context with generated metadata
+context.InitializeMetadata(accountMetadata);
+```
+
+### NEW: Any/All Filter Operators (v1.1.0)
+
+Query related entities using subquery-style filters. Supports both QueryExpression and FetchXML.
+
+**QueryExpression Example:**
+
+```csharp
+var context = new XrmFakedContext();
+context.Initialize(new List<Entity> { /* accounts with contacts */ });
+
+var query = new QueryExpression("account");
+query.ColumnSet = new ColumnSet("name");
+
+// Find accounts that have ANY contact with a specific email domain
+var contactLink = query.AddLink("contact", "accountid", "parentcustomerid", JoinOperator.Any);
+contactLink.LinkCriteria.AddCondition("emailaddress1", ConditionOperator.Like, "%@contoso.com");
+
+var service = context.GetOrganizationService();
+var results = service.RetrieveMultiple(query);
+```
+
+**FetchXML Example:**
+
+```xml
+<fetch>
+  <entity name="account">
+    <attribute name="name" />
+    <!-- Find accounts with ANY contact having email at contoso.com -->
+    <link-entity name="contact" from="parentcustomerid" to="accountid" link-type="any">
+      <filter>
+        <condition attribute="emailaddress1" operator="like" value="%@contoso.com" />
+      </filter>
+    </link-entity>
+  </entity>
+</fetch>
+```
+
+**Supported Join Operators:**
+- `JoinOperator.Any` / `link-type="any"` - Returns parent if ANY child matches
+- `JoinOperator.NotAny` / `link-type="not any"` - Returns parent if NO child matches
+- `JoinOperator.All` / `link-type="all"` - Returns parent if ALL children match
+- `JoinOperator.NotAll` / `link-type="not all"` - Returns parent if NOT ALL children match
 
 ## What is FakeXrmEasy?
 
@@ -125,7 +208,7 @@ var outputs = context.ExecuteCodeActivity<MyCustomActivity>(inputs);
 Assert.Equal("Hello World", outputs["OutputText"]);
 ```
 
-### 🔥 NEW: Simplified Plugin Testing (v1.0.2)
+### Simplified Plugin Testing (v1.0.2)
 
 #### Auto-Populate Entity Images
 
@@ -170,7 +253,7 @@ context.InitializeMetadata(entityMetadata);
 // All N:N, 1:N, and N:1 relationships are now available
 ```
 
-### 🔥 NEW: Modern Bulk Operations (v1.0.2)
+### Modern Bulk Operations (v1.0.2)
 
 ```csharp
 // CreateMultiple - Transactional bulk create
@@ -207,25 +290,34 @@ foreach (var result in upsertResponse.Results)
 
 ### Core Capabilities
 
-- ✅ **CRUD Operations**: Create, Read, Update, Delete with full relationship support
-- ✅ **Query Support**: QueryExpression, FetchXML, and LINQ queries
-- ✅ **Plugin Execution**: Full plugin pipeline simulation with pre/post images
-- ✅ **Workflow Activities**: Test custom workflow activities
-- ✅ **Metadata Support**: Automatic metadata inference from early-bound types
-- ✅ **Security Testing**: Test security roles and access rights
-- ✅ **ExecuteMultiple**: Batch operation support
-- ✅ **Associate/Disassociate**: N:N relationship testing
+- **CRUD Operations**: Create, Read, Update, Delete with full relationship support
+- **Query Support**: QueryExpression, FetchXML, and LINQ queries
+- **Plugin Execution**: Full plugin pipeline simulation with pre/post images
+- **Workflow Activities**: Test custom workflow activities
+- **Metadata Support**: Automatic metadata inference from early-bound types
+- **Security Testing**: Test security roles and access rights
+- **ExecuteMultiple**: Batch operation support
+- **Associate/Disassociate**: N:N relationship testing
+
+### Query Features (v1.1.0)
+
+- **Any/All Filter Operators**: Subquery-style filtering with JoinOperator.Any, NotAny, All, NotAll
+- **FetchXML link-type Support**: Use `link-type="any|not any|all|not all"` in FetchXML
+- **Fiscal Period Operators**: InFiscalPeriod, ThisFiscalPeriod, InFiscalYear, ThisFiscalYear, LastFiscalPeriod, LastFiscalYear, NextFiscalPeriod, NextFiscalYear
+- **Enhanced LIKE Wildcards**: Character ranges `[A-Z]`, character sets `[abc]`, and negation `[^abc]`
+- **DateTime.Kind Handling**: Proper UTC/Local handling for DateOnly and TimeZoneIndependent fields
 
 ### Supported Messages
 
 FakeXrmEasy supports 50+ standard CRM messages including:
 
 - Create, Update, Delete, Retrieve, RetrieveMultiple
-- **NEW**: CreateMultiple, UpdateMultiple, DeleteMultiple, UpsertMultiple (v1.0.2)
-- Associate, Disassociate
+- **NEW**: ExecuteAsync with AsyncOperation tracking (v1.1.0)
+- CreateMultiple, UpdateMultiple, DeleteMultiple, UpsertMultiple (v1.0.2)
+- Associate, Disassociate (with alternate key support in v1.1.0)
 - Assign, GrantAccess, RevokeAccess, ModifyAccess
 - SetState, SetStateDynamicEntity
-- ExecuteMultiple, ExecuteTransaction
+- ExecuteMultiple (ContinueOnError fix in v1.1.0), ExecuteTransaction
 - WhoAmI, RetrieveVersion
 - CalculateRollupField (v1.0.1)
 - And many more...

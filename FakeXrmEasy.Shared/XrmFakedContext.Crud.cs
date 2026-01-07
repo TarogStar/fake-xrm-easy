@@ -192,25 +192,35 @@ namespace FakeXrmEasy
         }
 
         /// <summary>
-        /// Compares two attribute values for equality, handling SDK types.
+        /// Compares two attribute values for equality, handling SDK types used in alternate keys.
         /// </summary>
         /// <param name="value1">The first value to compare.</param>
         /// <param name="value2">The second value to compare.</param>
         /// <returns><c>true</c> if the values are equal; otherwise <c>false</c>.</returns>
+        /// <remarks>
+        /// Dataverse alternate keys only support specific attribute types:
+        /// - Decimal, Integer, String, DateTime, Lookup, Picklist/OptionSet
+        /// - Money is NOT supported as an alternate key attribute type
+        /// Reference: https://learn.microsoft.com/en-us/power-apps/developer/data-platform/define-alternate-keys-entity
+        /// </remarks>
         private bool CompareKeyValues(object value1, object value2)
         {
             if (value1 == null && value2 == null) return true;
             if (value1 == null || value2 == null) return false;
 
+            // EntityReference handles Lookup and Customer types
             if (value1 is EntityReference er1 && value2 is EntityReference er2)
                 return er1.LogicalName == er2.LogicalName && er1.Id == er2.Id;
 
+            // OptionSetValue handles Picklist, State, and Status types
             if (value1 is OptionSetValue osv1 && value2 is OptionSetValue osv2)
                 return osv1.Value == osv2.Value;
 
-            if (value1 is Money m1 && value2 is Money m2)
-                return m1.Value == m2.Value;
+            // Note: Money is NOT a valid alternate key attribute type in Dataverse.
+            // Money attributes cannot be used as part of alternate keys.
+            // If you encounter Money values here, it indicates an invalid key configuration.
 
+            // Handles Decimal, Integer, String, DateTime, and other primitive types
             return value1.Equals(value2);
         }
 #endif
