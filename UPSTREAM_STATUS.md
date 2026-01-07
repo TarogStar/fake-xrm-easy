@@ -12,9 +12,9 @@ This document consolidates the status of issues and PRs from the archived [jordi
 | Category | Total | Fixed | TODO | Won't Fix |
 |----------|-------|-------|------|-----------|
 | Plugin/Pipeline | 12 | 4 | 3 | 0 |
-| Query Engine | 20 | 14 | 1 | 0 |
+| Query Engine | 20 | 16 | 1 | 0 |
 | Date/Time | 7 | 7 | 0 | 0 |
-| Message Executors | 12 | 8 | 3 | 0 |
+| Message Executors | 12 | 9 | 2 | 0 |
 | Metadata | 10 | 5 | 3 | 2 |
 | CRUD/Core | 13 | 3 | 6 | 0 |
 | Other | 5 | 0 | 1 | 4 |
@@ -89,6 +89,7 @@ This document consolidates the status of issues and PRs from the archived [jordi
 | 510 | WinQuoteRequest | **FIXED** | `WinQuoteRequestExecutor` - sets quote to Won state, creates QuoteClose activity |
 | 572 | IEntityDataSourceRetrieverService | **FIXED** | `EntityDataSourceRetriever` property, virtual entity data provider testing |
 | 610 | ExecuteTransactionRequest | **FIXED** | `ExecuteTransactionExecutor` - batch transactional execution |
+| 615 | UpsertRequest issues | **FIXED** | `UpsertRequestExecutor` with alternate key support via `GetRecordUniqueId()` |
 
 ### Query Engine - Null Handling
 
@@ -103,6 +104,8 @@ This document consolidates the status of issues and PRs from the archived [jordi
 |---|-------|--------|----------------|
 | 547 | Null operator in nested filter | **FIXED** | `TranslateConditionExpressionNull` unwraps AliasedValue before null check |
 | 545 | Aggregate with nested outer joins | **FIXED** | Aggregation uses immediate parent alias, not full ancestor path |
+| 606 | Complex nested filters | **FIXED** | Recursive filter processing + #547 fix covers this |
+| 612 | StateCode cast error | **FIXED** | StateCode/StatusCode properly mapped to OptionSetValue in query engine |
 
 ---
 
@@ -149,11 +152,8 @@ These items need verification against the current codebase:
 
 | # | Title | Category |
 |---|-------|----------|
-| 615 | UpsertRequest issues | May be fixed with our Upsert work |
-| 612 | StateCode cast error | Query engine |
-| 606 | Complex nested filters | Query engine |
 | 569 | ObjectTypeCode casting | Query engine |
-| 566 | Upsert alt key copy | May be fixed |
+| 566 | Upsert alt key copy | May be fixed with #615 |
 | 521 | Composite alternate keys | Check with UpsertMultiple |
 | 479 | Statecode on create | Core CRUD |
 | 472 | OwningBusinessUnit on assign | Core CRUD |
@@ -167,10 +167,15 @@ These items need verification against the current codebase:
 
 ## Open PRs Summary
 
-### Integrate Soon
+### Consider for Implementation
 | PR | Title | Author | Notes |
 |----|-------|--------|-------|
-| 557 | Expose Metadata generation | janssen-io | CrmSvcUtilMetadataGenerator |
+| 557 | Expose Metadata generation | janssen-io | Make MetadataGenerator public/static for external use |
+| 447 | PicklistAttributeMetadata options | Nianwei | Implement independently if useful |
+| 461 | next-x-timeperiod operators | RachaelBooth | Implement independently if useful |
+| 460 | last-x-weeks operator | RachaelBooth | Implement independently if useful |
+
+**Note:** We implement the spirit of community PRs independently rather than directly copying code, to ensure proper ownership and avoid copyright concerns.
 
 ### Already Integrated/Fixed
 | PR | Title | Status |
@@ -220,6 +225,12 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 (Part 3)
+- Verified: #615 - UpsertRequest issues already fixed with UpsertRequestExecutor + alternate key support
+- Verified: #612 - StateCode cast error already handled with proper OptionSetValue mapping
+- Verified: #606 - Complex nested filters already working with recursive processing + #547 fix
+- Updated PR approach: implement spirit of PRs independently for proper ownership
 
 ### 2026-01-07 (Part 2)
 - Fixed: #547 - ConditionOperator.Null in nested LinkEntity filters now works correctly
