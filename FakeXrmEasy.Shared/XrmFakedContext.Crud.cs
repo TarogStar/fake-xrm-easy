@@ -320,9 +320,18 @@ namespace FakeXrmEasy
             if (Data.TryGetValue(e.LogicalName, out entityDict) &&
                 entityDict.TryGetValue(e.Id, out cachedEntity))
             {
+                // Capture pre-image BEFORE any modifications (clone the cached entity with all fields)
+                Entity preImage = null;
                 if (this.UsePipelineSimulation)
                 {
-                    ExecutePipelineStage("Update", ProcessingStepStage.Preoperation, ProcessingStepMode.Synchronous, e);
+                    preImage = cachedEntity.Clone(cachedEntity.GetType());
+                }
+
+                if (this.UsePipelineSimulation)
+                {
+                    // For pre-operation stages, we have the preImage but no postImage yet
+                    ExecutePipelineStage("Update", ProcessingStepStage.Prevalidation, ProcessingStepMode.Synchronous, e, preImage, null);
+                    ExecutePipelineStage("Update", ProcessingStepStage.Preoperation, ProcessingStepMode.Synchronous, e, preImage, null);
                 }
 
                 // Add as many attributes to the entity as the ones received (this will keep existing ones)
@@ -381,10 +390,13 @@ namespace FakeXrmEasy
 
                 if (this.UsePipelineSimulation)
                 {
-                    ExecutePipelineStage("Update", ProcessingStepStage.Postoperation, ProcessingStepMode.Synchronous, e);
+                    // Capture post-image AFTER the update (clone the updated cached entity with all fields)
+                    Entity postImage = cachedEntity.Clone(cachedEntity.GetType());
+
+                    ExecutePipelineStage("Update", ProcessingStepStage.Postoperation, ProcessingStepMode.Synchronous, e, preImage, postImage);
 
                     var clone = e.Clone(e.GetType());
-                    ExecutePipelineStage("Update", ProcessingStepStage.Postoperation, ProcessingStepMode.Asynchronous, clone);
+                    ExecutePipelineStage("Update", ProcessingStepStage.Postoperation, ProcessingStepMode.Asynchronous, clone, preImage, postImage);
                 }
             }
             else
@@ -514,9 +526,22 @@ namespace FakeXrmEasy
             if (this.Data.TryGetValue(er.LogicalName, out entityDict) && entityDict != null &&
                 entityDict.ContainsKey(er.Id))
             {
+                // Capture pre-image BEFORE deletion (clone the entity with all fields)
+                Entity preImage = null;
+                Entity entityToDelete;
+                if (entityDict.TryGetValue(er.Id, out entityToDelete))
+                {
+                    if (this.UsePipelineSimulation)
+                    {
+                        preImage = entityToDelete.Clone(entityToDelete.GetType());
+                    }
+                }
+
                 if (this.UsePipelineSimulation)
                 {
-                    ExecutePipelineStage("Delete", ProcessingStepStage.Preoperation, ProcessingStepMode.Synchronous, er);
+                    // For Delete, we have preImage but no postImage (entity no longer exists after delete)
+                    ExecutePipelineStage("Delete", ProcessingStepStage.Prevalidation, ProcessingStepMode.Synchronous, er, preImage, null);
+                    ExecutePipelineStage("Delete", ProcessingStepStage.Preoperation, ProcessingStepMode.Synchronous, er, preImage, null);
                 }
 
                 // Entity found => remove it using thread-safe TryRemove
@@ -525,8 +550,9 @@ namespace FakeXrmEasy
 
                 if (this.UsePipelineSimulation)
                 {
-                    ExecutePipelineStage("Delete", ProcessingStepStage.Postoperation, ProcessingStepMode.Synchronous, er);
-                    ExecutePipelineStage("Delete", ProcessingStepStage.Postoperation, ProcessingStepMode.Asynchronous, er);
+                    // Post-operation still has preImage, but no postImage (entity is deleted)
+                    ExecutePipelineStage("Delete", ProcessingStepStage.Postoperation, ProcessingStepMode.Synchronous, er, preImage, null);
+                    ExecutePipelineStage("Delete", ProcessingStepStage.Postoperation, ProcessingStepMode.Asynchronous, er, preImage, null);
                 }
             }
             else
@@ -822,7 +848,10 @@ namespace FakeXrmEasy
 
             if (usePluginPipeline)
             {
-                ExecutePipelineStage("Create", ProcessingStepStage.Preoperation, ProcessingStepMode.Synchronous, e);
+                // For Create pre-operation stages, there's no preImage (entity doesn't exist yet)
+                // and no postImage yet (entity not created yet)
+                ExecutePipelineStage("Create", ProcessingStepStage.Prevalidation, ProcessingStepMode.Synchronous, e, null, null);
+                ExecutePipelineStage("Create", ProcessingStepStage.Preoperation, ProcessingStepMode.Synchronous, e, null, null);
             }
 
             // Store
@@ -830,8 +859,19 @@ namespace FakeXrmEasy
 
             if (usePluginPipeline)
             {
-                ExecutePipelineStage("Create", ProcessingStepStage.Postoperation, ProcessingStepMode.Synchronous, e);
-                ExecutePipelineStage("Create", ProcessingStepStage.Postoperation, ProcessingStepMode.Asynchronous, e);
+                // For Create post-operation, capture the postImage (entity state after creation)
+                // No preImage for Create (entity didn't exist before)
+                Entity postImage = null;
+                ConcurrentDictionary<Guid, Entity> entityDict;
+                Entity storedEntity;
+                if (Data.TryGetValue(e.LogicalName, out entityDict) &&
+                    entityDict.TryGetValue(e.Id, out storedEntity))
+                {
+                    postImage = storedEntity.Clone(storedEntity.GetType());
+                }
+
+                ExecutePipelineStage("Create", ProcessingStepStage.Postoperation, ProcessingStepMode.Synchronous, e, null, postImage);
+                ExecutePipelineStage("Create", ProcessingStepStage.Postoperation, ProcessingStepMode.Asynchronous, e, null, postImage);
             }
         }
 

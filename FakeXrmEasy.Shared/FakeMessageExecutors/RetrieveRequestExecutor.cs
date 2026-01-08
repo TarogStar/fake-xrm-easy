@@ -1,6 +1,7 @@
 using FakeXrmEasy.Extensions;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Concurrent;
@@ -123,6 +124,7 @@ namespace FakeXrmEasy.FakeMessageExecutors
                     }
                 }
                 resultEntity.ApplyDateBehaviour(context);
+                PopulateFormattedValues(resultEntity, context);
                 PopulateEntityReferenceNames(resultEntity, context);
 
                 if (request.RelatedEntitiesQuery != null && request.RelatedEntitiesQuery.Count > 0)
@@ -294,6 +296,209 @@ namespace FakeXrmEasy.FakeMessageExecutors
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Populates the FormattedValues property of an entity based on attribute types.
+        /// </summary>
+        /// <param name="entity">The entity whose FormattedValues collection should be populated.</param>
+        /// <param name="context">The XrmFakedContext containing entity metadata for OptionSet label lookups.</param>
+        /// <remarks>
+        /// This method iterates through all attributes of the entity and generates formatted string
+        /// representations for certain types (such as Enum values, OptionSetValue, StateCode, StatusCode,
+        /// and boolean values). The formatted values are added to the entity's FormattedValues collection
+        /// if not already present.
+        ///
+        /// For OptionSetValue fields, the method will first check for PicklistAttributeMetadata,
+        /// StateAttributeMetadata, or StatusAttributeMetadata to get the proper label. If no metadata
+        /// is available, it falls back to the numeric value as a string.
+        /// </remarks>
+        private void PopulateFormattedValues(Entity entity, XrmFakedContext context)
+        {
+            if (entity == null || context == null)
+                return;
+
+            foreach (var attKey in entity.Attributes.Keys)
+            {
+                var value = entity[attKey];
+                if (!entity.FormattedValues.ContainsKey(attKey) && value != null)
+                {
+                    string formattedValue = GetFormattedValueForValue(value, entity.LogicalName, attKey, context, out bool shouldAdd);
+                    if (shouldAdd)
+                    {
+                        entity.FormattedValues.Add(attKey, formattedValue);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the formatted string representation of an attribute value.
+        /// </summary>
+        /// <param name="value">The attribute value to format.</param>
+        /// <param name="entityLogicalName">The logical name of the entity containing the attribute.</param>
+        /// <param name="attributeName">The logical name of the attribute.</param>
+        /// <param name="context">The XrmFakedContext containing entity metadata for OptionSet label lookups.</param>
+        /// <param name="shouldAddFormattedValue">
+        /// When this method returns, contains <c>true</c> if the formatted value should be added
+        /// to the FormattedValues collection; otherwise, <c>false</c>.
+        /// </param>
+        /// <returns>
+        /// The formatted string representation of the value, or an empty string if no formatting is applicable.
+        /// </returns>
+        private string GetFormattedValueForValue(object value, string entityLogicalName, string attributeName, XrmFakedContext context, out bool shouldAddFormattedValue)
+        {
+            shouldAddFormattedValue = false;
+            var formattedValue = string.Empty;
+
+            if (value is Enum)
+            {
+                formattedValue = Enum.GetName(value.GetType(), value);
+                shouldAddFormattedValue = true;
+            }
+            else if (value is OptionSetValue osv)
+            {
+                formattedValue = GetOptionSetLabel(entityLogicalName, attributeName, osv.Value, context);
+                shouldAddFormattedValue = true;
+            }
+            else if (value is bool boolValue)
+            {
+                formattedValue = GetBooleanLabel(entityLogicalName, attributeName, boolValue, context);
+                shouldAddFormattedValue = true;
+            }
+#if FAKE_XRM_EASY_9
+            else if (value is OptionSetValueCollection osvCollection)
+            {
+                if (osvCollection.Count > 0)
+                {
+                    var labels = new System.Collections.Generic.List<string>();
+                    foreach (var item in osvCollection)
+                    {
+                        labels.Add(GetOptionSetLabel(entityLogicalName, attributeName, item.Value, context));
+                    }
+                    formattedValue = string.Join("; ", labels);
+                    shouldAddFormattedValue = true;
+                }
+            }
+#endif
+            else if (value is AliasedValue aliasedValue)
+            {
+                return GetFormattedValueForValue(aliasedValue.Value, aliasedValue.EntityLogicalName, aliasedValue.AttributeLogicalName, context, out shouldAddFormattedValue);
+            }
+
+            return formattedValue;
+        }
+
+        /// <summary>
+        /// Gets the label for an OptionSet value from entity metadata.
+        /// </summary>
+        /// <param name="entityLogicalName">The logical name of the entity containing the attribute.</param>
+        /// <param name="attributeName">The logical name of the attribute.</param>
+        /// <param name="optionValue">The numeric value of the option.</param>
+        /// <param name="context">The XrmFakedContext containing entity metadata.</param>
+        /// <returns>
+        /// The label for the option value if found in metadata; otherwise, the numeric value as a string.
+        /// </returns>
+        private string GetOptionSetLabel(string entityLogicalName, string attributeName, int optionValue, XrmFakedContext context)
+        {
+            if (string.IsNullOrEmpty(entityLogicalName) || string.IsNullOrEmpty(attributeName) || context == null)
+            {
+                return optionValue.ToString();
+            }
+
+            if (context.EntityMetadata.ContainsKey(entityLogicalName))
+            {
+                var entityMetadata = context.EntityMetadata[entityLogicalName];
+                if (entityMetadata.Attributes != null)
+                {
+                    var attributeMetadata = entityMetadata.Attributes.FirstOrDefault(a => a.LogicalName == attributeName);
+                    if (attributeMetadata != null)
+                    {
+                        OptionMetadata[] options = null;
+
+                        if (attributeMetadata is PicklistAttributeMetadata picklistAttr)
+                        {
+                            options = picklistAttr.OptionSet?.Options?.ToArray();
+                        }
+                        else if (attributeMetadata is StateAttributeMetadata stateAttr)
+                        {
+                            options = stateAttr.OptionSet?.Options?.ToArray();
+                        }
+                        else if (attributeMetadata is StatusAttributeMetadata statusAttr)
+                        {
+                            options = statusAttr.OptionSet?.Options?.ToArray();
+                        }
+#if FAKE_XRM_EASY_9
+                        else if (attributeMetadata is MultiSelectPicklistAttributeMetadata multiSelectAttr)
+                        {
+                            options = multiSelectAttr.OptionSet?.Options?.ToArray();
+                        }
+#endif
+
+                        if (options != null)
+                        {
+                            var option = options.FirstOrDefault(o => o.Value == optionValue);
+                            if (option?.Label != null)
+                            {
+                                // Try UserLocalizedLabel first
+                                if (option.Label.UserLocalizedLabel?.Label != null)
+                                {
+                                    return option.Label.UserLocalizedLabel.Label;
+                                }
+                                // Fall back to first LocalizedLabel if available
+                                if (option.Label.LocalizedLabels?.Count > 0)
+                                {
+                                    return option.Label.LocalizedLabels[0].Label;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return optionValue.ToString();
+        }
+
+        /// <summary>
+        /// Gets the label for a boolean value from entity metadata.
+        /// </summary>
+        /// <param name="entityLogicalName">The logical name of the entity containing the attribute.</param>
+        /// <param name="attributeName">The logical name of the attribute.</param>
+        /// <param name="boolValue">The boolean value.</param>
+        /// <param name="context">The XrmFakedContext containing entity metadata.</param>
+        /// <returns>
+        /// The label for the boolean value if found in metadata (TrueOption/FalseOption labels);
+        /// otherwise, "Yes" for true or "No" for false.
+        /// </returns>
+        private string GetBooleanLabel(string entityLogicalName, string attributeName, bool boolValue, XrmFakedContext context)
+        {
+            if (string.IsNullOrEmpty(entityLogicalName) || string.IsNullOrEmpty(attributeName) || context == null)
+            {
+                return boolValue ? "Yes" : "No";
+            }
+
+            if (context.EntityMetadata.ContainsKey(entityLogicalName))
+            {
+                var entityMetadata = context.EntityMetadata[entityLogicalName];
+                if (entityMetadata.Attributes != null)
+                {
+                    var attributeMetadata = entityMetadata.Attributes.FirstOrDefault(a => a.LogicalName == attributeName);
+                    if (attributeMetadata is BooleanAttributeMetadata boolAttr)
+                    {
+                        var optionSet = boolAttr.OptionSet;
+                        if (optionSet != null)
+                        {
+                            var option = boolValue ? optionSet.TrueOption : optionSet.FalseOption;
+                            if (option?.Label?.UserLocalizedLabel?.Label != null)
+                            {
+                                return option.Label.UserLocalizedLabel.Label;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return boolValue ? "Yes" : "No";
         }
     }
 }

@@ -2021,6 +2021,11 @@ namespace FakeXrmEasy
             {
                 set.UnionWith((input as OptionSetValueCollection).Select(osv => osv.Value));
             }
+            else if (input is AliasedValue aliasedValue)
+            {
+                // For linked entity queries, the value may be wrapped in AliasedValue
+                return ConvertToHashSetOfInt(aliasedValue.Value, isOptionSetValueCollectionAccepted);
+            }
             else
             {
                 throw new FaultException(new FaultReason(faultReason));

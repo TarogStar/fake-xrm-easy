@@ -1,6 +1,7 @@
 using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FakeXrmEasy
 {
@@ -97,6 +98,31 @@ namespace FakeXrmEasy
             {
                 return Compare((objectA as AliasedValue)?.Value, (objectB as AliasedValue)?.Value);
             }
+#if FAKE_XRM_EASY_9
+            else if (attributeType == typeof(OptionSetValueCollection))
+            {
+                // Compare MultiOptionSetValue by converting to a comparable representation
+                // Sort by the first value in the collection, or by count if first values are equal
+                OptionSetValueCollection collectionA = (OptionSetValueCollection)objectA;
+                OptionSetValueCollection collectionB = (OptionSetValueCollection)objectB;
+
+                // Get the minimum value from each collection (stable ordering)
+                var sortedA = collectionA.OrderBy(osv => osv.Value).ToList();
+                var sortedB = collectionB.OrderBy(osv => osv.Value).ToList();
+
+                // Compare element by element
+                int minCount = Math.Min(sortedA.Count, sortedB.Count);
+                for (int i = 0; i < minCount; i++)
+                {
+                    int cmp = sortedA[i].Value.CompareTo(sortedB[i].Value);
+                    if (cmp != 0)
+                        return cmp;
+                }
+
+                // If all compared elements are equal, compare by count
+                return sortedA.Count.CompareTo(sortedB.Count);
+            }
+#endif
             else
             {
                 return 0;

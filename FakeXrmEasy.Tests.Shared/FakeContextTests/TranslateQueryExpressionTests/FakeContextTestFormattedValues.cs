@@ -18,7 +18,8 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             var service = context.GetOrganizationService();
 
             var account = new Account() { Id = Guid.NewGuid() };
-            account["statecode"] = null;
+            // Use industrycode instead of statecode since statecode gets a default value during initialization
+            account["industrycode"] = null;
 
             context.Initialize(new List<Entity>()
             {
@@ -30,8 +31,8 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
                 var a = (from acc in ctx.CreateQuery<Account>()
                          select acc).FirstOrDefault();
 
-                Assert.Equal(0, a.FormattedValues.Count);
-                Assert.False(a.FormattedValues.Contains("statecode"));
+                // FormattedValues should not contain industrycode since it's null
+                Assert.False(a.FormattedValues.Contains("industrycode"));
             }
         }
 

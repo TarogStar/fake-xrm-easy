@@ -2,7 +2,9 @@
 using System.Linq;
 using System.ServiceModel;
 using Crm;
+using FakeXrmEasy.Extensions;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using Xunit;
 
@@ -935,6 +937,340 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             Assert.Equal(2, entities.Count);
             Assert.Contains(entities, e => (e["firstname"] as string) == "1,2");
             Assert.Contains(entities, e => (e["firstname"] as string) == "3,4");
+        }
+
+        #endregion
+
+        #region Issue #354 - OrderBy on MultiOptionSetValue
+
+        [Fact]
+        public void MultiOptionSetValue_OrderBy_Should_Work()
+        {
+            // Arrange - Issue #354: OrderBy on MultiOptionSetValue (OptionSetValueCollection) fields
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            // Create contacts with different multi-select values
+            service.Create(new Contact { FirstName = "B", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(2), new OptionSetValue(3) } });
+            service.Create(new Contact { FirstName = "A", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2) } });
+            service.Create(new Contact { FirstName = "C", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(3), new OptionSetValue(4) } });
+            service.Create(new Contact { FirstName = "D", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1) } });
+
+            // Act - order by multi-select attribute ascending
+            var qe = new QueryExpression("contact")
+            {
+                ColumnSet = new ColumnSet(new[] { "firstname", "new_multiselectattribute" })
+            };
+            qe.AddOrder("new_multiselectattribute", OrderType.Ascending);
+
+            var entities = service.RetrieveMultiple(qe).Entities;
+
+            // Assert - should be ordered by first value in sorted collection, then by count
+            Assert.Equal(4, entities.Count);
+            // D has [1], A has [1,2], B has [2,3], C has [3,4]
+            Assert.Equal("D", entities[0]["firstname"]); // [1] - smallest first value, smallest count
+            Assert.Equal("A", entities[1]["firstname"]); // [1,2] - same first value as D, but more items
+            Assert.Equal("B", entities[2]["firstname"]); // [2,3] - first value is 2
+            Assert.Equal("C", entities[3]["firstname"]); // [3,4] - first value is 3
+        }
+
+        [Fact]
+        public void MultiOptionSetValue_OrderBy_Descending_Should_Work()
+        {
+            // Arrange - Issue #354: OrderBy descending on MultiOptionSetValue
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            service.Create(new Contact { FirstName = "B", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(2), new OptionSetValue(3) } });
+            service.Create(new Contact { FirstName = "A", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2) } });
+            service.Create(new Contact { FirstName = "C", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(3), new OptionSetValue(4) } });
+            service.Create(new Contact { FirstName = "D", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1) } });
+
+            // Act - order by multi-select attribute descending
+            var qe = new QueryExpression("contact")
+            {
+                ColumnSet = new ColumnSet(new[] { "firstname", "new_multiselectattribute" })
+            };
+            qe.AddOrder("new_multiselectattribute", OrderType.Descending);
+
+            var entities = service.RetrieveMultiple(qe).Entities;
+
+            // Assert - should be in reverse order
+            Assert.Equal(4, entities.Count);
+            Assert.Equal("C", entities[0]["firstname"]); // [3,4] - largest first value
+            Assert.Equal("B", entities[1]["firstname"]); // [2,3]
+            Assert.Equal("A", entities[2]["firstname"]); // [1,2] - same first value as D, but more items
+            Assert.Equal("D", entities[3]["firstname"]); // [1] - smallest
+        }
+
+        [Fact]
+        public void MultiOptionSetValue_OrderBy_With_Null_Values_Should_Work()
+        {
+            // Arrange - Issue #354: Null values should be handled in OrderBy
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            service.Create(new Contact { FirstName = "A", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(2) } });
+            service.Create(new Contact { FirstName = "B" }); // null multi-select
+            service.Create(new Contact { FirstName = "C", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1) } });
+
+            // Act
+            var qe = new QueryExpression("contact")
+            {
+                ColumnSet = new ColumnSet(new[] { "firstname", "new_multiselectattribute" })
+            };
+            qe.AddOrder("new_multiselectattribute", OrderType.Ascending);
+
+            var entities = service.RetrieveMultiple(qe).Entities;
+
+            // Assert - null values come first in ascending order
+            Assert.Equal(3, entities.Count);
+            Assert.Equal("B", entities[0]["firstname"]); // null
+            Assert.Equal("C", entities[1]["firstname"]); // [1]
+            Assert.Equal("A", entities[2]["firstname"]); // [2]
+        }
+
+        #endregion
+
+        #region Issue #354 - FormattedValues for MultiOptionSetValue
+
+        [Fact]
+        public void MultiOptionSetValue_FormattedValues_Should_Be_Populated_Without_Metadata()
+        {
+            // Arrange - Issue #354: FormattedValues should show numeric values when no metadata
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            service.Create(new Contact { FirstName = "Test", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
+
+            // Act
+            var qe = new QueryExpression("contact")
+            {
+                ColumnSet = new ColumnSet(new[] { "firstname", "new_multiselectattribute" })
+            };
+
+            var entities = service.RetrieveMultiple(qe).Entities;
+
+            // Assert - FormattedValues should contain the attribute with numeric values
+            Assert.Single(entities);
+            Assert.True(entities[0].FormattedValues.ContainsKey("new_multiselectattribute"));
+            Assert.Equal("1; 2; 3", entities[0].FormattedValues["new_multiselectattribute"]);
+        }
+
+        [Fact]
+        public void MultiOptionSetValue_FormattedValues_Should_Be_Populated_With_Metadata()
+        {
+            // Arrange - Issue #354: FormattedValues should show labels when metadata is available
+            var context = new XrmFakedContext();
+
+            // Set up metadata with option labels
+            var multiSelectAttr = new MultiSelectPicklistAttributeMetadata()
+            {
+                LogicalName = "new_multiselectattribute"
+            };
+            multiSelectAttr.OptionSet = new OptionSetMetadata(
+                new OptionMetadataCollection(new[]
+                {
+                    new OptionMetadata(new Label("Option A", 1033), 1),
+                    new OptionMetadata(new Label("Option B", 1033), 2),
+                    new OptionMetadata(new Label("Option C", 1033), 3)
+                }));
+
+            var entityMetadata = new EntityMetadata { LogicalName = "contact" };
+            entityMetadata.SetAttributeCollection(new AttributeMetadata[] { multiSelectAttr });
+
+            context.InitializeMetadata(entityMetadata);
+
+            var service = context.GetOrganizationService();
+            service.Create(new Contact { FirstName = "Test", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(3) } });
+
+            // Act
+            var qe = new QueryExpression("contact")
+            {
+                ColumnSet = new ColumnSet(new[] { "firstname", "new_multiselectattribute" })
+            };
+
+            var entities = service.RetrieveMultiple(qe).Entities;
+
+            // Assert - FormattedValues should contain the attribute with labels from metadata
+            Assert.Single(entities);
+            Assert.True(entities[0].FormattedValues.ContainsKey("new_multiselectattribute"));
+            Assert.Equal("Option A; Option C", entities[0].FormattedValues["new_multiselectattribute"]);
+        }
+
+        [Fact]
+        public void MultiOptionSetValue_FormattedValues_Empty_Collection_Should_Not_Add_FormattedValue()
+        {
+            // Arrange - Issue #354: Empty collections should not add a formatted value
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            service.Create(new Contact { FirstName = "Test", new_MultiSelectAttribute = new OptionSetValueCollection() });
+
+            // Act
+            var qe = new QueryExpression("contact")
+            {
+                ColumnSet = new ColumnSet(new[] { "firstname", "new_multiselectattribute" })
+            };
+
+            var entities = service.RetrieveMultiple(qe).Entities;
+
+            // Assert - FormattedValues should NOT contain the attribute for empty collection
+            Assert.Single(entities);
+            Assert.False(entities[0].FormattedValues.ContainsKey("new_multiselectattribute"));
+        }
+
+        #endregion
+
+        #region Issue #354 - LinkedEntity queries with MultiOptionSetValue
+
+        [Fact]
+        public void MultiOptionSetValue_In_LinkedEntity_Should_Work()
+        {
+            // Arrange - Issue #354: LinkEntity queries with MultiOptionSetValue conditions
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            // Create contacts with multi-select values
+            var contact1 = new Contact { Id = System.Guid.NewGuid(), FirstName = "Contact1", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2) } };
+            var contact2 = new Contact { Id = System.Guid.NewGuid(), FirstName = "Contact2", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(3), new OptionSetValue(4) } };
+            var contact3 = new Contact { Id = System.Guid.NewGuid(), FirstName = "Contact3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1) } };
+
+            service.Create(contact1);
+            service.Create(contact2);
+            service.Create(contact3);
+
+            // Create accounts linked to contacts
+            var account1 = new Account { Id = System.Guid.NewGuid(), Name = "Account1", PrimaryContactId = contact1.ToEntityReference() };
+            var account2 = new Account { Id = System.Guid.NewGuid(), Name = "Account2", PrimaryContactId = contact2.ToEntityReference() };
+            var account3 = new Account { Id = System.Guid.NewGuid(), Name = "Account3", PrimaryContactId = contact3.ToEntityReference() };
+
+            service.Create(account1);
+            service.Create(account2);
+            service.Create(account3);
+
+            // Act - query accounts with linked contact having multi-select value containing 1
+            var qe = new QueryExpression("account")
+            {
+                ColumnSet = new ColumnSet(new[] { "name" })
+            };
+            var linkedContact = qe.AddLink("contact", "primarycontactid", "contactid");
+            linkedContact.Columns.AddColumns("firstname", "new_multiselectattribute");
+            linkedContact.LinkCriteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 1);
+
+            var entities = service.RetrieveMultiple(qe).Entities;
+
+            // Assert - should return accounts linked to contacts with value 1
+            Assert.Equal(2, entities.Count);
+            Assert.Contains(entities, e => (e["name"] as string) == "Account1");
+            Assert.Contains(entities, e => (e["name"] as string) == "Account3");
+        }
+
+        [Fact]
+        public void MultiOptionSetValue_ContainValues_On_LinkedEntity_Should_Work()
+        {
+            // Arrange - Issue #354: ContainValues on LinkedEntity with multiple values
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            // Create late-bound entities to test without early-bound types
+            var contact1 = new Entity("contact") { Id = System.Guid.NewGuid() };
+            contact1["firstname"] = "Contact1";
+            contact1["new_multiselectattribute"] = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2) };
+            service.Create(contact1);
+
+            var contact2 = new Entity("contact") { Id = System.Guid.NewGuid() };
+            contact2["firstname"] = "Contact2";
+            contact2["new_multiselectattribute"] = new OptionSetValueCollection() { new OptionSetValue(3), new OptionSetValue(4) };
+            service.Create(contact2);
+
+            var contact3 = new Entity("contact") { Id = System.Guid.NewGuid() };
+            contact3["firstname"] = "Contact3";
+            // No multi-select attribute (null)
+            service.Create(contact3);
+
+            var account1 = new Entity("account") { Id = System.Guid.NewGuid() };
+            account1["name"] = "Account1";
+            account1["primarycontactid"] = contact1.ToEntityReference();
+            service.Create(account1);
+
+            var account2 = new Entity("account") { Id = System.Guid.NewGuid() };
+            account2["name"] = "Account2";
+            account2["primarycontactid"] = contact2.ToEntityReference();
+            service.Create(account2);
+
+            var account3 = new Entity("account") { Id = System.Guid.NewGuid() };
+            account3["name"] = "Account3";
+            account3["primarycontactid"] = contact3.ToEntityReference();
+            service.Create(account3);
+
+            // Act - query accounts with linked contact having multi-select value containing 2 or 4
+            var qe = new QueryExpression("account")
+            {
+                ColumnSet = new ColumnSet(new[] { "name" })
+            };
+            var linkedContact = qe.AddLink("contact", "primarycontactid", "contactid");
+            linkedContact.LinkCriteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 2, 4);
+
+            var entities = service.RetrieveMultiple(qe).Entities;
+
+            // Assert - should return Account1 (contact has 2) and Account2 (contact has 4)
+            Assert.Equal(2, entities.Count);
+            Assert.Contains(entities, e => (e["name"] as string) == "Account1");
+            Assert.Contains(entities, e => (e["name"] as string) == "Account2");
+        }
+
+        [Fact]
+        public void MultiOptionSetValue_DoesNotContainValues_On_LinkedEntity_Should_Work()
+        {
+            // Arrange - Issue #354: DoesNotContainValues on LinkedEntity
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            var contact1 = new Entity("contact") { Id = System.Guid.NewGuid() };
+            contact1["firstname"] = "Contact1";
+            contact1["new_multiselectattribute"] = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2) };
+            service.Create(contact1);
+
+            var contact2 = new Entity("contact") { Id = System.Guid.NewGuid() };
+            contact2["firstname"] = "Contact2";
+            contact2["new_multiselectattribute"] = new OptionSetValueCollection() { new OptionSetValue(3), new OptionSetValue(4) };
+            service.Create(contact2);
+
+            var contact3 = new Entity("contact") { Id = System.Guid.NewGuid() };
+            contact3["firstname"] = "Contact3";
+            // No multi-select attribute (null)
+            service.Create(contact3);
+
+            var account1 = new Entity("account") { Id = System.Guid.NewGuid() };
+            account1["name"] = "Account1";
+            account1["primarycontactid"] = contact1.ToEntityReference();
+            service.Create(account1);
+
+            var account2 = new Entity("account") { Id = System.Guid.NewGuid() };
+            account2["name"] = "Account2";
+            account2["primarycontactid"] = contact2.ToEntityReference();
+            service.Create(account2);
+
+            var account3 = new Entity("account") { Id = System.Guid.NewGuid() };
+            account3["name"] = "Account3";
+            account3["primarycontactid"] = contact3.ToEntityReference();
+            service.Create(account3);
+
+            // Act - query accounts with linked contact NOT having multi-select value containing 1
+            var qe = new QueryExpression("account")
+            {
+                ColumnSet = new ColumnSet(new[] { "name" })
+            };
+            var linkedContact = qe.AddLink("contact", "primarycontactid", "contactid");
+            linkedContact.LinkCriteria.AddCondition("new_multiselectattribute", ConditionOperator.DoesNotContainValues, 1);
+
+            var entities = service.RetrieveMultiple(qe).Entities;
+
+            // Assert - should return Account2 (contact has 3,4) and Account3 (contact has null)
+            Assert.Equal(2, entities.Count);
+            Assert.Contains(entities, e => (e["name"] as string) == "Account2");
+            Assert.Contains(entities, e => (e["name"] as string) == "Account3");
         }
 
         #endregion

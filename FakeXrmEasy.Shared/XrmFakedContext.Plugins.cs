@@ -4,7 +4,9 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel;
 
 namespace FakeXrmEasy
 {
@@ -14,6 +16,97 @@ namespace FakeXrmEasy
     /// </summary>
     public partial class XrmFakedContext : IXrmContext
     {
+        /// <summary>
+        /// Defines the expected parameter types for each CRM message to match real CRM/Dataverse behavior.
+        /// This mapping is used to validate that InputParameters contain the correct types before executing plugins.
+        /// </summary>
+        private static readonly Dictionary<string, Dictionary<string, Type>> ExpectedParameterTypes = new Dictionary<string, Dictionary<string, Type>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Create"] = new Dictionary<string, Type> { ["Target"] = typeof(Entity) },
+            ["Update"] = new Dictionary<string, Type> { ["Target"] = typeof(Entity) },
+            ["Delete"] = new Dictionary<string, Type> { ["Target"] = typeof(EntityReference) },
+            ["Retrieve"] = new Dictionary<string, Type> { ["Target"] = typeof(EntityReference) },
+            ["SetState"] = new Dictionary<string, Type>
+            {
+                ["EntityMoniker"] = typeof(EntityReference),
+                ["State"] = typeof(OptionSetValue),
+                ["Status"] = typeof(OptionSetValue)
+            },
+            ["SetStateDynamicEntity"] = new Dictionary<string, Type>
+            {
+                ["EntityMoniker"] = typeof(EntityReference),
+                ["State"] = typeof(OptionSetValue),
+                ["Status"] = typeof(OptionSetValue)
+            },
+            ["Assign"] = new Dictionary<string, Type>
+            {
+                ["Target"] = typeof(EntityReference),
+                ["Assignee"] = typeof(EntityReference)
+            },
+            ["Associate"] = new Dictionary<string, Type>
+            {
+                ["Target"] = typeof(EntityReference)
+            },
+            ["Disassociate"] = new Dictionary<string, Type>
+            {
+                ["Target"] = typeof(EntityReference)
+            }
+        };
+
+        /// <summary>
+        /// Gets or sets a value indicating whether plugin parameter type validation is enabled.
+        /// When enabled, the framework validates that InputParameters contain the correct types for each message
+        /// (e.g., Delete requires EntityReference, Create requires Entity). Default is true.
+        /// Set to false if you need backward compatibility with tests that use incorrect parameter types.
+        /// </summary>
+        public bool ValidatePluginParameterTypes { get; set; } = true;
+
+        /// <summary>
+        /// Validates that the InputParameters in the plugin context contain the correct types for the message.
+        /// Throws a FaultException if validation fails, matching real CRM/Dataverse behavior.
+        /// </summary>
+        /// <param name="ctx">The plugin execution context to validate.</param>
+        /// <exception cref="FaultException{OrganizationServiceFault}">Thrown when a parameter has an invalid type.</exception>
+        protected void ValidatePluginContextParameterTypes(XrmFakedPluginExecutionContext ctx)
+        {
+            if (!ValidatePluginParameterTypes || ctx == null || string.IsNullOrEmpty(ctx.MessageName))
+            {
+                return;
+            }
+
+            if (!ExpectedParameterTypes.TryGetValue(ctx.MessageName, out var expectedTypes))
+            {
+                // Unknown message, no validation
+                return;
+            }
+
+            if (ctx.InputParameters == null)
+            {
+                return;
+            }
+
+            foreach (var expectedParam in expectedTypes)
+            {
+                var paramName = expectedParam.Key;
+                var expectedType = expectedParam.Value;
+
+                if (ctx.InputParameters.Contains(paramName))
+                {
+                    var actualValue = ctx.InputParameters[paramName];
+                    if (actualValue != null && !expectedType.IsInstanceOfType(actualValue))
+                    {
+                        var actualType = actualValue.GetType();
+                        var errorMessage = $"The '{paramName}' parameter for the '{ctx.MessageName}' message must be of type '{expectedType.Name}', but was '{actualType.Name}'. " +
+                                          $"This matches real CRM/Dataverse behavior where {ctx.MessageName} expects {expectedType.Name}.";
+
+                        throw new FaultException<OrganizationServiceFault>(
+                            new OrganizationServiceFault() { ErrorCode = (int)ErrorCodes.InvalidArgument, Message = errorMessage },
+                            errorMessage);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Returns a plugin execution context with default properties that can be customized for testing.
         /// The context includes standard properties like Depth, UserId, BusinessUnitId, and empty parameter collections.
@@ -173,8 +266,12 @@ namespace FakeXrmEasy
         /// <param name="ctx">The custom plugin execution context containing message details, parameters, and images.</param>
         /// <param name="instance">The pre-constructed plugin instance to execute.</param>
         /// <returns>The executed plugin instance wrapped in a FakeItEasy fake.</returns>
+        /// <exception cref="FaultException{OrganizationServiceFault}">Thrown when InputParameters contain invalid types for the message.</exception>
         public IPlugin ExecutePluginWith(XrmFakedPluginExecutionContext ctx, IPlugin instance)
         {
+            // Validate parameter types before execution to match real CRM/Dataverse behavior
+            ValidatePluginContextParameterTypes(ctx);
+
             var fakedServiceProvider = GetFakedServiceProvider(ctx);
 
             var fakedPlugin = A.Fake<IPlugin>();
