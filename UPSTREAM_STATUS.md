@@ -3,7 +3,7 @@
 This document consolidates the status of issues and PRs from the archived [jordimontana82/fake-xrm-easy](https://github.com/jordimontana82/fake-xrm-easy) repository (archived June 2024).
 
 **Last Updated:** 2026-01-07
-**Version:** 1.1.0
+**Version:** 1.1.1
 
 ---
 
@@ -47,23 +47,23 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 
 | Status | Count | Issues |
 |--------|-------|--------|
-| **Fixed** | 34 | See "Fixed Issues" section below |
+| **Fixed (v1.1.0)** | 36 | See "Fixed Issues" section below |
 | **Custom Additions** | 18 | See "Custom Additions" section below |
-| **Needs Evaluation** | 34 | See "Needs Evaluation" section below |
-| **Won't Fix** | 3 | #414, #453, #523 |
+| **v1.1.1 Roadmap** | 30 | Categorized below (P0: 4, P1: 13, P2: 13) |
+| **Won't Fix** | 5 | #414, #453, #523, #372, #444 |
 | **TOTAL (Upstream)** | **71** | All open issues from archived upstream repo |
 | **TOTAL (All Work)** | **89** | Upstream issues (71) + Custom additions (18) |
 
-**Fixed Issues (34 total):**
+**Fixed Issues (36 total):**
 - **Plugin/Pipeline:** #451, #500, #573
-- **Query Engine:** #485, #506, #509, #514, #545, #547, #569, #607, #608, #612
+- **Query Engine:** #340, #445, #485, #506, #509, #514, #545, #547, #569, #607, #608, #612
 - **Date/Time:** #458, #491, #539, #543, #551, #587
 - **Message Executors:** #610, #615
 - **CRUD/Core:** #255, #470, #472, #476, #479, #482, #508, #521, #524, #553, #555, #562, #566
 
-**P0-P3 Roadmap Status: COMPLETE** - All prioritized items resolved
+**v1.1.0 Roadmap Status: COMPLETE** - All P0-P3 items resolved
 
-**Needs Evaluation:** 34 open issues from the archived repository require triage. See the "Needs Evaluation" section below for the complete list.
+**v1.1.1 Roadmap:** 30 remaining issues categorized and prioritized. See "v1.1.1 Roadmap" section below.
 
 ---
 
@@ -136,7 +136,7 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 | # | Title | Status | Implementation |
 |---|-------|--------|----------------|
 | 538 | RetrieveMetadataChangesRequest | **FIXED** | `RetrieveMetadataChangesRequestExecutor` - metadata filtering/projection |
-| 455 | UtcTimeFromLocalTimeRequest | **FIXED** | `UtcTimeFromLocalTimeRequestExecutor` - time zone conversion |
+| 340/455 | UtcTimeFromLocalTimeRequest | **FIXED** | `UtcTimeFromLocalTimeRequestExecutor` - time zone conversion |
 | 510 | WinQuoteRequest | **FIXED** | `WinQuoteRequestExecutor` - sets quote to Won state, creates QuoteClose activity |
 | 572 | IEntityDataSourceRetrieverService | **FIXED** | `EntityDataSourceRetriever` property, virtual entity data provider testing |
 | 610 | ExecuteTransactionRequest | **FIXED** | `ExecuteTransactionExecutor` - batch transactional execution |
@@ -206,7 +206,7 @@ Based on analysis of modern Dataverse SDK requirements and real-world usage patt
 | # | Title | Category | Status |
 |---|-------|----------|--------|
 | 557 | Expose Metadata generation | Metadata | **FIXED** - MetadataGenerator public with FromEarlyBoundEntity<T>() |
-| 447 | PicklistAttributeMetadata options | Metadata | **FIXED** - RetrieveAttributeRequest populates OptionSet from context |
+| 445/447 | PicklistAttributeMetadata options | Metadata | **FIXED** - RetrieveAttributeRequest populates OptionSet from context |
 | NEW | ExecuteMultiple ContinueOnError | Messages | **FIXED** - Response key fix + proper fault extraction |
 | NEW | README placeholder cleanup | Docs | **FIXED** - Removed YOUR_ORG placeholders |
 
@@ -435,6 +435,8 @@ Other: Assign, SetState, WhoAmI, InitializeFrom, BulkDelete, CalculateRollupFiel
 | 414 | Assembly version error | Version-specific, not applicable |
 | 453 | VS2019 unit test hang | We target VS2022+ |
 | 523 | Microsoft.CrmSdk.Extensions | Xrm.Client namespace deprecated |
+| 372 | Impersonate user question | Question - resolved (use `CallerId` property) |
+| 444 | Assert runtime records question | Question - guidance only, not a bug |
 
 ---
 
@@ -452,9 +454,9 @@ The following features were developed independently by the community and are NOT
 | CreateOptionSetRequest | v1.1.0 | Creates global OptionSets in metadata repository |
 | UpdateOptionSetRequest | v1.1.0 | Updates OptionSet DisplayName, Description properties |
 | DeleteOptionSetRequest | v1.1.0 | Deletes global OptionSets with validation |
-| CreateEntityRequest | Planned | Entity metadata creation |
-| UpdateEntityRequest | Planned | Entity metadata updates |
-| DeleteEntityRequest | Planned | Entity metadata deletion |
+| CreateEntityRequest | v1.1.0 | Entity metadata creation |
+| UpdateEntityRequest | v1.1.0 | Entity metadata updates |
+| DeleteEntityRequest | v1.1.0 | Entity metadata deletion |
 
 ### Query Engine (1)
 
@@ -488,30 +490,91 @@ The following features were developed independently by the community and are NOT
 
 ---
 
-## Needs Evaluation
+## v1.1.1 Roadmap
 
-The following 34 open issues from the archived repository have not yet been evaluated for inclusion.
+The remaining 30 open issues have been analyzed and categorized by priority.
 
-**Open Issues (sorted by issue number):**
+### Phase 1 — Query Engine Stability (P0)
 
-#74, #183, #218, #220, #258, #279, #287, #288, #293, #332, #340, #342, #354, #359, #372, #407, #415, #439, #444, #445, #449, #462, #467, #473, #490, #497, #501, #505, #516, #532, #550, #560, #579, #584
+*Critical bugs causing NullReferenceExceptions or breaking common test scenarios*
 
-**Notes:**
+| # | Title | Category | Complexity | Description |
+|---|-------|----------|------------|-------------|
+| 560 | FindReflectedAttributeType NRE | Query | High | NRE when filtering on linked entity attributes - uses main entity type instead of linked |
+| 584 | Complex filters on nested entities | Query | High | FetchXML filters work on main entity but fail on linked/nested entities |
+| 467 | ContainValues with multi-select NRE | Query | High | NRE when using ContainValues operator with OptionSetValueCollection |
+| 279 | Entity.LogicalName vs EntityTypeCode | Plugin | Low | Pipeline fails with generic Entity - should use LogicalName not EntityTypeCode |
+
+### Phase 2 — Thread Safety & Validation (P1 batch 1)
+
+*Common scenarios: parallel operations, type validation, hierarchy operators*
+
+| # | Title | Category | Complexity | Description |
+|---|-------|----------|------------|-------------|
+| 74 | Thread-safe parallel creates | CRUD | Medium | Parallel Create requests fail - data dictionary not thread-safe |
+| 258 | GUID comparison type validation | Query | Low | FakeXrmEasy allows GUID-to-EntityReference comparison; real CRM throws |
+| 287 | AboveOrEqual hierarchy operator | Query | Medium | AboveOrEqual condition operator not implemented |
+| 415 | AddLink attribute validation | Query | Medium | AddLink doesn't validate join attributes exist on entities |
+| 490 | no-attrs node support | Query | Low | "no-attrs" FetchXML node not recognized |
+
+### Phase 3 — Message Executor Parity (P1 batch 2)
+
+*Entity-specific behaviors and message executor fixes*
+
+| # | Title | Category | Complexity | Description |
+|---|-------|----------|------------|-------------|
+| 332 | activityparty retrieve validation | CRUD | Medium | Should throw when retrieving activityparty directly |
+| 407 | SetState systemuser isdisabled | Message | Medium | SetState for systemuser doesn't populate isdisabled field |
+| 516 | CloseIncidentRequest error | Message | Medium | Throws "not yet supported" despite test files suggesting implementation |
+| 532 | Calendar/CalendarRules auto-include | CRUD | Medium | Doesn't return CalendarRules when retrieving Calendar entity |
+
+### Phase 4 — Metadata & Developer Experience (P1 batch 3)
+
+*Metadata properties, culture handling, error messages*
+
+| # | Title | Category | Complexity | Description |
+|---|-------|----------|------------|-------------|
+| 439 | DateTime culture formatting | Query | Medium | DateTime formatting in FetchXML breaks with non-English cultures |
+| 449 | Statecode null on CreateRequest | CRUD | Medium | Setting statecode to null in ExecuteMultiple causes faulted responses |
+| 462 | FetchExpression initialization | Query | Medium | Cannot initialize RetrieveMultiple with FetchExpression parameter |
+| 505 | IsPrimaryName metadata property | Metadata | Low | IsPrimaryName unpopulated in RetrieveEntityRequest |
+| 550 | Better exception messages | Plugin | Low | Exception messages don't identify which service is missing |
+| 579 | EntityDataSource returning null | Metadata | Medium | RetrieveEntityDataSource returns null despite proper configuration |
+
+### Phase 5+ — Advanced Features (P2)
+
+*Nice to have - complex or niche use cases*
+
+| # | Title | Category | Complexity | Description |
+|---|-------|----------|------------|-------------|
+| 183 | Auto-trigger plugin steps | Plugin | High | Automatically trigger registered plugin steps on Create/Update |
+| 218 | FormattedValues for OptionSet | Metadata | Medium | FormattedValues require EntityMetadata injection for proper labels |
+| 220 | EntityFilters.All support | Metadata | Medium | RetrieveEntityRequest needs Relationships, Privileges, All filters |
+| 288 | AddToQueue move vs duplicate | Message | High | Creates new QueueItems instead of moving existing ones |
+| 342 | Validate execution context params | Plugin | Medium | Validate parameter types (Delete requires EntityReference, not Entity) |
+| 354 | MultiOptionSetValue improvements | Query | High | OrderBy, formatted values, LinkedEntity support needed |
+| 359 | Transactional locking | Plugin | High | No locking behavior for concurrent plugin testing |
+| 473 | IServiceEndpointNotificationService | Plugin | Low | GetExtension returns null - not registered in invoker |
+| 497 | System user privilege | Plugin | High | No distinction between user-level and system-level privileges |
+| 501 | Plugin dependency injection | Plugin | Medium | Allow passing pre-configured plugin instances to RegisterPluginStep |
+
+### Summary by Category
+
+| Category | P0 | P1 | P2 | Total |
+|----------|----|----|----|----|
+| Query | 3 | 6 | 1 | 10 |
+| Plugin | 1 | 1 | 6 | 8 |
+| CRUD | 0 | 4 | 0 | 4 |
+| Message | 0 | 2 | 1 | 3 |
+| Metadata | 0 | 3 | 2 | 5 |
+| **Total** | **4** | **16** | **10** | **30** |
+
+### Notes
+
 - Issue #293 is documented as a Known Limitation (see above) but remains open upstream
-- All closed issues have been removed from this list
-- Issues we've fixed (#255, #451, #458, #470, #472, #476, #479, #482, #485, #491, #500, #506, #508, #509, #514, #521, #524, #539, #543, #545, #547, #551, #553, #555, #562, #566, #569, #573, #587, #607, #608, #610, #612, #615) are tracked in the "Fixed Issues" section above
-- Issues marked Won't Fix (#414, #453, #523) are tracked in the "Won't Fix" section above
-
----
-
-## Needs Investigation
-
-All items resolved - see v1.2.0 Phase 1 above.
-
-| # | Title | Status |
-|---|-------|--------|
-| 569 | ObjectTypeCode casting | **FIXED** in v1.2.0 |
-| 566 | Upsert alt key copy | **FIXED** in v1.2.0 |
+- Issues #340 and #445 were fixed in v1.1.0 (moved to Fixed Issues)
+- Issues #372 and #444 are questions, not bugs (moved to Won't Fix)
+- All closed upstream issues have been excluded from this list
 
 ---
 
@@ -522,7 +585,7 @@ All items resolved - see v1.2.0 Phase 1 above.
 |----|-------|--------|-------|
 | - | All prioritized PRs implemented | - | See P0-P3 roadmap sections |
 
-**Note:** We implement the spirit of community PRs independently rather than directly copying code, to ensure proper ownership and avoid copyright concerns.
+**Note:** We implement the spirit of community PRs independently rather than directly copying code, unless the PR was submitted directly to our fork.
 
 ### Already Integrated/Fixed
 | PR | Title | Status |
@@ -551,7 +614,7 @@ All items resolved - see v1.2.0 Phase 1 above.
 - Dynamics 365 v9.x and later only
 - .NET Framework 4.6.2
 - Modern SDK-style projects
-- VS2019/VS2022/VS2026
+- VS2022/VS2026
 
 ### What We Don't Support
 - Legacy CRM versions (2011, 2013, 2015, 2016)
@@ -576,6 +639,50 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 - v1.1.1 Roadmap Analysis
+
+- Analyzed all 34 remaining open issues from upstream repository
+- Categorized into 4 phases for v1.1.1:
+  - **Phase 1 (P0):** 4 critical query engine bugs (#560, #584, #467, #279)
+  - **Phase 2 (P1):** 5 thread safety & validation issues (#74, #258, #287, #415, #490)
+  - **Phase 3 (P1):** 4 message executor parity issues (#332, #407, #516, #532)
+  - **Phase 4 (P1):** 6 metadata & DX improvements (#439, #449, #462, #505, #550, #579)
+  - **Phase 5+ (P2):** 10 advanced features for future consideration
+- Moved to Fixed Issues:
+  - #340 - UtcTimeFromLocalTimeRequest (same as #455)
+  - #445 - PicklistAttributeMetadata options (same as #447)
+- Moved to Won't Fix:
+  - #372 - Impersonation question (resolved with CallerId)
+  - #444 - Assert runtime records (guidance only, not a bug)
+- Updated Entity CRUD executors status to v1.1.0 (complete)
+- Total: 30 issues remaining, 36 fixed, 5 won't fix = 71 upstream issues accounted for
+
+### 2026-01-07 (Part 14) - v1.1.0 Phase 4b Complete: Entity Metadata CRUD
+
+- Added: CreateEntityRequestExecutor
+  - Creates entity metadata with primary attribute support
+  - Validates entity doesn't already exist
+  - Returns MetadataId on success
+- Added: UpdateEntityRequestExecutor
+  - Updates entity metadata properties (DisplayName, Description, etc.)
+  - Validates entity exists before update
+- Added: DeleteEntityRequestExecutor
+  - Deletes entity metadata with validation
+  - Throws FaultException for non-existent entities
+- Added: 26 tests in EntityMetadataCrudTests.cs
+- Fixed: 3 flaky week operator tests (Last/This/Next Week)
+  - Replaced random date generation with deterministic calculations
+- Updated README.md with comprehensive SDK documentation
+  - 62+ supported SDK messages in categorized tables
+  - All query operators documented
+  - Date/time operators including fiscal period
+  - Any/All filter operators with examples
+  - Alternate key operations and constraints
+  - Plugin pipeline features
+- Updated Custom Additions section (18 community enhancements)
+- All 1224 tests pass
+- v1.1.0 status: COMPLETE
 
 ### 2026-01-07 (Part 13) - Phase 4a Complete: OptionSet CRUD Operations
 
