@@ -36,10 +36,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void Conversion_to_double_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                         <filter type='and'>
@@ -56,10 +58,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void Conversion_to_entityreference_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                         <filter type='and'>
@@ -75,10 +79,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void Conversion_to_guid_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                         <filter type='and'>
@@ -94,10 +100,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void Conversion_to_int_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                         <filter type='and'>
@@ -114,10 +122,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void Conversion_to_bool_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='account'>
                                     <attribute name='name' />
                                     <filter type='and'>
@@ -147,10 +157,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void Conversion_to_bool_throws_error_if_incorrect()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='account'>
                                     <attribute name='name' />
                                     <filter type='and'>
@@ -178,10 +190,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void Conversion_to_string_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                         <filter type='and'>
@@ -198,10 +212,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void Conversion_to_optionsetvalue_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                         <filter type='and'>
@@ -218,10 +234,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void Conversion_to_money_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                         <filter type='and'>
@@ -238,10 +256,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void Conversion_to_datetime_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                         <filter type='and'>
@@ -262,10 +282,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void Conversion_to_enum_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Incident));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Incident))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' >
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' >
               <entity name='incident' >
                 <attribute name='incidentid' />
                 <attribute name='statecode' />

@@ -18,9 +18,11 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            initialEntities.Add(invoice);
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(invoice);
 
             context.Initialize(initialEntities);
             Entity testPostCreate = service.Retrieve("invoice", invoice.Id, new ColumnSet(true));
@@ -35,9 +37,11 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            invoice["invoicenumber"] = "TEST";
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoice["invoicenumber"] = "TEST";
             initialEntities.Add(invoice);
 
             context.Initialize(initialEntities);

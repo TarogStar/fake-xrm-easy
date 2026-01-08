@@ -361,14 +361,14 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveAttributeRequestTests
             globalOptions.Options.Add(new OptionMetadata(new Label("Global Option 2", 1033), 20));
             ctx.OptionSetValuesMetadata.Add(globalOptionSetName, globalOptions);
 
-            // Create PicklistAttributeMetadata referencing the global option set
-            var picklistAttribute = new PicklistAttributeMetadata()
-            {
-                LogicalName = "new_globalpicklist"
-            };
-            picklistAttribute.OptionSet = new OptionSetMetadata() { Name = globalOptionSetName };
+      // Create PicklistAttributeMetadata referencing the global option set
+      var picklistAttribute = new PicklistAttributeMetadata
+      {
+        LogicalName = "new_globalpicklist",
+        OptionSet = new OptionSetMetadata() { Name = globalOptionSetName }
+      };
 
-            var entityMetadata = new EntityMetadata()
+      var entityMetadata = new EntityMetadata()
             {
                 LogicalName = "account"
             };

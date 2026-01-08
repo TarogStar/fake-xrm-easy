@@ -72,17 +72,13 @@ namespace FakeXrmEasy.Tests
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe);
 
             Assert.True(result.Count() == 2); //2 Contacts related to the same account
-            var firstContact = result.FirstOrDefault();
-            var secondContact = result.LastOrDefault();
+            var results = result.ToList();
+            Assert.All(results, e => Assert.Equal(3, e.Attributes.Count));
+            Assert.All(results, e => Assert.Equal(account["name"], ((AliasedValue)e["account1.name"]).Value));
 
-            Assert.True(firstContact.Attributes.Count == 3);
-            Assert.True(secondContact.Attributes.Count == 3);
-
-            Assert.True(firstContact["fullname"].Equals(contact1["fullname"]));
-            Assert.True((firstContact["account1.name"] as AliasedValue).Value.Equals(account["name"]));
-
-            Assert.True(secondContact["fullname"].Equals(contact2["fullname"]));
-            Assert.True((secondContact["account1.name"] as AliasedValue).Value.Equals(account["name"]));
+            var fullNames = results.Select(e => (string)e["fullname"]).ToList();
+            Assert.Contains((string)contact1["fullname"], fullNames);
+            Assert.Contains((string)contact2["fullname"], fullNames);
         }
 
         [Fact]
@@ -120,11 +116,10 @@ namespace FakeXrmEasy.Tests
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe);
 
             Assert.True(result.Count() == 3); //2 Contacts related to the same account + 1 contact without parent account
-            var firstContact = result.FirstOrDefault();
-            var lastContact = result.LastOrDefault();
-
-            Assert.True(firstContact["fullname"].Equals(contact1["fullname"]));
-            Assert.True(lastContact["fullname"].Equals(contact3["fullname"]));
+            var fullNames = result.Select(e => (string)e["fullname"]).ToList();
+            Assert.Contains((string)contact1["fullname"], fullNames);
+            Assert.Contains((string)contact2["fullname"], fullNames);
+            Assert.Contains((string)contact3["fullname"], fullNames);
         }
 
         [Fact]
@@ -162,11 +157,9 @@ namespace FakeXrmEasy.Tests
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe);
 
             Assert.True(result.Count() == 2);
-            var firstContact = result.FirstOrDefault();
-            var lastContact = result.LastOrDefault();
-
-            Assert.True(firstContact["fullname"].Equals(contact1["fullname"]));
-            Assert.True(lastContact["fullname"].Equals(contact2["fullname"]));
+            var fullNames = result.Select(e => (string)e["fullname"]).ToList();
+            Assert.Contains((string)contact1["fullname"], fullNames);
+            Assert.Contains((string)contact2["fullname"], fullNames);
         }
 
         [Fact]
@@ -204,11 +197,8 @@ namespace FakeXrmEasy.Tests
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe);
 
             Assert.True(result.Count() == 2);
-            var firstContact = result.FirstOrDefault();
-            var lastContact = result.LastOrDefault();
-
-            Assert.False(firstContact.Attributes.ContainsKey("firstname"));
-            Assert.False(lastContact.Attributes.ContainsKey("firstname"));
+            var results = result.ToList();
+            Assert.All(results, e => Assert.False(e.Attributes.ContainsKey("firstname")));
         }
 
         [Fact]
@@ -224,16 +214,17 @@ namespace FakeXrmEasy.Tests
 
             context.Initialize(new List<Entity>() { account, contact1 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",             //We only select fullname and parentcustomerid, firstname should not be included
+        ColumnSet = new ColumnSet(new string[] { "this attribute doesnt exists!" })
+      };
 
-            //We only select fullname and parentcustomerid, firstname should not be included
-            qe.ColumnSet = new ColumnSet(new string[] { "this attribute doesnt exists!" });
-
-            XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
+      XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
 
             var list = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
-
-            Assert.False(list[0].Attributes.ContainsKey("this attribute doesnt exists!"));
+            var entity = Assert.Single(list);
+            Assert.False(entity.Attributes.ContainsKey("this attribute doesnt exists!"));
         }
 
         [Fact]
@@ -249,12 +240,13 @@ namespace FakeXrmEasy.Tests
 
             context.Initialize(new List<Entity>() { account, contact1 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",             //We only select fullname and parentcustomerid, firstname should not be included
+        ColumnSet = new ColumnSet(new string[] { "this attribute doesnt exists!" })
+      };
 
-            //We only select fullname and parentcustomerid, firstname should not be included
-            qe.ColumnSet = new ColumnSet(new string[] { "this attribute doesnt exists!" });
-
-            var exception = Assert.Throws<FaultException<OrganizationServiceFault>>(() => XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList());
+      var exception = Assert.Throws<FaultException<OrganizationServiceFault>>(() => XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList());
             Assert.Equal((int)ErrorCodes.QueryBuilderNoAttribute, exception.Detail.ErrorCode);
         }
 
@@ -328,14 +320,12 @@ namespace FakeXrmEasy.Tests
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe);
 
             Assert.True(result.Count() == 2);
-            var firstContact = result.FirstOrDefault();
-            var lastContact = result.LastOrDefault();
+            var results = result.ToList();
 
             //Contact 1 attributes = 4 + 7 (the extra seven are the CreatedOn, ModifiedOn, CreatedBy, ModifiedBy, OwnerId, StateCode, VersionNumber attributes generated automatically
             //+ Attributes from the join(account) = 2 + 7
 
-            Assert.True(firstContact.Attributes.Count == 20);
-            Assert.True(lastContact.Attributes.Count == 20);
+            Assert.All(results, e => Assert.Equal(20, e.Attributes.Count));
         }
 
         [Fact]
@@ -371,11 +361,8 @@ namespace FakeXrmEasy.Tests
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe);
 
             Assert.True(result.Count() == 2);
-            var firstContact = result.FirstOrDefault();
-            var lastContact = result.LastOrDefault();
-
-            Assert.True(firstContact.Attributes.Count == 0); //Contact 1
-            Assert.True(lastContact.Attributes.Count == 0);  //Contact 2
+            var results = result.ToList();
+            Assert.All(results, e => Assert.Empty(e.Attributes));
         }
 
         [Fact]
@@ -410,17 +397,10 @@ namespace FakeXrmEasy.Tests
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe);
 
             Assert.True(result.Count() == 2);
-            var firstContact = result.FirstOrDefault();
-            var lastContact = result.LastOrDefault();
-
-            Assert.True(firstContact.Attributes.Count == 1); //Contact 1
-            Assert.True(lastContact.Attributes.Count == 1);  //Contact 2
-
-            Assert.True(firstContact.Attributes.ContainsKey("account1.name")); //Contact 1
-            Assert.True(lastContact.Attributes.ContainsKey("account1.name"));  //Contact 2
-
-            Assert.True(firstContact.Attributes["account1.name"] is AliasedValue); //Contact 1
-            Assert.True(lastContact.Attributes["account1.name"] is AliasedValue);  //Contact 2
+            var results = result.ToList();
+            Assert.All(results, e => Assert.Single(e.Attributes));
+            Assert.All(results, e => Assert.True(e.Attributes.ContainsKey("account1.name")));
+            Assert.All(results, e => Assert.IsType<AliasedValue>(e["account1.name"]));
         }
 
         [Fact]
@@ -456,17 +436,10 @@ namespace FakeXrmEasy.Tests
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe);
 
             Assert.True(result.Count() == 2);
-            var firstContact = result.FirstOrDefault();
-            var lastContact = result.LastOrDefault();
-
-            Assert.True(firstContact.Attributes.Count == 1); //Contact 1
-            Assert.True(lastContact.Attributes.Count == 1);  //Contact 2
-
-            Assert.True(firstContact.Attributes.ContainsKey("myCoolAlias.name")); //Contact 1
-            Assert.True(lastContact.Attributes.ContainsKey("myCoolAlias.name"));  //Contact 2
-
-            Assert.True(firstContact.Attributes["myCoolAlias.name"] is AliasedValue); //Contact 1
-            Assert.True(lastContact.Attributes["myCoolAlias.name"] is AliasedValue);  //Contact 2
+            var results = result.ToList();
+            Assert.All(results, e => Assert.Single(e.Attributes));
+            Assert.All(results, e => Assert.True(e.Attributes.ContainsKey("myCoolAlias.name")));
+            Assert.All(results, e => Assert.IsType<AliasedValue>(e["myCoolAlias.name"]));
         }
 
         #region Filters
@@ -622,30 +595,38 @@ namespace FakeXrmEasy.Tests
         {
             var context = new XrmFakedContext();
 
-            Entity invoice_entity = new Entity("invoice");
-            invoice_entity.Id = Guid.NewGuid();
+      Entity invoice_entity = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
 
-            Entity op_entity = new Entity("new_onlinepayment");
-            op_entity.Id = Guid.NewGuid();
-            //op_entity.Attributes.Add("new_ps", new OptionSetValue(opstatus_new));
-            op_entity.Attributes.Add("statuscode", new OptionSetValue(1));
+      Entity op_entity = new Entity("new_onlinepayment")
+      {
+        Id = Guid.NewGuid()
+      };
+      //op_entity.Attributes.Add("new_ps", new OptionSetValue(opstatus_new));
+      op_entity.Attributes.Add("statuscode", new OptionSetValue(1));
             op_entity.Attributes.Add("new_amount", null);
             op_entity.Attributes.Add("new_invoiceid", new EntityReference("invoice", invoice_entity.Id));
             op_entity.Attributes.Add("new_pproviderid", new EntityReference("new_paymentprovider", Guid.NewGuid()));
 
-            //create pmr
-            Entity pmr_entity = new Entity("new_invoicepaymentmethod");
-            pmr_entity.Id = Guid.NewGuid();
-            pmr_entity.Attributes.Add("new_paymentvalue", new Money(100));
+      //create pmr
+      Entity pmr_entity = new Entity("new_invoicepaymentmethod")
+      {
+        Id = Guid.NewGuid()
+      };
+      pmr_entity.Attributes.Add("new_paymentvalue", new Money(100));
             pmr_entity.Attributes.Add("statuscode", new OptionSetValue(1));
             pmr_entity.Attributes.Add("statecode", new OptionSetValue(0));
             pmr_entity.Attributes.Add("new_invoicepaymentmethodid", pmr_entity.Id);
             pmr_entity.Attributes.Add("new_invoiceid", new EntityReference("invoice", invoice_entity.Id));
 
-            //create joining entity
-            Entity opi_entity = new Entity("new_onlinepaymentitem");
-            opi_entity.Id = Guid.NewGuid();
-            opi_entity.Attributes.Add("new_onlinepaymentid", new EntityReference("new_onlinepayment", op_entity.Id));
+      //create joining entity
+      Entity opi_entity = new Entity("new_onlinepaymentitem")
+      {
+        Id = Guid.NewGuid()
+      };
+      opi_entity.Attributes.Add("new_onlinepaymentid", new EntityReference("new_onlinepayment", op_entity.Id));
             opi_entity.Attributes.Add("new_invoicepaymentmethodid", new EntityReference("new_invoicepaymentmethod", pmr_entity.Id));
             opi_entity.Attributes.Add("statuscode", new OptionSetValue(1));
             opi_entity.Attributes.Add("statecode", new OptionSetValue(0));
@@ -812,19 +793,148 @@ namespace FakeXrmEasy.Tests
         }
 
         [Fact]
+        public void When_querying_early_bound_entities_unexisting_attribute_raises_exception_when_linked_from()
+        {
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            var role = new Role() { Id = Guid.NewGuid() };
+            var parentRole = new Role() { Id = Guid.NewGuid() };
+
+            context.Initialize(new[] { role, parentRole });
+
+            using (var ctx = new XrmServiceContext(service))
+            {
+                var qe = new QueryExpression() { EntityName = "role" };
+                qe.LinkEntities.Add(
+                    new LinkEntity()
+                    {
+                        LinkFromEntityName = "role",
+                        LinkToEntityName = "role",
+                        LinkFromAttributeName = "thisAttributeDoesntExists",
+                        LinkToAttributeName = "roleid",
+                        JoinOperator = JoinOperator.Inner,
+                        Columns = new ColumnSet(new string[] { "roleid" })
+                    }
+                );
+
+                var exception = Assert.Throws<FaultException<OrganizationServiceFault>>(() => XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList());
+                Assert.Equal((int)ErrorCodes.QueryBuilderNoAttribute, exception.Detail.ErrorCode);
+                Assert.Contains("thisAttributeDoesntExists", exception.Message);
+            }
+        }
+
+        [Fact]
+        public void When_querying_early_bound_entities_valid_join_attributes_work_as_expected()
+        {
+            var context = new XrmFakedContext();
+            var contact1 = new Contact() { Id = Guid.NewGuid() }; contact1["fullname"] = "Contact 1";
+            var contact2 = new Contact() { Id = Guid.NewGuid() }; contact2["fullname"] = "Contact 2";
+
+            var account = new Account() { Id = Guid.NewGuid() };
+            account["name"] = "Account 1";
+
+            contact1["parentcustomerid"] = account.ToEntityReference();
+            contact2["parentcustomerid"] = account.ToEntityReference();
+
+            context.Initialize(new List<Entity>() { account, contact1, contact2 });
+
+            var qe = new QueryExpression() { EntityName = "contact" };
+            qe.LinkEntities.Add(
+                new LinkEntity()
+                {
+                    LinkFromEntityName = "contact",
+                    LinkToEntityName = "account",
+                    LinkFromAttributeName = "parentcustomerid",
+                    LinkToAttributeName = "accountid",
+                    JoinOperator = JoinOperator.Inner,
+                    Columns = new ColumnSet(new string[] { "name" })
+                }
+            );
+            qe.ColumnSet = new ColumnSet(new string[] { "fullname" });
+
+            var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
+            Assert.Equal(2, result.Count);
+        }
+
+        [Fact]
+        public void When_querying_with_invalid_link_from_attribute_exception_message_is_helpful()
+        {
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            var contact = new Contact() { Id = Guid.NewGuid() };
+            var account = new Account() { Id = Guid.NewGuid() };
+
+            context.Initialize(new List<Entity>() { account, contact });
+
+            var qe = new QueryExpression() { EntityName = "contact" };
+            qe.LinkEntities.Add(
+                new LinkEntity()
+                {
+                    LinkFromEntityName = "contact",
+                    LinkToEntityName = "account",
+                    LinkFromAttributeName = "nonexistent_attribute",
+                    LinkToAttributeName = "accountid",
+                    JoinOperator = JoinOperator.Inner,
+                    Columns = new ColumnSet(true)
+                }
+            );
+            qe.ColumnSet = new ColumnSet(true);
+
+            var exception = Assert.Throws<FaultException<OrganizationServiceFault>>(() => XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList());
+            Assert.Equal((int)ErrorCodes.QueryBuilderNoAttribute, exception.Detail.ErrorCode);
+            Assert.Contains("nonexistent_attribute", exception.Message);
+        }
+
+        [Fact]
+        public void When_querying_with_invalid_link_to_attribute_exception_message_is_helpful()
+        {
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            var contact = new Contact() { Id = Guid.NewGuid() };
+            var account = new Account() { Id = Guid.NewGuid() };
+
+            context.Initialize(new List<Entity>() { account, contact });
+
+            var qe = new QueryExpression() { EntityName = "contact" };
+            qe.LinkEntities.Add(
+                new LinkEntity()
+                {
+                    LinkFromEntityName = "contact",
+                    LinkToEntityName = "account",
+                    LinkFromAttributeName = "parentcustomerid",
+                    LinkToAttributeName = "nonexistent_attribute",
+                    JoinOperator = JoinOperator.Inner,
+                    Columns = new ColumnSet(true)
+                }
+            );
+            qe.ColumnSet = new ColumnSet(true);
+
+            var exception = Assert.Throws<FaultException<OrganizationServiceFault>>(() => XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList());
+            Assert.Equal((int)ErrorCodes.QueryBuilderNoAttribute, exception.Detail.ErrorCode);
+            Assert.Contains("nonexistent_attribute", exception.Message);
+        }
+
+        [Fact]
         public void When_retrieve_multiple_is_invoked_with_a_service_created_entity_that_entity_is_returned_with_logical_name()
         {
             var context = new XrmFakedContext();
 
             var service = context.GetOrganizationService();
 
-            Entity account1 = new Entity("account");
-            account1.Id = Guid.NewGuid();
-            account1.Attributes.Add("name", "Account1");
+      Entity account1 = new Entity("account")
+      {
+        Id = Guid.NewGuid()
+      };
+      account1.Attributes.Add("name", "Account1");
 
-            Entity account2 = new Entity("account");
-            account2.Id = Guid.NewGuid();
-            account2.Attributes.Add("name", "Account2");
+      Entity account2 = new Entity("account")
+      {
+        Id = Guid.NewGuid()
+      };
+      account2.Attributes.Add("name", "Account2");
 
             service.Create(account1);
             service.Create(account2);
@@ -851,28 +961,38 @@ namespace FakeXrmEasy.Tests
                             "invoicedetail",
                             "new_invoicepaymentmethod"));
 
-            Entity product01 = new Entity("product");
-            product01.Id = Guid.NewGuid();
-            product01.Attributes.Add("name", "Test Product");
+      Entity product01 = new Entity("product")
+      {
+        Id = Guid.NewGuid()
+      };
+      product01.Attributes.Add("name", "Test Product");
 
-            Entity invoicedetail01 = new Entity("invoicedetail");
-            invoicedetail01.Id = Guid.NewGuid();
-            invoicedetail01.Attributes.Add("invoicedetailid", invoicedetail01.Id);
+      Entity invoicedetail01 = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoicedetail01.Attributes.Add("invoicedetailid", invoicedetail01.Id);
             invoicedetail01.Attributes.Add("new_productid", new EntityReference("product", product01.Id));
 
-            Entity pmr01 = new Entity("new_invoicepaymentmethod");
-            pmr01.Id = Guid.NewGuid();
-            pmr01.Attributes.Add("new_invoicepaymentmethodid", pmr01.Id);
+      Entity pmr01 = new Entity("new_invoicepaymentmethod")
+      {
+        Id = Guid.NewGuid()
+      };
+      pmr01.Attributes.Add("new_invoicepaymentmethodid", pmr01.Id);
             pmr01.Attributes.Add("new_name", "PMR0000000001");
 
-            Entity invoicedetail02 = new Entity("invoicedetail");
-            invoicedetail02.Id = Guid.NewGuid();
-            invoicedetail02.Attributes.Add("invoicedetailid", invoicedetail02.Id);
+      Entity invoicedetail02 = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoicedetail02.Attributes.Add("invoicedetailid", invoicedetail02.Id);
             invoicedetail02.Attributes.Add("new_productid", new EntityReference("product", product01.Id));
 
-            Entity pmr02 = new Entity("new_invoicepaymentmethod");
-            pmr02.Id = Guid.NewGuid();
-            pmr02.Attributes.Add("new_invoicepaymentmethodid", pmr02.Id);
+      Entity pmr02 = new Entity("new_invoicepaymentmethod")
+      {
+        Id = Guid.NewGuid()
+      };
+      pmr02.Attributes.Add("new_invoicepaymentmethodid", pmr02.Id);
             pmr02.Attributes.Add("new_name", "PMR0000000002");
 
             fakedService.Create(product01);
@@ -887,24 +1007,30 @@ namespace FakeXrmEasy.Tests
 
             EntityCollection invoiceDetails = new EntityCollection();
 
-            QueryExpression query = new QueryExpression("invoicedetail");
-            query.ColumnSet = new ColumnSet(true);
-            LinkEntity link1 = new LinkEntity();
-            link1.JoinOperator = JoinOperator.Natural;
-            link1.LinkFromEntityName = "invoicedetail";
-            link1.LinkFromAttributeName = "invoicedetailid";
-            link1.LinkToEntityName = "new_invoicepaymentmethod_invoicedetail";
-            link1.LinkToAttributeName = "invoicedetailid";
+      QueryExpression query = new QueryExpression("invoicedetail")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      LinkEntity link1 = new LinkEntity
+      {
+        JoinOperator = JoinOperator.Natural,
+        LinkFromEntityName = "invoicedetail",
+        LinkFromAttributeName = "invoicedetailid",
+        LinkToEntityName = "new_invoicepaymentmethod_invoicedetail",
+        LinkToAttributeName = "invoicedetailid"
+      };
 
-            LinkEntity link2 = new LinkEntity();
-            link2.JoinOperator = JoinOperator.Natural;
-            link2.LinkFromEntityName = "new_invoicepaymentmethod_invoicedetail";
-            link2.LinkFromAttributeName = "new_invoicepaymentmethodid";
-            link2.LinkToEntityName = "new_invoicepaymentmethod";
-            link2.LinkToAttributeName = "new_invoicepaymentmethodid";
-            link2.LinkCriteria = new FilterExpression(LogicalOperator.And);
+      LinkEntity link2 = new LinkEntity
+      {
+        JoinOperator = JoinOperator.Natural,
+        LinkFromEntityName = "new_invoicepaymentmethod_invoicedetail",
+        LinkFromAttributeName = "new_invoicepaymentmethodid",
+        LinkToEntityName = "new_invoicepaymentmethod",
+        LinkToAttributeName = "new_invoicepaymentmethodid",
+        LinkCriteria = new FilterExpression(LogicalOperator.And)
+      };
 
-            ConditionExpression condition1 = new ConditionExpression("new_invoicepaymentmethodid", ConditionOperator.Equal, pmr02.Id);
+      ConditionExpression condition1 = new ConditionExpression("new_invoicepaymentmethodid", ConditionOperator.Equal, pmr02.Id);
 
             link2.LinkCriteria.Conditions.Add(condition1);
             link1.LinkEntities.Add(link2);
@@ -913,7 +1039,7 @@ namespace FakeXrmEasy.Tests
             invoiceDetails = fakedService.RetrieveMultiple(query);
 
             Assert.Single(invoiceDetails.Entities);
-            Assert.Equal(invoicedetail02.Id, invoiceDetails.Entities[0].Id);
+            Assert.Equal(invoicedetail02.Id, Assert.Single(invoiceDetails.Entities).Id);
         }
     }
 }

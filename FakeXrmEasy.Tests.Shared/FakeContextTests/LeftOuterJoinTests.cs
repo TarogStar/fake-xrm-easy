@@ -45,10 +45,12 @@ namespace FakeXrmEasy.Tests
             context.Initialize(entities);
             var service = context.GetOrganizationService();
 
-            // Act - Left outer join to contact
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
-            var linkEntity = query.AddLink("contact", "primarycontactid", "contactid", JoinOperator.LeftOuter);
+      // Act - Left outer join to contact
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
+      var linkEntity = query.AddLink("contact", "primarycontactid", "contactid", JoinOperator.LeftOuter);
             linkEntity.Columns = new ColumnSet("fullname");
             linkEntity.EntityAlias = "contact";
 
@@ -96,11 +98,13 @@ namespace FakeXrmEasy.Tests
             context.Initialize(entities);
             var service = context.GetOrganizationService();
 
-            // Act - Account -> Contact (left outer) -> Address (left outer)
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
+      // Act - Account -> Contact (left outer) -> Address (left outer)
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
 
-            var contactLink = query.AddLink("contact", "primarycontactid", "contactid", JoinOperator.LeftOuter);
+      var contactLink = query.AddLink("contact", "primarycontactid", "contactid", JoinOperator.LeftOuter);
             contactLink.Columns = new ColumnSet("fullname");
             contactLink.EntityAlias = "contact";
 
@@ -153,8 +157,8 @@ namespace FakeXrmEasy.Tests
             var results = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             // Assert - Should return the account
-            Assert.Single(results.Entities);
-            Assert.Equal("Account Without Contact", results.Entities[0].GetAttributeValue<string>("name"));
+            var account = Assert.Single(results.Entities);
+            Assert.Equal("Account Without Contact", account.GetAttributeValue<string>("name"));
         }
 
         [Fact]
@@ -252,11 +256,13 @@ namespace FakeXrmEasy.Tests
             context.Initialize(entities);
             var service = context.GetOrganizationService();
 
-            // Act - Left outer join with filter
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
+      // Act - Left outer join with filter
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
 
-            var linkEntity = query.AddLink("contact", "primarycontactid", "contactid", JoinOperator.LeftOuter);
+      var linkEntity = query.AddLink("contact", "primarycontactid", "contactid", JoinOperator.LeftOuter);
             linkEntity.Columns = new ColumnSet("fullname");
             linkEntity.EntityAlias = "contact";
             linkEntity.LinkCriteria.AddCondition("statecode", ConditionOperator.Equal, 0);
@@ -316,11 +322,13 @@ namespace FakeXrmEasy.Tests
             context.Initialize(entities);
             var service = context.GetOrganizationService();
 
-            // Act - Two left outer joins at the same level
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
+      // Act - Two left outer joins at the same level
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
 
-            var contactLink = query.AddLink("contact", "primarycontactid", "contactid", JoinOperator.LeftOuter);
+      var contactLink = query.AddLink("contact", "primarycontactid", "contactid", JoinOperator.LeftOuter);
             contactLink.Columns = new ColumnSet("fullname");
             contactLink.EntityAlias = "contact";
 
@@ -369,11 +377,13 @@ namespace FakeXrmEasy.Tests
             context.Initialize(entities);
             var service = context.GetOrganizationService();
 
-            // Act - Inner join to contact, then left outer to parent account
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
+      // Act - Inner join to contact, then left outer to parent account
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
 
-            var contactLink = query.AddLink("contact", "primarycontactid", "contactid", JoinOperator.Inner);
+      var contactLink = query.AddLink("contact", "primarycontactid", "contactid", JoinOperator.Inner);
             contactLink.Columns = new ColumnSet("fullname");
             contactLink.EntityAlias = "contact";
 
@@ -426,11 +436,13 @@ namespace FakeXrmEasy.Tests
             context.Initialize(entities);
             var service = context.GetOrganizationService();
 
-            // Act - Three levels of left outer joins
-            var query = new QueryExpression("level1");
-            query.ColumnSet = new ColumnSet("name");
+      // Act - Three levels of left outer joins
+      var query = new QueryExpression("level1")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
 
-            var link2 = query.AddLink("level2", "level2id", "level2id", JoinOperator.LeftOuter);
+      var link2 = query.AddLink("level2", "level2id", "level2id", JoinOperator.LeftOuter);
             link2.Columns = new ColumnSet("name");
             link2.EntityAlias = "level2";
 

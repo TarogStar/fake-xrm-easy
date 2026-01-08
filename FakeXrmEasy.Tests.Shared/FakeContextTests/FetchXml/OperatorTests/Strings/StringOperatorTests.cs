@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 using Crm;
@@ -15,10 +16,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml.OperatorTests.Strings
         [Fact]
         public void FetchXml_Operator_Lt_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='contactid' />
@@ -62,17 +65,20 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml.OperatorTests.Strings
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(2, collection.Entities.Count);
-            Assert.Equal("Alice", collection.Entities[0]["nickname"]);
-            Assert.Equal("Bob", collection.Entities[1]["nickname"]);
+            var nicknames = collection.Entities.Select(e => (string)e["nickname"]).ToList();
+            Assert.Contains("Alice", nicknames);
+            Assert.Contains("Bob", nicknames);
         }
 
         [Fact]
         public void FetchXml_Operator_Gt_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='contactid' />
@@ -116,8 +122,9 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml.OperatorTests.Strings
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(2, collection.Entities.Count);
-            Assert.Equal("Bob", collection.Entities[0]["nickname"]);
-            Assert.Equal("Nati", collection.Entities[1]["nickname"]);
+            var nicknames = collection.Entities.Select(e => (string)e["nickname"]).ToList();
+            Assert.Contains("Bob", nicknames);
+            Assert.Contains("Nati", nicknames);
         }
     }
 }

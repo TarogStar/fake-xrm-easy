@@ -55,14 +55,20 @@ namespace FakeXrmEasy.Tests
         public void When_an_entity_is_updated_with_a_null_attribute_the_attribute_is_removed()
         {
             var context = new XrmFakedContext();
-            var entity = new Account { Id = Guid.NewGuid() };
-            entity.DoNotEMail = true;
-            context.Initialize(entity);
+      var entity = new Account
+      {
+        Id = Guid.NewGuid(),
+        DoNotEMail = true
+      };
+      context.Initialize(entity);
 
-            var update = new Account() { Id = entity.Id };
-            update.DoNotEMail = null;
+      var update = new Account
+      {
+        Id = entity.Id,
+        DoNotEMail = null
+      };
 
-            var service = context.GetOrganizationService();
+      var service = context.GetOrganizationService();
             service.Update(update);
 
             var updatedEntityAllAttributes = service.Retrieve(Account.EntityLogicalName, update.Id, new ColumnSet(true));
@@ -105,11 +111,15 @@ namespace FakeXrmEasy.Tests
             var context = new XrmFakedContext();
             var service = context.GetOrganizationService();
 
-            var accountMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityMetadata();
-            accountMetadata.LogicalName = Account.EntityLogicalName;
-            var alternateKeyMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata();
-            alternateKeyMetadata.KeyAttributes = new string[] { "AccountNumber" };
-            accountMetadata.SetFieldValue("Keys", new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata[]
+      var accountMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityMetadata
+      {
+        LogicalName = Account.EntityLogicalName
+      };
+      var alternateKeyMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata
+      {
+        KeyAttributes = new string[] { "AccountNumber" }
+      };
+      accountMetadata.SetFieldValue("Keys", new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata[]
                  {
                  alternateKeyMetadata
                  });
@@ -177,10 +187,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_updating_an_entity_an_unchanged_attribute_remains_the_same()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var existingAccount = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
+      var existingAccount = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
             context.Initialize(new List<Entity>()
             {
                 existingAccount
@@ -188,12 +200,15 @@ namespace FakeXrmEasy.Tests
 
             var service = context.GetOrganizationService();
 
-            //Create a new entity class to update the name
-            var accountToUpdate = new Account() { Id = existingAccount.Id };
-            accountToUpdate.Name = "Super Great Customer Name Updated!";
+      //Create a new entity class to update the name
+      var accountToUpdate = new Account
+      {
+        Id = existingAccount.Id,
+        Name = "Super Great Customer Name Updated!"
+      };
 
-            //Update the entity in the context
-            service.Update(accountToUpdate);
+      //Update the entity in the context
+      service.Update(accountToUpdate);
 
             //Make sure existing entity still maintains AccountNumber property
             var account = context.CreateQuery<Account>().FirstOrDefault();
@@ -203,10 +218,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_updating_an_entity_only_one_entity_is_updated()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var existingAccount = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
+      var existingAccount = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
             var otherExistingAccount = new Account() { Id = Guid.NewGuid(), Name = "Devil Customer", AccountNumber = "666" };
 
             context.Initialize(new List<Entity>()
@@ -216,12 +233,15 @@ namespace FakeXrmEasy.Tests
 
             var service = context.GetOrganizationService();
 
-            //Create a new entity class to update the first account
-            var accountToUpdate = new Account() { Id = existingAccount.Id };
-            accountToUpdate.Name = "Super Great Customer Name Updated!";
+      //Create a new entity class to update the first account
+      var accountToUpdate = new Account
+      {
+        Id = existingAccount.Id,
+        Name = "Super Great Customer Name Updated!"
+      };
 
-            //Update the entity in the context
-            service.Update(accountToUpdate);
+      //Update the entity in the context
+      service.Update(accountToUpdate);
 
             //Make other account wasn't updated
             var account = context.CreateQuery<Account>().Where(e => e.Id == otherExistingAccount.Id).FirstOrDefault();
@@ -231,10 +251,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_updating_an_entity_using_organization_context_changes_should_be_saved()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var existingAccount = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
+      var existingAccount = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
 
             context.Initialize(new List<Entity>()
             {
@@ -261,10 +283,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_updating_a_not_existing_entity_using_organization_context_exception_should_be_thrown()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var existingAccount = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
+      var existingAccount = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
 
             var service = context.GetOrganizationService();
 

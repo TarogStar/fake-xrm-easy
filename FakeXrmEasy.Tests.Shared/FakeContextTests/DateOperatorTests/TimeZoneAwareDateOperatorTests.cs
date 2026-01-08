@@ -16,12 +16,14 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_SystemTimeZone_Set_ThisMonth_Should_Use_That_Timezone()
         {
-            // Arrange - Set timezone to Pacific Standard Time
-            var context = new XrmFakedContext();
-            context.SystemTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
+      // Arrange - Set timezone to Pacific Standard Time
+      var context = new XrmFakedContext
+      {
+        SystemTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time")
+      };
 
-            // Get current month in PST
-            var nowInPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, context.SystemTimeZone);
+      // Get current month in PST
+      var nowInPst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, context.SystemTimeZone);
             var firstOfMonth = new DateTime(nowInPst.Year, nowInPst.Month, 1);
             var lastOfMonth = firstOfMonth.AddMonths(1).AddDays(-1).AddHours(23).AddMinutes(59).AddSeconds(59).AddMilliseconds(999);
 
@@ -45,10 +47,12 @@ namespace FakeXrmEasy.Tests
             context.Initialize(entities);
             var service = context.GetOrganizationService();
 
-            // Act - Query for ThisMonth in PST
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
-            query.Criteria.AddCondition("createdon", ConditionOperator.ThisMonth);
+      // Act - Query for ThisMonth in PST
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.ThisMonth);
 
             var results = service.RetrieveMultiple(query);
 
@@ -92,11 +96,13 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_SystemTimeZone_Set_LastMonth_Should_Use_That_Timezone()
         {
-            // Arrange - Set timezone to Eastern Standard Time
-            var context = new XrmFakedContext();
-            context.SystemTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+      // Arrange - Set timezone to Eastern Standard Time
+      var context = new XrmFakedContext
+      {
+        SystemTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time")
+      };
 
-            var nowInEst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, context.SystemTimeZone);
+      var nowInEst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, context.SystemTimeZone);
             var firstOfLastMonth = new DateTime(nowInEst.Year, nowInEst.Month, 1).AddMonths(-1);
             var lastOfLastMonth = new DateTime(nowInEst.Year, nowInEst.Month, 1).AddDays(-1)
                                     .AddHours(23).AddMinutes(59).AddSeconds(59).AddMilliseconds(999);
@@ -120,10 +126,12 @@ namespace FakeXrmEasy.Tests
             context.Initialize(entities);
             var service = context.GetOrganizationService();
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
-            query.Criteria.AddCondition("createdon", ConditionOperator.LastMonth);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.LastMonth);
 
             var results = service.RetrieveMultiple(query);
 
@@ -135,11 +143,13 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_SystemTimeZone_Set_ThisYear_Should_Use_That_Timezone()
         {
-            // Arrange - Set timezone to UTC
-            var context = new XrmFakedContext();
-            context.SystemTimeZone = TimeZoneInfo.Utc;
+      // Arrange - Set timezone to UTC
+      var context = new XrmFakedContext
+      {
+        SystemTimeZone = TimeZoneInfo.Utc
+      };
 
-            var nowInUtc = DateTime.UtcNow;
+      var nowInUtc = DateTime.UtcNow;
             var thisYear = nowInUtc.Year;
 
             var entities = new List<Entity>
@@ -161,10 +171,12 @@ namespace FakeXrmEasy.Tests
             context.Initialize(entities);
             var service = context.GetOrganizationService();
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
-            query.Criteria.AddCondition("createdon", ConditionOperator.ThisYear);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.ThisYear);
 
             var results = service.RetrieveMultiple(query);
 
@@ -182,18 +194,22 @@ namespace FakeXrmEasy.Tests
             // Arrange - Create a date that's on month boundary
             var utcDate = new DateTime(2024, 1, 31, 23, 30, 0, DateTimeKind.Utc); // Jan 31 11:30 PM UTC
 
-            // In UTC, this is January 31
-            // In Australia/Sydney (UTC+11), this would be February 1
-            var contextUtc = new XrmFakedContext();
-            contextUtc.SystemTimeZone = TimeZoneInfo.Utc;
+      // In UTC, this is January 31
+      // In Australia/Sydney (UTC+11), this would be February 1
+      var contextUtc = new XrmFakedContext
+      {
+        SystemTimeZone = TimeZoneInfo.Utc
+      };
 
-            var contextSydney = new XrmFakedContext();
-            // Note: For this test to work, the system must have the timezone info
-            // We'll use a fixed offset instead for reliability
-            contextSydney.SystemTimeZone = TimeZoneInfo.CreateCustomTimeZone(
-                "Custom UTC+11", TimeSpan.FromHours(11), "UTC+11", "UTC+11");
+      var contextSydney = new XrmFakedContext
+      {
+        // Note: For this test to work, the system must have the timezone info
+        // We'll use a fixed offset instead for reliability
+        SystemTimeZone = TimeZoneInfo.CreateCustomTimeZone(
+            "Custom UTC+11", TimeSpan.FromHours(11), "UTC+11", "UTC+11")
+      };
 
-            var entity = new Entity("account")
+      var entity = new Entity("account")
             {
                 Id = Guid.NewGuid(),
                 ["name"] = "Boundary Date",
@@ -225,11 +241,13 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_SystemTimeZone_Set_FetchXml_ThisMonth_Should_Use_That_Timezone()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.SystemTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        SystemTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time")
+      };
 
-            var nowInCst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, context.SystemTimeZone);
+      var nowInCst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, context.SystemTimeZone);
             var firstOfMonth = new DateTime(nowInCst.Year, nowInCst.Month, 1);
 
             var entities = new List<Entity>
@@ -266,11 +284,13 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_SystemTimeZone_Set_ThisWeek_Should_Use_That_Timezone()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.SystemTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Mountain Standard Time");
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        SystemTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Mountain Standard Time")
+      };
 
-            var nowInMst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, context.SystemTimeZone);
+      var nowInMst = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, context.SystemTimeZone);
             var today = nowInMst.Date;
 
             var entities = new List<Entity>
@@ -286,10 +306,12 @@ namespace FakeXrmEasy.Tests
             context.Initialize(entities);
             var service = context.GetOrganizationService();
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
-            query.Criteria.AddCondition("createdon", ConditionOperator.ThisWeek);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.ThisWeek);
 
             var results = service.RetrieveMultiple(query);
 

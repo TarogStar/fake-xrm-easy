@@ -20,10 +20,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
 
             context.Initialize(new List<Entity>() { contact1, contact2 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("fullname", ConditionOperator.LastXFiscalPeriods, "Contact 1");
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("fullname", ConditionOperator.LastXFiscalPeriods, "Contact 1");
             qe.Criteria.AddCondition(condition);
 
             Assert.Throws<PullRequestException>(() => XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList());
@@ -38,15 +41,18 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
 
             context.Initialize(new List<Entity>() { contact1, contact2 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("fullname", ConditionOperator.Equal, "Contact 1");
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("fullname", ConditionOperator.Equal, "Contact 1");
             qe.Criteria.AddCondition(condition);
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
 
-            Assert.True(result.Count() == 1);
+            Assert.Single(result);
         }
 
         [Fact]
@@ -59,15 +65,18 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
 
             context.Initialize(new List<Entity>() { contact1, contact2 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("fullname", ConditionOperator.In, new string[] { "McDonald", "King" });
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("fullname", ConditionOperator.In, new string[] { "McDonald", "King" });
             qe.Criteria.AddCondition(condition);
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
 
-            Assert.True(result.Count() == 2);
+            Assert.Equal(2, result.Count);
         }
 
 
@@ -81,10 +90,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
 
             context.Initialize(new List<Entity>() { contact1, contact2, contact3 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("fullname", ConditionOperator.Null);
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("fullname", ConditionOperator.Null);
             qe.Criteria.AddCondition(condition);
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
@@ -102,10 +114,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
 
             context.Initialize(new List<Entity>() { contact1, contact2, contact3 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("fullname", ConditionOperator.NotNull);
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("fullname", ConditionOperator.NotNull);
             qe.Criteria.AddCondition(condition);
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
@@ -123,10 +138,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
 
             context.Initialize(new List<Entity>() { contact1, contact2, contact3 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("fullname", ConditionOperator.Null);
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("fullname", ConditionOperator.Null);
             qe.Criteria.AddCondition(condition);
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();

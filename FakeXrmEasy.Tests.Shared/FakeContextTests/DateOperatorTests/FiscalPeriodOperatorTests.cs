@@ -19,15 +19,17 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
         [Fact]
         public void When_InFiscalPeriodAndYear_Quarterly_Q1_Should_Match_First_Quarter()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.FiscalYearSettings = new FiscalYearSettings
-            {
-                StartDate = new DateTime(2024, 4, 1), // April 1st fiscal year start
-                FiscalPeriodTemplate = FiscalYearSettings.Template.Quarterly
-            };
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        FiscalYearSettings = new FiscalYearSettings
+        {
+          StartDate = new DateTime(2024, 4, 1), // April 1st fiscal year start
+          FiscalPeriodTemplate = FiscalYearSettings.Template.Quarterly
+        }
+      };
 
-            var entities = new List<Entity>
+      var entities = new List<Entity>
             {
                 new Entity("account")
                 {
@@ -51,10 +53,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 1);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 1);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -67,15 +71,17 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
         [Fact]
         public void When_InFiscalPeriodAndYear_Quarterly_Q4_Should_Match_Fourth_Quarter()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.FiscalYearSettings = new FiscalYearSettings
-            {
-                StartDate = new DateTime(2024, 4, 1), // April 1st fiscal year start
-                FiscalPeriodTemplate = FiscalYearSettings.Template.Quarterly
-            };
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        FiscalYearSettings = new FiscalYearSettings
+        {
+          StartDate = new DateTime(2024, 4, 1), // April 1st fiscal year start
+          FiscalPeriodTemplate = FiscalYearSettings.Template.Quarterly
+        }
+      };
 
-            var entities = new List<Entity>
+      var entities = new List<Entity>
             {
                 new Entity("account")
                 {
@@ -99,10 +105,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 4);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 4);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -118,15 +126,17 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
         [Fact]
         public void When_InFiscalPeriodAndYear_Monthly_Period1_Should_Match_First_Month()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.FiscalYearSettings = new FiscalYearSettings
-            {
-                StartDate = new DateTime(2024, 1, 1), // Calendar year fiscal
-                FiscalPeriodTemplate = FiscalYearSettings.Template.Monthly
-            };
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        FiscalYearSettings = new FiscalYearSettings
+        {
+          StartDate = new DateTime(2024, 1, 1), // Calendar year fiscal
+          FiscalPeriodTemplate = FiscalYearSettings.Template.Monthly
+        }
+      };
 
-            var entities = new List<Entity>
+      var entities = new List<Entity>
             {
                 new Entity("account")
                 {
@@ -150,10 +160,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 1);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 1);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -165,15 +177,17 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
         [Fact]
         public void When_InFiscalPeriodAndYear_Monthly_Period12_Should_Match_December()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.FiscalYearSettings = new FiscalYearSettings
-            {
-                StartDate = new DateTime(2024, 1, 1), // Calendar year fiscal
-                FiscalPeriodTemplate = FiscalYearSettings.Template.Monthly
-            };
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        FiscalYearSettings = new FiscalYearSettings
+        {
+          StartDate = new DateTime(2024, 1, 1), // Calendar year fiscal
+          FiscalPeriodTemplate = FiscalYearSettings.Template.Monthly
+        }
+      };
 
-            var entities = new List<Entity>
+      var entities = new List<Entity>
             {
                 new Entity("account")
                 {
@@ -197,10 +211,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 12);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 12);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -251,10 +267,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.ThisFiscalPeriod);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.ThisFiscalPeriod);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -308,10 +326,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.LastFiscalPeriod);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.LastFiscalPeriod);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -362,10 +382,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.NextFiscalPeriod);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.NextFiscalPeriod);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -380,18 +402,19 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
         [Fact]
         public void When_LastFiscalPeriod_At_Q1_Should_Rollover_To_Previous_Year_Q4()
         {
-            // Arrange
-            var context = new XrmFakedContext();
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        // Set up fiscal year starting Jan 1 with quarterly periods
+        // Testing in Q1 of 2025 - last fiscal period should be Q4 of 2024
+        FiscalYearSettings = new FiscalYearSettings
+        {
+          StartDate = new DateTime(2025, 1, 1),
+          FiscalPeriodTemplate = FiscalYearSettings.Template.Quarterly
+        }
+      };
 
-            // Set up fiscal year starting Jan 1 with quarterly periods
-            // Testing in Q1 of 2025 - last fiscal period should be Q4 of 2024
-            context.FiscalYearSettings = new FiscalYearSettings
-            {
-                StartDate = new DateTime(2025, 1, 1),
-                FiscalPeriodTemplate = FiscalYearSettings.Template.Quarterly
-            };
-
-            var entities = new List<Entity>
+      var entities = new List<Entity>
             {
                 new Entity("account")
                 {
@@ -409,10 +432,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Simulate "today" being in Q1 2025 by using InFiscalPeriodAndYear to verify Q4 2024
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 4);
+      // Simulate "today" being in Q1 2025 by using InFiscalPeriodAndYear to verify Q4 2024
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 4);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -423,17 +448,18 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
         [Fact]
         public void When_NextFiscalPeriod_At_Q4_Should_Rollover_To_Next_Year_Q1()
         {
-            // Arrange
-            var context = new XrmFakedContext();
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        // Set up fiscal year starting Jan 1 with quarterly periods
+        FiscalYearSettings = new FiscalYearSettings
+        {
+          StartDate = new DateTime(2024, 1, 1),
+          FiscalPeriodTemplate = FiscalYearSettings.Template.Quarterly
+        }
+      };
 
-            // Set up fiscal year starting Jan 1 with quarterly periods
-            context.FiscalYearSettings = new FiscalYearSettings
-            {
-                StartDate = new DateTime(2024, 1, 1),
-                FiscalPeriodTemplate = FiscalYearSettings.Template.Quarterly
-            };
-
-            var entities = new List<Entity>
+      var entities = new List<Entity>
             {
                 new Entity("account")
                 {
@@ -451,10 +477,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Verify Q1 2025 via InFiscalPeriodAndYear
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2025, 1);
+      // Verify Q1 2025 via InFiscalPeriodAndYear
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2025, 1);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -469,15 +497,17 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
         [Fact]
         public void When_FetchXml_InFiscalPeriodAndYear_Should_Work()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.FiscalYearSettings = new FiscalYearSettings
-            {
-                StartDate = new DateTime(2024, 1, 1),
-                FiscalPeriodTemplate = FiscalYearSettings.Template.Quarterly
-            };
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        FiscalYearSettings = new FiscalYearSettings
+        {
+          StartDate = new DateTime(2024, 1, 1),
+          FiscalPeriodTemplate = FiscalYearSettings.Template.Quarterly
+        }
+      };
 
-            var entities = new List<Entity>
+      var entities = new List<Entity>
             {
                 new Entity("account")
                 {
@@ -577,15 +607,17 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
         [Fact]
         public void When_InFiscalPeriodAndYear_SemiAnnual_Should_Match_Correct_Half()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.FiscalYearSettings = new FiscalYearSettings
-            {
-                StartDate = new DateTime(2024, 1, 1),
-                FiscalPeriodTemplate = FiscalYearSettings.Template.SemiAnnually
-            };
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        FiscalYearSettings = new FiscalYearSettings
+        {
+          StartDate = new DateTime(2024, 1, 1),
+          FiscalPeriodTemplate = FiscalYearSettings.Template.SemiAnnually
+        }
+      };
 
-            var entities = new List<Entity>
+      var entities = new List<Entity>
             {
                 new Entity("account")
                 {
@@ -603,10 +635,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 1);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 1);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -643,10 +677,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act - Test Q1 of FY starting April 2024 (Apr-Jun)
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 1);
+      // Act - Test Q1 of FY starting April 2024 (Apr-Jun)
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalPeriodAndYear, 2024, 1);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert

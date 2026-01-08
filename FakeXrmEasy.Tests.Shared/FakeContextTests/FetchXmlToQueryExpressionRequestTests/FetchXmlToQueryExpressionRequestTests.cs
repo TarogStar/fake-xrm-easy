@@ -13,9 +13,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXmlToQueryExpressionRequestTes
         [Fact]
         public void Should_convert_fetchxml_query_into_queryexpression()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
             var request = new FetchXmlToQueryExpressionRequest
             {
                 FetchXml = "<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>" +

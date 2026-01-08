@@ -21,10 +21,12 @@ namespace FakeXrmEasy.Tests.CodeActivitiesForTesting
             // Retrieve the id
             Guid accountId = this.inputEntity.Get(executionContext).Id;
 
-            // Create a task entity
-            Entity task = new Entity();
-            task.LogicalName = "task";
-            task["subject"] = accountId.ToString();
+      // Create a task entity
+      Entity task = new Entity
+      {
+        LogicalName = "task"
+      };
+      task["subject"] = accountId.ToString();
             task["regardingobjectid"] = new EntityReference("account", accountId);
             Guid taskId = service.Create(task);
             this.taskCreated.Set(executionContext,

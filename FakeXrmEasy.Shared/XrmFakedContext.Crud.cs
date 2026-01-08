@@ -5,6 +5,7 @@ using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -95,9 +96,10 @@ namespace FakeXrmEasy
                     {
                         if (record.KeyAttributes.Keys.Count == key.KeyAttributes.Length && key.KeyAttributes.All(x => record.KeyAttributes.Keys.Contains(x)))
                         {
-                            if (Data.ContainsKey(record.LogicalName))
+                            ConcurrentDictionary<Guid, Entity> entityDict;
+                            if (Data.TryGetValue(record.LogicalName, out entityDict))
                             {
-                                var matchedRecord = Data[record.LogicalName].Values.SingleOrDefault(x => record.KeyAttributes.All(k => x.Attributes.ContainsKey(k.Key) && x.Attributes[k.Key] != null && x.Attributes[k.Key].Equals(k.Value)));
+                                var matchedRecord = entityDict.Values.SingleOrDefault(x => record.KeyAttributes.All(k => x.Attributes.ContainsKey(k.Key) && x.Attributes[k.Key] != null && x.Attributes[k.Key].Equals(k.Value)));
                                 if (matchedRecord != null)
                                 {
                                     return matchedRecord.Id;
@@ -146,7 +148,8 @@ namespace FakeXrmEasy
                 return null;
             }
 
-            if (!Data.ContainsKey(entity.LogicalName))
+            ConcurrentDictionary<Guid, Entity> entityDict;
+            if (!Data.TryGetValue(entity.LogicalName, out entityDict))
             {
                 return null;
             }
@@ -174,7 +177,7 @@ namespace FakeXrmEasy
                 // Note: We also require existing records to have non-null values for all key attributes.
                 // Records with null key attributes are not considered for duplicate checking,
                 // matching Dataverse behavior where null effectively opts out of the key constraint.
-                var duplicate = Data[entity.LogicalName].Values
+                var duplicate = entityDict.Values
                     .Where(existing => excludeId == null || existing.Id != excludeId.Value)
                     .FirstOrDefault(existing =>
                         keyValues.All(kv =>
@@ -312,8 +315,10 @@ namespace FakeXrmEasy
             e.Id = GetRecordUniqueId(reference);
 
             // Update specific validations: The entity record must exist in the context
-            if (Data.ContainsKey(e.LogicalName) &&
-                Data[e.LogicalName].ContainsKey(e.Id))
+            ConcurrentDictionary<Guid, Entity> entityDict;
+            Entity cachedEntity;
+            if (Data.TryGetValue(e.LogicalName, out entityDict) &&
+                entityDict.TryGetValue(e.Id, out cachedEntity))
             {
                 if (this.UsePipelineSimulation)
                 {
@@ -321,7 +326,6 @@ namespace FakeXrmEasy
                 }
 
                 // Add as many attributes to the entity as the ones received (this will keep existing ones)
-                var cachedEntity = Data[e.LogicalName][e.Id];
 
                 // Check alternate key uniqueness constraints for the merged entity
 #if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013 && !FAKE_XRM_EASY_2015
@@ -402,7 +406,8 @@ namespace FakeXrmEasy
         /// </exception>
         protected EntityReference ResolveEntityReference(EntityReference er)
         {
-            if (!Data.ContainsKey(er.LogicalName) || !Data[er.LogicalName].ContainsKey(er.Id))
+            ConcurrentDictionary<Guid, Entity> entityDict;
+            if (!Data.TryGetValue(er.LogicalName, out entityDict) || !entityDict.ContainsKey(er.Id))
             {
                 if (er.Id == Guid.Empty && er.HasKeyAttributes())
                 {
@@ -504,17 +509,19 @@ namespace FakeXrmEasy
                 }
             }
 
-            // Entity logical name exists, so , check if the requested entity exists
-            if (this.Data.ContainsKey(er.LogicalName) && this.Data[er.LogicalName] != null &&
-                this.Data[er.LogicalName].ContainsKey(er.Id))
+            // Entity logical name exists, so check if the requested entity exists
+            ConcurrentDictionary<Guid, Entity> entityDict;
+            if (this.Data.TryGetValue(er.LogicalName, out entityDict) && entityDict != null &&
+                entityDict.ContainsKey(er.Id))
             {
                 if (this.UsePipelineSimulation)
                 {
                     ExecutePipelineStage("Delete", ProcessingStepStage.Preoperation, ProcessingStepMode.Synchronous, er);
                 }
 
-                // Entity found => return only the subset of columns specified or all of them
-                this.Data[er.LogicalName].Remove(er.Id);
+                // Entity found => remove it using thread-safe TryRemove
+                Entity removedEntity;
+                entityDict.TryRemove(er.Id, out removedEntity);
 
                 if (this.UsePipelineSimulation)
                 {
@@ -590,19 +597,19 @@ namespace FakeXrmEasy
             // Add createdon, modifiedon, createdby, modifiedby properties
             if (CallerId == null)
             {
-                CallerId = new EntityReference("systemuser", Guid.NewGuid()); // Create a new instance by default
-                if (ValidateReferences)
+                lock (_dataLock)
                 {
-                    if (!Data.ContainsKey("systemuser"))
+                    // Double-check after acquiring lock
+                    if (CallerId == null)
                     {
-                        Data.Add("systemuser", new Dictionary<Guid, Entity>());
-                    }
-                    if (!Data["systemuser"].ContainsKey(CallerId.Id))
-                    {
-                        Data["systemuser"].Add(CallerId.Id, new Entity("systemuser") { Id = CallerId.Id });
+                        CallerId = new EntityReference("systemuser", Guid.NewGuid()); // Create a new instance by default
+                        if (ValidateReferences)
+                        {
+                            var systemUserDict = Data.GetOrAdd("systemuser", _ => new ConcurrentDictionary<Guid, Entity>());
+                            systemUserDict.TryAdd(CallerId.Id, new Entity("systemuser") { Id = CallerId.Id });
+                        }
                     }
                 }
-
             }
 
             var isManyToManyRelationshipEntity = e.LogicalName != null && this.Relationships.ContainsKey(e.LogicalName);
@@ -687,9 +694,10 @@ namespace FakeXrmEasy
 
             ValidateEntity(clone);
 
-            // Create specific validations
-            if (clone.Id != Guid.Empty && Data.ContainsKey(clone.LogicalName) &&
-                Data[clone.LogicalName].ContainsKey(clone.Id))
+            // Create specific validations - thread-safe check
+            ConcurrentDictionary<Guid, Entity> existingEntityDict;
+            if (clone.Id != Guid.Empty && Data.TryGetValue(clone.LogicalName, out existingEntityDict) &&
+                existingEntityDict.ContainsKey(clone.Id))
             {
                 throw new InvalidOperationException($"There is already a record of entity {clone.LogicalName} with id {clone.Id}, can't create with this Id.");
             }
@@ -853,24 +861,12 @@ namespace FakeXrmEasy
                 }
             }
 
-            //Add the entity collection
-            if (!Data.ContainsKey(e.LogicalName))
-            {
-                Data.Add(e.LogicalName, new Dictionary<Guid, Entity>());
-            }
+            //Add the entity collection - thread-safe using ConcurrentDictionary
+            var entityDict = Data.GetOrAdd(e.LogicalName, _ => new ConcurrentDictionary<Guid, Entity>());
+            entityDict[e.Id] = e;
 
-            if (Data[e.LogicalName].ContainsKey(e.Id))
-            {
-                Data[e.LogicalName][e.Id] = e;
-            }
-            else
-            {
-                Data[e.LogicalName].Add(e.Id, e);
-            }
-
-            //Update metadata for that entity
-            if (!AttributeMetadataNames.ContainsKey(e.LogicalName))
-                AttributeMetadataNames.Add(e.LogicalName, new Dictionary<string, string>());
+            //Update metadata for that entity - thread-safe using ConcurrentDictionary
+            var attributeDict = AttributeMetadataNames.GetOrAdd(e.LogicalName, _ => new ConcurrentDictionary<string, string>());
 
             //Update attribute metadata
             if (ProxyTypesAssembly != null)
@@ -882,8 +878,7 @@ namespace FakeXrmEasy
                     var props = type.GetProperties();
                     foreach (var p in props)
                     {
-                        if (!AttributeMetadataNames[e.LogicalName].ContainsKey(p.Name))
-                            AttributeMetadataNames[e.LogicalName].Add(p.Name, p.Name);
+                        attributeDict.TryAdd(p.Name, p.Name);
                     }
                 }
                 else
@@ -896,8 +891,7 @@ namespace FakeXrmEasy
                 //if the entity has the attribute in the dictionary
                 foreach (var attKey in e.Attributes.Keys)
                 {
-                    if (!AttributeMetadataNames[e.LogicalName].ContainsKey(attKey))
-                        AttributeMetadataNames[e.LogicalName].Add(attKey, attKey);
+                    attributeDict.TryAdd(attKey, attKey);
                 }
             }
 

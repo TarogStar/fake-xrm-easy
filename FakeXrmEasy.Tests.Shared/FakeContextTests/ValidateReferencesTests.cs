@@ -45,9 +45,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests
         [Fact]
         public void An_entity_which_references_another_non_existent_entity_can_not_be_created_when_validate_is_true()
         {
-            var context = new XrmFakedContext();
-            context.ValidateReferences = true;
-            IOrganizationService service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ValidateReferences = true
+      };
+      IOrganizationService service = context.GetOrganizationService();
 
             Guid otherEntity = Guid.NewGuid();
             Entity entity = new Entity("entity");
@@ -62,13 +64,17 @@ namespace FakeXrmEasy.Tests.FakeContextTests
         [Fact]
         public void An_entity_which_references_another_existent_entity_can_be_created_when_validate_is_true()
         {
-            var context = new XrmFakedContext();
-            context.ValidateReferences = true;
-            IOrganizationService service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ValidateReferences = true
+      };
+      IOrganizationService service = context.GetOrganizationService();
 
-            Entity otherEntity = new Entity("otherEntity");
-            otherEntity.Id = Guid.NewGuid();
-            context.Initialize(otherEntity);
+      Entity otherEntity = new Entity("otherEntity")
+      {
+        Id = Guid.NewGuid()
+      };
+      context.Initialize(otherEntity);
 
             Entity entity = new Entity("entity");
             entity["otherEntity"] = otherEntity.ToEntityReference();
@@ -89,9 +95,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             var context = new XrmFakedContext();
             IOrganizationService service = context.GetOrganizationService();
 
-            Entity entity = new Entity("entity");
-            entity.Id = Guid.NewGuid();
-            context.Initialize(entity);
+      Entity entity = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      context.Initialize(entity);
 
             Guid otherEntityId = Guid.NewGuid();
             entity["otherEntity"] = new EntityReference("entity", otherEntityId);
@@ -107,13 +115,17 @@ namespace FakeXrmEasy.Tests.FakeContextTests
         [Fact]
         public void An_entity_which_references_another_non_existent_entity_can_not_be_updated_when_validate_is_true()
         {
-            var context = new XrmFakedContext();
-            context.ValidateReferences = true;
-            IOrganizationService service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ValidateReferences = true
+      };
+      IOrganizationService service = context.GetOrganizationService();
 
-            Entity entity = new Entity("entity");
-            entity.Id = Guid.NewGuid();
-            context.Initialize(entity);
+      Entity entity = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      context.Initialize(entity);
 
             Guid otherEntityId = Guid.NewGuid();
             entity["otherEntity"] = new EntityReference("entity", otherEntityId);
@@ -125,17 +137,23 @@ namespace FakeXrmEasy.Tests.FakeContextTests
         [Fact]
         public void An_entity_which_references_another_existent_entity_can_be_updated_when_validate_is_true()
         {
-            var context = new XrmFakedContext();
-            context.ValidateReferences = true;
-            IOrganizationService service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ValidateReferences = true
+      };
+      IOrganizationService service = context.GetOrganizationService();
 
-            Entity otherEntity = new Entity("otherEntity");
-            otherEntity.Id = Guid.NewGuid();
+      Entity otherEntity = new Entity("otherEntity")
+      {
+        Id = Guid.NewGuid()
+      };
 
-            Entity entity = new Entity("entity");
-            entity.Id = Guid.NewGuid();
+      Entity entity = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
 
-            context.Initialize(new Entity[] { otherEntity, entity });
+      context.Initialize(new Entity[] { otherEntity, entity });
             entity["otherEntity"] = otherEntity.ToEntityReference();
 
             service.Update(entity);
@@ -151,27 +169,37 @@ namespace FakeXrmEasy.Tests.FakeContextTests
         [Fact]
         public void An_entity_which_references_another_existent_entity_by_alternate_key_can_be_created_when_validate_is_true()
         {
-            var context = new XrmFakedContext();
-            context.ValidateReferences = true;
-            IOrganizationService service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ValidateReferences = true
+      };
+      IOrganizationService service = context.GetOrganizationService();
 
-            var accountMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityMetadata();
-            accountMetadata.LogicalName = Account.EntityLogicalName;
-            var alternateKeyMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata();
-            alternateKeyMetadata.KeyAttributes = new string[] { "alternateKey" };
-            accountMetadata.SetFieldValue("Keys", new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata[]
+      var accountMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityMetadata
+      {
+        LogicalName = Account.EntityLogicalName
+      };
+      var alternateKeyMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata
+      {
+        KeyAttributes = new string[] { "alternateKey" }
+      };
+      accountMetadata.SetFieldValue("Keys", new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata[]
                  {
                  alternateKeyMetadata
                  });
             context.InitializeMetadata(accountMetadata);
-            var account = new Entity(Account.EntityLogicalName);
-            account.Id = Guid.NewGuid();
-            account.Attributes.Add("alternateKey", "keyValue");
+      var account = new Entity(Account.EntityLogicalName)
+      {
+        Id = Guid.NewGuid()
+      };
+      account.Attributes.Add("alternateKey", "keyValue");
             context.Initialize(new List<Entity>() { account });
 
-            Entity otherEntity = new Entity("otherEntity");
-            otherEntity.Id = Guid.NewGuid();
-            otherEntity["new_accountId"] = new EntityReference("account", "alternateKey","keyValue") ;
+      Entity otherEntity = new Entity("otherEntity")
+      {
+        Id = Guid.NewGuid()
+      };
+      otherEntity["new_accountId"] = new EntityReference("account", "alternateKey","keyValue") ;
             Guid created = service.Create(otherEntity);
 
             Entity otherEntityInContext = service.Retrieve("otherEntity", otherEntity.Id, new ColumnSet(true));
@@ -183,26 +211,36 @@ namespace FakeXrmEasy.Tests.FakeContextTests
         [Fact]
         public void An_entity_which_references_another_existent_entity_by_alternate_key_can_be_initialised_when_validate_is_true()
         {
-            var context = new XrmFakedContext();
-            context.ValidateReferences = true;
-            IOrganizationService service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ValidateReferences = true
+      };
+      IOrganizationService service = context.GetOrganizationService();
 
-            var accountMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityMetadata();
-            accountMetadata.LogicalName = Account.EntityLogicalName;
-            var alternateKeyMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata();
-            alternateKeyMetadata.KeyAttributes = new string[] { "alternateKey" };
-            accountMetadata.SetFieldValue("Keys", new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata[]
+      var accountMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityMetadata
+      {
+        LogicalName = Account.EntityLogicalName
+      };
+      var alternateKeyMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata
+      {
+        KeyAttributes = new string[] { "alternateKey" }
+      };
+      accountMetadata.SetFieldValue("Keys", new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata[]
                  {
                  alternateKeyMetadata
                  });
             context.InitializeMetadata(accountMetadata);
-            var account = new Entity(Account.EntityLogicalName);
-            account.Id = Guid.NewGuid();
-            account.Attributes.Add("alternateKey", "keyValue");
+      var account = new Entity(Account.EntityLogicalName)
+      {
+        Id = Guid.NewGuid()
+      };
+      account.Attributes.Add("alternateKey", "keyValue");
 
-            Entity otherEntity = new Entity("otherEntity");
-            otherEntity.Id = Guid.NewGuid();
-            otherEntity["new_accountId"] = new EntityReference("account", "alternateKey", "keyValue");
+      Entity otherEntity = new Entity("otherEntity")
+      {
+        Id = Guid.NewGuid()
+      };
+      otherEntity["new_accountId"] = new EntityReference("account", "alternateKey", "keyValue");
 
             context.Initialize(new List<Entity>() { account, otherEntity });
 
@@ -214,30 +252,42 @@ namespace FakeXrmEasy.Tests.FakeContextTests
         [Fact]
         public void An_entity_which_references_another_existent_entity_by_alternate_key_can_be_updated_when_validate_is_true()
         {
-            var context = new XrmFakedContext();
-            context.ValidateReferences = true;
-            IOrganizationService service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ValidateReferences = true
+      };
+      IOrganizationService service = context.GetOrganizationService();
 
-            var accountMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityMetadata();
-            accountMetadata.LogicalName = Account.EntityLogicalName;
-            var alternateKeyMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata();
-            alternateKeyMetadata.KeyAttributes = new string[] { "alternateKey" };
-            accountMetadata.SetFieldValue("Keys", new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata[]
+      var accountMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityMetadata
+      {
+        LogicalName = Account.EntityLogicalName
+      };
+      var alternateKeyMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata
+      {
+        KeyAttributes = new string[] { "alternateKey" }
+      };
+      accountMetadata.SetFieldValue("Keys", new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata[]
                  {
                  alternateKeyMetadata
                  });
             context.InitializeMetadata(accountMetadata);
-            var account = new Entity(Account.EntityLogicalName);
-            account.Id = Guid.NewGuid();
-            account.Attributes.Add("alternateKey", "keyValue");
+      var account = new Entity(Account.EntityLogicalName)
+      {
+        Id = Guid.NewGuid()
+      };
+      account.Attributes.Add("alternateKey", "keyValue");
 
-            var account2 = new Entity(Account.EntityLogicalName);
-            account2.Id = Guid.NewGuid();
-            account2.Attributes.Add("alternateKey", "keyValue2");
+      var account2 = new Entity(Account.EntityLogicalName)
+      {
+        Id = Guid.NewGuid()
+      };
+      account2.Attributes.Add("alternateKey", "keyValue2");
 
-            Entity otherEntity = new Entity("otherEntity");
-            otherEntity.Id = Guid.NewGuid();
-            otherEntity["new_accountId"] = new EntityReference("account", "alternateKey", "keyValue");
+      Entity otherEntity = new Entity("otherEntity")
+      {
+        Id = Guid.NewGuid()
+      };
+      otherEntity["new_accountId"] = new EntityReference("account", "alternateKey", "keyValue");
 
             context.Initialize(new List<Entity>() { account, account2, otherEntity });
 

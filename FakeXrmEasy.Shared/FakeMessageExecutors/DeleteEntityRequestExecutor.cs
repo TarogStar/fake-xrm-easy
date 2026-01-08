@@ -71,11 +71,8 @@ namespace FakeXrmEasy.FakeMessageExecutors
             // Remove the entity metadata from the context
             ctx.EntityMetadata.Remove(logicalName);
 
-            // Also remove any entity data for this entity type from the Data dictionary
-            if (ctx.Data.ContainsKey(logicalName))
-            {
-                ctx.Data.Remove(logicalName);
-            }
+            // Also remove any entity data for this entity type from the Data dictionary - thread-safe removal
+            ctx.Data.TryRemove(logicalName, out _);
 
             return new DeleteEntityResponse();
         }

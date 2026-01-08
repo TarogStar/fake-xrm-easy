@@ -14,9 +14,11 @@ namespace FakeXrmEasy.Tests.Extensions
         public void TestClone()
         {
             QueryExpression query = new QueryExpression("entity");
-            LinkEntity link = new LinkEntity("entity", "second", "secondid", "secondid", JoinOperator.Inner);
-            link.EntityAlias = "second";
-            link.LinkCriteria.AddCondition("filter", ConditionOperator.Equal, true);
+      LinkEntity link = new LinkEntity("entity", "second", "secondid", "secondid", JoinOperator.Inner)
+      {
+        EntityAlias = "second"
+      };
+      link.LinkCriteria.AddCondition("filter", ConditionOperator.Equal, true);
             query.LinkEntities.Add(link);
 
             QueryExpression cloned = query.Clone();

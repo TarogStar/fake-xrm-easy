@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -333,12 +334,13 @@ namespace FakeXrmEasy
             }
 
             var lst = new List<T>();
-            if (!Data.ContainsKey(entityLogicalName))
+            ConcurrentDictionary<Guid, Entity> entityDict;
+            if (!Data.TryGetValue(entityLogicalName, out entityDict))
             {
                 return lst.AsQueryable(); //Empty list
             }
 
-            foreach (var e in Data[entityLogicalName].Values)
+            foreach (var e in entityDict.Values)
             {
                 if (subClassType != null)
                 {
@@ -360,7 +362,12 @@ namespace FakeXrmEasy
         /// <returns>An IQueryable of Entity objects directly from the in-memory data store.</returns>
         public IQueryable<Entity> CreateQueryFromEntityName(string entityName)
         {
-            return Data[entityName].Values.AsQueryable();
+            ConcurrentDictionary<Guid, Entity> entityDict;
+            if (Data.TryGetValue(entityName, out entityDict))
+            {
+                return entityDict.Values.AsQueryable();
+            }
+            return Enumerable.Empty<Entity>().AsQueryable();
         }
 
         /// <summary>
@@ -393,6 +400,13 @@ namespace FakeXrmEasy
             if (!context.AttributeExistsInMetadata(le.LinkToEntityName, le.LinkToAttributeName))
             {
                 FakeOrganizationServiceFault.Throw(ErrorCodes.QueryBuilderNoAttribute, string.Format("The attribute {0} does not exist on this entity.", le.LinkToAttributeName));
+            }
+
+            // Validate LinkFromAttributeName - determine the actual entity we're linking from
+            var actualLinkFromEntity = le.LinkFromEntityName != linkFromAlias ? le.LinkFromEntityName : linkFromEntity;
+            if (!string.IsNullOrWhiteSpace(actualLinkFromEntity) && !context.AttributeExistsInMetadata(actualLinkFromEntity, le.LinkFromAttributeName))
+            {
+                FakeOrganizationServiceFault.Throw(ErrorCodes.QueryBuilderNoAttribute, string.Format("The attribute {0} does not exist on this entity.", le.LinkFromAttributeName));
             }
 
             IQueryable<Entity> inner = null;
@@ -525,12 +539,14 @@ namespace FakeXrmEasy
             // Apply the filter from the link-entity if present
             if (le.LinkCriteria != null && (le.LinkCriteria.Conditions.Count > 0 || le.LinkCriteria.Filters.Count > 0))
             {
-                // Create a temporary QueryExpression to translate the filter
-                var filterQe = new QueryExpression(le.LinkToEntityName);
-                filterQe.Criteria = le.LinkCriteria;
+        // Create a temporary QueryExpression to translate the filter
+        var filterQe = new QueryExpression(le.LinkToEntityName)
+        {
+          Criteria = le.LinkCriteria
+        };
 
-                // Create parameter for related entity
-                ParameterExpression relatedEntityParam = Expression.Parameter(typeof(Entity), "relatedEntity");
+        // Create parameter for related entity
+        ParameterExpression relatedEntityParam = Expression.Parameter(typeof(Entity), "relatedEntity");
 
                 // Translate the filter expression
                 var filterExpression = TranslateFilterExpressionToExpression(
@@ -777,12 +793,13 @@ namespace FakeXrmEasy
             }
 
             var entityNode = RetrieveFetchXmlNode(xlDoc, "entity");
-            var query = new QueryExpression(entityNode.GetAttribute("name").Value);
+      var query = new QueryExpression(entityNode.GetAttribute("name").Value)
+      {
+        ColumnSet = xlDoc.ToColumnSet()
+      };
 
-            query.ColumnSet = xlDoc.ToColumnSet();
-
-            // Ordering is done after grouping/aggregation
-            if (!xlDoc.IsAggregateFetchXml())
+      // Ordering is done after grouping/aggregation
+      if (!xlDoc.IsAggregateFetchXml())
             {
                 var orders = xlDoc.ToOrderExpressionList();
                 foreach (var order in orders)
@@ -1255,6 +1272,27 @@ namespace FakeXrmEasy
                     break;
 #endif
 
+                // Hierarchy operators (issue #287)
+                case ConditionOperator.Above:
+                    operatorExpression = TranslateConditionExpressionHierarchy(context, qe, c, entity, HierarchyOperatorType.Above);
+                    break;
+
+                case ConditionOperator.AboveOrEqual:
+                    operatorExpression = TranslateConditionExpressionHierarchy(context, qe, c, entity, HierarchyOperatorType.AboveOrEqual);
+                    break;
+
+                case ConditionOperator.Under:
+                    operatorExpression = TranslateConditionExpressionHierarchy(context, qe, c, entity, HierarchyOperatorType.Under);
+                    break;
+
+                case ConditionOperator.UnderOrEqual:
+                    operatorExpression = TranslateConditionExpressionHierarchy(context, qe, c, entity, HierarchyOperatorType.UnderOrEqual);
+                    break;
+
+                case ConditionOperator.NotUnder:
+                    operatorExpression = TranslateConditionExpressionHierarchy(context, qe, c, entity, HierarchyOperatorType.NotUnder);
+                    break;
+
                 default:
                     throw new PullRequestException(string.Format("Operator {0} not yet implemented for condition expression", c.CondExpression.Operator.ToString()));
 
@@ -1271,8 +1309,143 @@ namespace FakeXrmEasy
 
         }
 
+        /// <summary>
+        /// Validates that the condition value types are compatible with the attribute type.
+        /// Real Dataverse throws an error when comparing incompatible types, for example:
+        /// - Comparing a GUID value against an EntityReference field
+        /// - Comparing an EntityReference value against a GUID field
+        /// Addresses GitHub issue #258.
+        /// </summary>
+        /// <param name="typedExpression">The typed condition expression to validate.</param>
+        /// <exception cref="FaultException{OrganizationServiceFault}">Thrown when types are incompatible.</exception>
+        private static void ValidateConditionValueTypeCompatibility(TypedConditionExpression typedExpression)
+        {
+            // Skip validation for operators that don't use values
+            var operatorsWithoutValues = new[]
+            {
+                ConditionOperator.Null,
+                ConditionOperator.NotNull,
+                ConditionOperator.Today,
+                ConditionOperator.Yesterday,
+                ConditionOperator.Tomorrow,
+                ConditionOperator.EqualUserId,
+                ConditionOperator.NotEqualUserId,
+                ConditionOperator.EqualBusinessId,
+                ConditionOperator.NotEqualBusinessId,
+                ConditionOperator.ThisYear,
+                ConditionOperator.LastYear,
+                ConditionOperator.NextYear,
+                ConditionOperator.ThisMonth,
+                ConditionOperator.LastMonth,
+                ConditionOperator.NextMonth,
+                ConditionOperator.ThisWeek,
+                ConditionOperator.LastWeek,
+                ConditionOperator.NextWeek,
+                ConditionOperator.Last7Days,
+                ConditionOperator.Next7Days,
+                ConditionOperator.ThisFiscalPeriod,
+                ConditionOperator.LastFiscalPeriod,
+                ConditionOperator.NextFiscalPeriod
+            };
+
+            if (operatorsWithoutValues.Contains(typedExpression.CondExpression.Operator))
+            {
+                return;
+            }
+
+            // Skip if no values to validate
+            if (typedExpression.CondExpression.Values == null || typedExpression.CondExpression.Values.Count == 0)
+            {
+                return;
+            }
+
+            // Skip if attribute type is unknown (late-bound without metadata)
+            if (typedExpression.AttributeType == null)
+            {
+                return;
+            }
+
+            // Skip column-to-column comparisons
+            if (typedExpression.IsColumnComparison)
+            {
+                return;
+            }
+
+            // Get the underlying type if nullable
+            var attributeType = typedExpression.AttributeType;
+            if (Nullable.GetUnderlyingType(attributeType) != null)
+            {
+                attributeType = Nullable.GetUnderlyingType(attributeType);
+            }
+
+            // Validate each value in the condition
+            foreach (var value in typedExpression.CondExpression.Values)
+            {
+                if (value == null)
+                {
+                    continue;
+                }
+
+                // Handle arrays (e.g., In operator with array of values)
+                if (value is Array arrayValue)
+                {
+                    foreach (var item in arrayValue)
+                    {
+                        ValidateSingleValueTypeCompatibility(attributeType, item, typedExpression.CondExpression.AttributeName);
+                    }
+                }
+                else
+                {
+                    ValidateSingleValueTypeCompatibility(attributeType, value, typedExpression.CondExpression.AttributeName);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validates that a single condition value is type-compatible with the attribute type.
+        /// Note: GUID values are allowed for EntityReference fields since that's the common pattern
+        /// used by LINQ providers and FetchXML. The Id property of the EntityReference is compared.
+        /// However, EntityReference values CANNOT be used for GUID fields (the reverse is not valid).
+        /// </summary>
+        /// <param name="attributeType">The type of the attribute being compared.</param>
+        /// <param name="value">The condition value to validate.</param>
+        /// <param name="attributeName">The name of the attribute (for error messages).</param>
+        private static void ValidateSingleValueTypeCompatibility(Type attributeType, object value, string attributeName)
+        {
+            if (value == null)
+            {
+                return;
+            }
+
+            var valueType = value.GetType();
+
+            // Check for type mismatches addressed by GitHub issue #258
+            //
+            // Note: GUID values ARE allowed for EntityReference fields. This is because:
+            // 1. The SDK LINQ provider converts EntityReference comparisons to GUID comparisons internally
+            // 2. FetchXML conditions typically use GUID values for lookup fields
+            // 3. The internal storage in Dataverse is GUID-based
+            //
+            // However, EntityReference values CANNOT be used for GUID fields because:
+            // - A GUID field (like ActivityId, or a primary key) is a simple identifier
+            // - Passing an EntityReference where a GUID is expected is a type mismatch
+
+            // Case: Attribute is GUID but value is EntityReference - this is NOT allowed
+            if (attributeType == typeof(Guid) && valueType == typeof(EntityReference))
+            {
+                FakeOrganizationServiceFault.Throw(
+                    ErrorCodes.ArgumentTypeMismatch,
+                    $"Condition for attribute '{attributeName}': cannot compare Guid attribute to EntityReference value. Use a Guid value instead.");
+            }
+        }
+
         private static void ValidateSupportedTypedExpression(TypedConditionExpression typedExpression)
         {
+            // Validate type compatibility between attribute type and condition values
+            // Real Dataverse throws an error when comparing incompatible types (e.g., GUID vs EntityReference)
+            // Addresses GitHub issue #258
+            ValidateConditionValueTypeCompatibility(typedExpression);
+
             Expression validateOperatorTypeExpression = Expression.Empty();
             ConditionOperator[] supportedOperators = (ConditionOperator[])Enum.GetValues(typeof(ConditionOperator));
 
@@ -2794,10 +2967,12 @@ namespace FakeXrmEasy
             //Append a ´%´at the end of each condition value
             var computedCondition = new ConditionExpression(c.AttributeName, c.Operator,
                 c.Values.Where(x => x != null).Select(x => "%" + x.ToString()).ToList());
-            var typedComputedCondition = new TypedConditionExpression(computedCondition);
-            typedComputedCondition.AttributeType = tc.AttributeType;
+      var typedComputedCondition = new TypedConditionExpression(computedCondition)
+      {
+        AttributeType = tc.AttributeType
+      };
 
-            return TranslateConditionExpressionLike(typedComputedCondition, getAttributeValueExpr, containsAttributeExpr);
+      return TranslateConditionExpressionLike(typedComputedCondition, getAttributeValueExpr, containsAttributeExpr);
         }
 
         /// <summary>
@@ -3051,10 +3226,12 @@ namespace FakeXrmEasy
             //Append a ´%´at the end of each condition value
             var computedCondition = new ConditionExpression(c.AttributeName, c.Operator,
                 c.Values.Where(x => x != null).Select(x => "%" + x.ToString() + "%").ToList());
-            var computedTypedCondition = new TypedConditionExpression(computedCondition);
-            computedTypedCondition.AttributeType = tc.AttributeType;
+      var computedTypedCondition = new TypedConditionExpression(computedCondition)
+      {
+        AttributeType = tc.AttributeType
+      };
 
-            return TranslateConditionExpressionLike(computedTypedCondition, getAttributeValueExpr, containsAttributeExpr);
+      return TranslateConditionExpressionLike(computedTypedCondition, getAttributeValueExpr, containsAttributeExpr);
 
         }
 
@@ -3080,13 +3257,15 @@ namespace FakeXrmEasy
             foreach (var c in conditions)
             {
                 var cEntityName = sEntityName;
-                //Create a new typed expression
-                var typedExpression = new TypedConditionExpression(c);
-                typedExpression.IsOuter = bIsOuter;
+        //Create a new typed expression
+        var typedExpression = new TypedConditionExpression(c)
+        {
+          IsOuter = bIsOuter
+        };
 
-                // Check for column-to-column comparison
-                // Method 1: FetchXML valueof attribute - ColumnComparisonValue marker is stored in the Values array
-                if (c.Values != null && c.Values.Count == 1 && c.Values[0] is ColumnComparisonValue)
+        // Check for column-to-column comparison
+        // Method 1: FetchXML valueof attribute - ColumnComparisonValue marker is stored in the Values array
+        if (c.Values != null && c.Values.Count == 1 && c.Values[0] is ColumnComparisonValue)
                 {
                     typedExpression.ValueOfAttribute = ((ColumnComparisonValue)c.Values[0]).ColumnName;
                 }
@@ -3216,7 +3395,8 @@ namespace FakeXrmEasy
             if (le.LinkCriteria != null)
             {
                 var earlyBoundType = context.FindReflectedType(le.LinkToEntityName);
-                var attributeMetadata = context.AttributeMetadataNames.ContainsKey(le.LinkToEntityName) ? context.AttributeMetadataNames[le.LinkToEntityName] : null;
+                ConcurrentDictionary<string, string> attributeMetadata;
+                context.AttributeMetadataNames.TryGetValue(le.LinkToEntityName, out attributeMetadata);
 
                 foreach (var ce in le.LinkCriteria.Conditions)
                 {
@@ -3653,6 +3833,303 @@ namespace FakeXrmEasy
                     return Expression.LessThanOrEqual(compareToExpr, Expression.Constant(threshold));
                 default:
                     throw new NotSupportedException($"Comparison type {comparisonType} is not supported");
+            }
+        }
+
+        /// <summary>
+        /// Enum representing the type of hierarchy operator being used.
+        /// </summary>
+        protected enum HierarchyOperatorType
+        {
+            /// <summary>
+            /// Above: Returns records that are ancestors of the specified record (excluding the record itself).
+            /// </summary>
+            Above,
+
+            /// <summary>
+            /// AboveOrEqual (eq-or-above): Returns records that are ancestors of the specified record OR the record itself.
+            /// </summary>
+            AboveOrEqual,
+
+            /// <summary>
+            /// Under: Returns records that are descendants of the specified record (excluding the record itself).
+            /// </summary>
+            Under,
+
+            /// <summary>
+            /// UnderOrEqual (eq-or-under): Returns records that are descendants of the specified record OR the record itself.
+            /// </summary>
+            UnderOrEqual,
+
+            /// <summary>
+            /// NotUnder: Returns records that are NOT descendants of the specified record.
+            /// </summary>
+            NotUnder
+        }
+
+        /// <summary>
+        /// Translates hierarchy operators (Above, AboveOrEqual, Under, UnderOrEqual, NotUnder) to LINQ expressions.
+        /// These operators require a hierarchical relationship to be defined on the entity.
+        ///
+        /// Hierarchy operators work on entities with self-referential parent-child relationships:
+        /// - Above: All ancestors in the hierarchy (parent, grandparent, etc.)
+        /// - AboveOrEqual: The record itself plus all ancestors
+        /// - Under: All descendants in the hierarchy (children, grandchildren, etc.)
+        /// - UnderOrEqual: The record itself plus all descendants
+        /// - NotUnder: All records that are NOT descendants (inverse of Under)
+        /// </summary>
+        /// <param name="context">The XrmFakedContext containing hierarchy relationship definitions.</param>
+        /// <param name="qe">The query expression being translated.</param>
+        /// <param name="c">The typed condition expression containing the operator and value.</param>
+        /// <param name="entity">The entity parameter expression.</param>
+        /// <param name="operatorType">The type of hierarchy operation to perform.</param>
+        /// <returns>An expression that evaluates whether the entity matches the hierarchy condition.</returns>
+        protected static Expression TranslateConditionExpressionHierarchy(
+            XrmFakedContext context,
+            QueryExpression qe,
+            TypedConditionExpression c,
+            ParameterExpression entity,
+            HierarchyOperatorType operatorType)
+        {
+            // Get the entity name for the hierarchy lookup
+            string entityName = qe.EntityName;
+
+            // Check if we're querying from a linked entity
+            if (!string.IsNullOrWhiteSpace(c.CondExpression.EntityName) && c.CondExpression.EntityName != qe.EntityName)
+            {
+                entityName = qe.GetEntityNameFromAlias(c.CondExpression.EntityName);
+            }
+
+            // Validate that a hierarchical relationship is defined for this entity
+            if (!context.HierarchicalRelationships.ContainsKey(entityName))
+            {
+                throw new Exception($"Hierarchy operator '{operatorType}' requires a hierarchical relationship to be defined for entity '{entityName}'. " +
+                    $"Use context.HierarchicalRelationships[\"{entityName}\"] = \"parentattributename\" to define the parent attribute.");
+            }
+
+            // Get the condition value (the GUID of the reference record)
+            if (c.CondExpression.Values == null || c.CondExpression.Values.Count != 1)
+            {
+                throw new Exception($"Hierarchy operator '{operatorType}' requires exactly one value.");
+            }
+
+            var conditionValue = c.CondExpression.Values[0];
+            Guid referenceRecordId;
+
+            if (conditionValue is Guid guid)
+            {
+                referenceRecordId = guid;
+            }
+            else if (conditionValue is EntityReference entityRef)
+            {
+                referenceRecordId = entityRef.Id;
+            }
+            else if (conditionValue is string strValue && Guid.TryParse(strValue, out Guid parsedGuid))
+            {
+                referenceRecordId = parsedGuid;
+            }
+            else
+            {
+                throw new Exception($"Hierarchy operator '{operatorType}' value must be a GUID, EntityReference, or parseable GUID string.");
+            }
+
+            // Build the set of matching IDs based on the operator type
+            var matchingIds = GetHierarchyMatchingIds(context, entityName, referenceRecordId, operatorType);
+
+            // Build expression to check if the current entity's ID is in the matching set
+            // entity.Id is the primary key of the record
+            var entityIdProperty = Expression.Property(entity, "Id");
+
+            // Use a runtime method call to check if the entity ID is in the matching set
+            var matchMethod = typeof(XrmFakedContext).GetMethod("IsIdInHierarchySet", BindingFlags.Public | BindingFlags.Static);
+            var matchExpression = Expression.Call(
+                matchMethod,
+                entityIdProperty,
+                Expression.Constant(matchingIds)
+            );
+
+            return matchExpression;
+        }
+
+        /// <summary>
+        /// Checks if a GUID is contained in a HashSet of GUIDs.
+        /// This method is called at runtime via Expression.Call for hierarchy operator evaluation.
+        /// </summary>
+        /// <param name="id">The GUID to check.</param>
+        /// <param name="matchingIds">The set of GUIDs that match the hierarchy condition.</param>
+        /// <returns>True if the ID is in the set; false otherwise.</returns>
+        public static bool IsIdInHierarchySet(Guid id, HashSet<Guid> matchingIds)
+        {
+            return matchingIds.Contains(id);
+        }
+
+        /// <summary>
+        /// Builds a set of entity IDs that match the specified hierarchy operator.
+        /// </summary>
+        /// <param name="context">The XrmFakedContext containing entity data and hierarchy definitions.</param>
+        /// <param name="entityName">The logical name of the entity.</param>
+        /// <param name="referenceRecordId">The ID of the reference record for the hierarchy operation.</param>
+        /// <param name="operatorType">The type of hierarchy operation.</param>
+        /// <returns>A HashSet of GUIDs that match the hierarchy condition.</returns>
+        protected static HashSet<Guid> GetHierarchyMatchingIds(
+            XrmFakedContext context,
+            string entityName,
+            Guid referenceRecordId,
+            HierarchyOperatorType operatorType)
+        {
+            var matchingIds = new HashSet<Guid>();
+            var parentAttributeName = context.HierarchicalRelationships[entityName];
+
+            // Get all entities of this type from the context
+            if (!context.Data.ContainsKey(entityName))
+            {
+                return matchingIds; // No data, return empty set
+            }
+
+            var allEntities = context.Data[entityName];
+
+            switch (operatorType)
+            {
+                case HierarchyOperatorType.Above:
+                    // Get all ancestors (NOT including the record itself)
+                    GetAncestors(allEntities, referenceRecordId, parentAttributeName, matchingIds);
+                    break;
+
+                case HierarchyOperatorType.AboveOrEqual:
+                    // Get the record itself plus all ancestors
+                    if (allEntities.ContainsKey(referenceRecordId))
+                    {
+                        matchingIds.Add(referenceRecordId);
+                    }
+                    GetAncestors(allEntities, referenceRecordId, parentAttributeName, matchingIds);
+                    break;
+
+                case HierarchyOperatorType.Under:
+                    // Get all descendants (NOT including the record itself)
+                    GetDescendants(allEntities, referenceRecordId, parentAttributeName, matchingIds);
+                    break;
+
+                case HierarchyOperatorType.UnderOrEqual:
+                    // Get the record itself plus all descendants
+                    if (allEntities.ContainsKey(referenceRecordId))
+                    {
+                        matchingIds.Add(referenceRecordId);
+                    }
+                    GetDescendants(allEntities, referenceRecordId, parentAttributeName, matchingIds);
+                    break;
+
+                case HierarchyOperatorType.NotUnder:
+                    // Get all records that are NOT descendants
+                    // First, get all descendants
+                    var descendants = new HashSet<Guid>();
+                    GetDescendants(allEntities, referenceRecordId, parentAttributeName, descendants);
+                    // Then, add all entities NOT in the descendants set
+                    foreach (var kvp in allEntities)
+                    {
+                        if (!descendants.Contains(kvp.Key))
+                        {
+                            matchingIds.Add(kvp.Key);
+                        }
+                    }
+                    break;
+            }
+
+            return matchingIds;
+        }
+
+        /// <summary>
+        /// Recursively finds all ancestor records (parent, grandparent, etc.) of a given record.
+        /// </summary>
+        /// <param name="allEntities">Dictionary of all entities of this type.</param>
+        /// <param name="recordId">The ID of the record to find ancestors for.</param>
+        /// <param name="parentAttributeName">The name of the attribute that stores the parent reference.</param>
+        /// <param name="ancestors">The set to populate with ancestor IDs.</param>
+        protected static void GetAncestors(
+            ConcurrentDictionary<Guid, Entity> allEntities,
+            Guid recordId,
+            string parentAttributeName,
+            HashSet<Guid> ancestors)
+        {
+            // Find the record
+            if (!allEntities.TryGetValue(recordId, out Entity record))
+            {
+                return; // Record not found
+            }
+
+            // Get the parent reference
+            if (!record.Contains(parentAttributeName))
+            {
+                return; // No parent attribute set
+            }
+
+            var parentValue = record[parentAttributeName];
+            Guid? parentId = null;
+
+            if (parentValue is EntityReference parentRef)
+            {
+                parentId = parentRef.Id;
+            }
+            else if (parentValue is Guid parentGuid)
+            {
+                parentId = parentGuid;
+            }
+
+            if (parentId == null || parentId.Value == Guid.Empty)
+            {
+                return; // No parent or empty parent
+            }
+
+            // Add the parent to ancestors (if not already added - prevents infinite loops)
+            if (ancestors.Add(parentId.Value))
+            {
+                // Recursively get grandparents, etc.
+                GetAncestors(allEntities, parentId.Value, parentAttributeName, ancestors);
+            }
+        }
+
+        /// <summary>
+        /// Finds all descendant records (children, grandchildren, etc.) of a given record.
+        /// </summary>
+        /// <param name="allEntities">Dictionary of all entities of this type.</param>
+        /// <param name="recordId">The ID of the record to find descendants for.</param>
+        /// <param name="parentAttributeName">The name of the attribute that stores the parent reference.</param>
+        /// <param name="descendants">The set to populate with descendant IDs.</param>
+        protected static void GetDescendants(
+            ConcurrentDictionary<Guid, Entity> allEntities,
+            Guid recordId,
+            string parentAttributeName,
+            HashSet<Guid> descendants)
+        {
+            // Find all records where parentAttributeName points to recordId
+            foreach (var kvp in allEntities)
+            {
+                var entity = kvp.Value;
+                if (!entity.Contains(parentAttributeName))
+                {
+                    continue; // No parent attribute set
+                }
+
+                var parentValue = entity[parentAttributeName];
+                Guid? parentId = null;
+
+                if (parentValue is EntityReference parentRef)
+                {
+                    parentId = parentRef.Id;
+                }
+                else if (parentValue is Guid parentGuid)
+                {
+                    parentId = parentGuid;
+                }
+
+                if (parentId.HasValue && parentId.Value == recordId)
+                {
+                    // This entity is a child of recordId
+                    if (descendants.Add(entity.Id))
+                    {
+                        // Recursively get grandchildren, etc.
+                        GetDescendants(allEntities, entity.Id, parentAttributeName, descendants);
+                    }
+                }
             }
         }
     }

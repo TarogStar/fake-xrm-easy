@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xrm.Sdk.Metadata;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using FakeXrmEasy.Extensions;
@@ -22,8 +23,9 @@ namespace FakeXrmEasy
         /// Gets or sets the dictionary storing attribute metadata names for dynamic entities.
         /// Used when no explicit metadata has been injected. Maps entity logical names to
         /// dictionaries of attribute logical names and their display names.
+        /// Thread-safe to support parallel entity operations.
         /// </summary>
-        protected internal Dictionary<string, Dictionary<string, string>> AttributeMetadataNames { get; set; }
+        protected internal ConcurrentDictionary<string, ConcurrentDictionary<string, string>> AttributeMetadataNames { get; set; }
 
         /// <summary>
         /// Gets or sets the dictionary storing fake global option set metadata.

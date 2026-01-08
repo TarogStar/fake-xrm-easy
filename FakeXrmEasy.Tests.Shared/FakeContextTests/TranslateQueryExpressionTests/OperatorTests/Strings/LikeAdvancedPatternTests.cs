@@ -33,9 +33,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "tent" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "testing" }); // Should NOT match - too long
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "te_t");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "te_t");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -54,9 +56,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "TEST" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "Text" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "te_t");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "te_t");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -73,9 +77,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "xyz" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "abcd" }); // Should NOT match
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "___");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "___");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -96,9 +102,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "9xyz" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "abc" }); // Should NOT match - no leading digit
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[0-9]%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[0-9]%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -117,9 +125,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "banana" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "123test" }); // Should NOT match - starts with digit
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[a-z]%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[a-z]%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -143,9 +153,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "umbrella" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "banana" }); // Should NOT match
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[aeiou]%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[aeiou]%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -162,9 +174,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "ELEPHANT" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "Orange" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[aeiou]%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[aeiou]%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -185,9 +199,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "xyz" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "123" }); // Should NOT match - starts with digit
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[^0-9]%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[^0-9]%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -207,9 +223,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "apple" }); // Should NOT match - starts with vowel
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "orange" }); // Should NOT match - starts with vowel
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[^aeiou]%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[^aeiou]%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -234,9 +252,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "1Test" }); // Should NOT match - starts with digit
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "TestA" }); // Should NOT match - ends with letter
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[A-Z]%[0-9]");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[A-Z]%[0-9]");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -255,9 +275,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "a" }); // Should NOT match - only 1 char, needs at least 2
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "1atest" }); // Should NOT match - starts with digit
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[a-z]_%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[a-z]_%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -279,9 +301,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "A1B" }); // Should NOT match - too long
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "1A" }); // Should NOT match - wrong order
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[A-Z][0-9]");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "[A-Z][0-9]");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -304,9 +328,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "James" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "Bob" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "J%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "J%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -323,9 +349,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "Tommy" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "James" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "%my");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "%my");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -342,9 +370,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "animation" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "Bob" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "%im%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "%im%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -360,9 +390,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "JIMMY" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "jimmy" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "JIM%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "JIM%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -383,9 +415,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "abc" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "xyz" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.NotLike, "[0-9]%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.NotLike, "[0-9]%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -443,9 +477,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "test" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "te_t");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "te_t");
 
             var results = service.RetrieveMultiple(qe).Entities;
 
@@ -461,9 +497,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "test.value" });
             service.Create(new Contact { Id = Guid.NewGuid(), FirstName = "testXvalue" }); // Should NOT match
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "test.%");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qe.Criteria.AddCondition("firstname", ConditionOperator.Like, "test.%");
 
             var results = service.RetrieveMultiple(qe).Entities;
 

@@ -13,12 +13,14 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_Plugin_Registered_With_Filtering_Attributes_Should_Only_Execute_When_Attributes_Present()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.UsePipelineSimulation = true;
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        UsePipelineSimulation = true
+      };
 
-            // Register plugin with filtering attributes
-            context.RegisterPluginStep<CounterPlugin>("Update",
+      // Register plugin with filtering attributes
+      context.RegisterPluginStep<CounterPlugin>("Update",
                 stage: ProcessingStepStage.Postoperation,
                 filteringAttributes: new[] { "name", "accountnumber" });
 
@@ -76,12 +78,14 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_Plugin_Registered_Without_Filtering_Attributes_Should_Always_Execute()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.UsePipelineSimulation = true;
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        UsePipelineSimulation = true
+      };
 
-            // Register plugin without filtering attributes
-            context.RegisterPluginStep<CounterPlugin>("Update",
+      // Register plugin without filtering attributes
+      context.RegisterPluginStep<CounterPlugin>("Update",
                 stage: ProcessingStepStage.Postoperation);
 
             var service = context.GetOrganizationService();
@@ -111,11 +115,13 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_Plugin_Registered_With_Multiple_Filtering_Attributes_Should_Execute_If_Any_Present()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.UsePipelineSimulation = true;
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        UsePipelineSimulation = true
+      };
 
-            context.RegisterPluginStep<CounterPlugin>("Update",
+      context.RegisterPluginStep<CounterPlugin>("Update",
                 stage: ProcessingStepStage.Postoperation,
                 filteringAttributes: new[] { "name", "accountnumber", "telephone1" });
 
@@ -151,11 +157,13 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_Target_Contains_Multiple_Attributes_But_None_Match_Filter_Should_Not_Execute()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.UsePipelineSimulation = true;
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        UsePipelineSimulation = true
+      };
 
-            context.RegisterPluginStep<CounterPlugin>("Update",
+      context.RegisterPluginStep<CounterPlugin>("Update",
                 stage: ProcessingStepStage.Postoperation,
                 filteringAttributes: new[] { "name" }); // Only name
 
@@ -192,12 +200,14 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_Filtering_Attributes_Have_Whitespace_Should_Trim_And_Compare_Correctly()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.UsePipelineSimulation = true;
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        UsePipelineSimulation = true
+      };
 
-            // Register with whitespace in filtering attributes (simulating string from config)
-            context.RegisterPluginStep<CounterPlugin>("Update",
+      // Register with whitespace in filtering attributes (simulating string from config)
+      context.RegisterPluginStep<CounterPlugin>("Update",
                 stage: ProcessingStepStage.Postoperation,
                 filteringAttributes: new[] { " name ", "accountnumber ", " telephone1" });
 

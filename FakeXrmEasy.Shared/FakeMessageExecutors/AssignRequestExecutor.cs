@@ -1,6 +1,7 @@
-﻿using Microsoft.Crm.Sdk.Messages;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ServiceModel;
 
@@ -59,9 +60,11 @@ namespace FakeXrmEasy.FakeMessageExecutors
 
             // Get the assignee's business unit to update owningbusinessunit
             EntityReference owningBusinessUnit = null;
-            if (ctx.Data.ContainsKey(assignee.LogicalName) && ctx.Data[assignee.LogicalName].ContainsKey(assignee.Id))
+            ConcurrentDictionary<Guid, Entity> assigneeEntityDict;
+            Entity assigneeEntity;
+            if (ctx.Data.TryGetValue(assignee.LogicalName, out assigneeEntityDict) &&
+                assigneeEntityDict.TryGetValue(assignee.Id, out assigneeEntity))
             {
-                var assigneeEntity = ctx.Data[assignee.LogicalName][assignee.Id];
                 owningBusinessUnit = assigneeEntity.GetAttributeValue<EntityReference>("businessunitid");
             }
 

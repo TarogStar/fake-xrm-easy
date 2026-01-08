@@ -1,8 +1,9 @@
-﻿using FakeItEasy;
+using FakeItEasy;
 using FakeXrmEasy.Extensions;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 
 namespace FakeXrmEasy
@@ -413,11 +414,11 @@ namespace FakeXrmEasy
         /// </summary>
         private Entity RetrieveEntityForImage(string entityName, Guid entityId, ColumnSet columnSet)
         {
-            // Check if entity exists in context
-            if (Data.ContainsKey(entityName) && Data[entityName].ContainsKey(entityId))
+            // Check if entity exists in context - thread-safe access
+            ConcurrentDictionary<Guid, Entity> entityDict;
+            Entity entity;
+            if (Data.TryGetValue(entityName, out entityDict) && entityDict.TryGetValue(entityId, out entity))
             {
-                var entity = Data[entityName][entityId];
-
                 // Clone the entity with specified columns
                 if (columnSet.AllColumns)
                 {

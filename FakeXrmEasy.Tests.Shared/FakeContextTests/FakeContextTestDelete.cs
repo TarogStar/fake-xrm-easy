@@ -78,11 +78,13 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_delete_is_invoked_with_non_existing_entity_and_nothing_has_been_initalised_using_proxytypes_assembly_an_exception_is_thrown()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            //Initialize the context with a single entity
-            var nonExistingGuid = Guid.NewGuid();
+      //Initialize the context with a single entity
+      var nonExistingGuid = Guid.NewGuid();
 
             var service = context.GetOrganizationService();
 
@@ -112,10 +114,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_Deleting_Using_Organization_Context_Record_Should_Be_Deleted()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var account = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
+      var account = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
 
             var service = context.GetOrganizationService();
 
@@ -144,20 +148,26 @@ namespace FakeXrmEasy.Tests
         {
             var context = new XrmFakedContext();
 
-            var accountMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityMetadata();
-            accountMetadata.LogicalName = Account.EntityLogicalName;
-            var alternateKeyMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata();
-            alternateKeyMetadata.KeyAttributes = new string[] { "AccountNumber" };
-            accountMetadata.SetFieldValue("Keys", new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata[]
+      var accountMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityMetadata
+      {
+        LogicalName = Account.EntityLogicalName
+      };
+      var alternateKeyMetadata = new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata
+      {
+        KeyAttributes = new string[] { "AccountNumber" }
+      };
+      accountMetadata.SetFieldValue("Keys", new Microsoft.Xrm.Sdk.Metadata.EntityKeyMetadata[]
                  {
                  alternateKeyMetadata
                  });
             context.InitializeMetadata(accountMetadata);
 
-            //Initialize the context with a single entity
-            var account = new Entity("account");
-            account.Id = Guid.NewGuid();
-            account.Attributes.Add("AccountNumber", 9000);
+      //Initialize the context with a single entity
+      var account = new Entity("account")
+      {
+        Id = Guid.NewGuid()
+      };
+      account.Attributes.Add("AccountNumber", 9000);
 
             context.Initialize(account);
 

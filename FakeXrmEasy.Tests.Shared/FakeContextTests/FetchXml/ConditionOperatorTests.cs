@@ -102,13 +102,14 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
       <xs:enumeration value="in-or-before-fiscal-period-and-year" />
       <xs:enumeration value="in-or-after-fiscal-period-and-year" />
 
-    
-      HIERACHY OPERATORS:
+
+      DONE (HIERARCHY OPERATORS - Issue #287):
       <xs:enumeration value="under"/>
       <xs:enumeration value="eq-or-under" />
       <xs:enumeration value="not-under"/>
       <xs:enumeration value="above" />
       <xs:enumeration value="eq-or-above" />
+      Note: See HierarchyOperatorTests.cs for hierarchy operator tests
 
     </xs:restriction>
   </xs:simpleType>
@@ -490,10 +491,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_In_MultiSelectOptionSet()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                         <filter type='and'>
@@ -518,10 +521,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_NotIn_MultiSelectOptionSet()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                         <filter type='and'>
@@ -595,10 +600,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Gt_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -642,17 +649,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
 
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
-            Assert.Single(collection.Entities);
-            Assert.Equal(1.33, collection.Entities[0]["address1_longitude"]);
+            var entity = Assert.Single(collection.Entities);
+            Assert.Equal(1.33, entity["address1_longitude"]);
         }
 
         [Fact]
         public void FetchXml_Operator_Ge_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -675,10 +684,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Months_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -701,10 +712,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Months_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -732,8 +745,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
 
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
-            Assert.Single(collection.Entities);
-            var retrievedUser = collection.Entities[0].Id;
+            var retrievedUser = Assert.Single(collection.Entities).Id;
             Assert.Equal(retrievedUser, ct3.Id);
         }
 
@@ -741,10 +753,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Minutes_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -767,10 +781,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Minutes_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -806,10 +822,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Hours_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -832,10 +850,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Hours_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -871,10 +891,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Days_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -897,10 +919,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Days_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -936,10 +960,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Weeks_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -962,10 +988,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Weeks_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -1001,10 +1029,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Years_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -1027,10 +1057,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Older_Than_X_Years_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -1067,10 +1099,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_Seven_Days_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -1093,10 +1127,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_Seven_Days_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -1117,8 +1153,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
 
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
-            Assert.Single(collection.Entities);
-            Assert.Equal(ct1.Id, collection.Entities[0].Id);
+            Assert.Equal(ct1.Id, Assert.Single(collection.Entities).Id);
         }
 
         [Fact]
@@ -1144,17 +1179,20 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(2, collection.Entities.Count);
-            Assert.Equal(1.33, collection.Entities[0]["address1_longitude"]);
-            Assert.Equal(1.2345, collection.Entities[1]["address1_longitude"]);
+            var longitudes = collection.Entities.Select(e => (double)e["address1_longitude"]).ToList();
+            Assert.Contains(1.33, longitudes);
+            Assert.Contains(1.2345, longitudes);
         }
 
         [Fact]
         public void FetchXml_Operator_Lt_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -1197,16 +1235,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Single(collection.Entities);
-            Assert.Equal(1.23, collection.Entities[0]["address1_longitude"]);
+            var entity = Assert.Single(collection.Entities);
+            Assert.Equal(1.23, entity["address1_longitude"]);
         }
 
         [Fact]
         public void FetchXml_Operator_Le_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -1247,17 +1288,20 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(2, collection.Entities.Count);
-            Assert.Equal(1.23, collection.Entities[0]["address1_longitude"]);
-            Assert.Equal(1.2345, collection.Entities[1]["address1_longitude"]);
+            var longitudes = collection.Entities.Select(e => (double)e["address1_longitude"]).ToList();
+            Assert.Contains(1.23, longitudes);
+            Assert.Contains(1.2345, longitudes);
         }
 
         [Fact]
         public void FetchXml_Operator_On_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='anniversary' />
                                         <filter type='and'>
@@ -1332,10 +1376,9 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(2, collection.Entities.Count);
-            var retrievedDateFirst = collection.Entities[0]["anniversary"] as DateTime?;
-            var retrievedDateSecond = collection.Entities[1]["anniversary"] as DateTime?;
-            Assert.Equal(23, retrievedDateFirst.Value.Day);
-            Assert.Equal(22, retrievedDateSecond.Value.Day);
+            var days = collection.Entities.Select(e => ((DateTime)e["anniversary"]).Day).ToList();
+            Assert.Contains(23, days);
+            Assert.Contains(22, days);
         }
 
         [Fact]
@@ -1361,10 +1404,9 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(2, collection.Entities.Count);
-            var retrievedDateFirst = collection.Entities[0]["anniversary"] as DateTime?;
-            var retrievedDateSecond = collection.Entities[1]["anniversary"] as DateTime?;
-            Assert.Equal(23, retrievedDateFirst.Value.Day);
-            Assert.Equal(24, retrievedDateSecond.Value.Day);
+            var days = collection.Entities.Select(e => ((DateTime)e["anniversary"]).Day).ToList();
+            Assert.Contains(23, days);
+            Assert.Contains(24, days);
         }
 
         [Fact]
@@ -1451,10 +1493,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Between_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='anniversary' />
                                         <filter type='and'>
@@ -1541,10 +1585,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_NotBetween_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='anniversary' />
                                         <filter type='and'>
@@ -1656,10 +1702,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(3, collection.Entities.Count);
-
-            Assert.Equal(((DateTime)collection.Entities[0]["anniversary"]).Year, thisYear);
-            Assert.Equal(((DateTime)collection.Entities[1]["anniversary"]).Year, thisYear);
-            Assert.Equal(((DateTime)collection.Entities[2]["anniversary"]).Year, thisYear);
+            Assert.All(collection.Entities, e => Assert.Equal(thisYear, ((DateTime)e["anniversary"]).Year));
         }
 
         [Fact]
@@ -1668,9 +1711,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var today = DateTime.Today;
             var thisYear = today.Year;
 
-            var ctx = new XrmFakedContext();
-            ctx.FiscalYearSettings = new FiscalYearSettings() { StartDate = new DateTime(thisYear, 1, 2), FiscalPeriodTemplate = FiscalYearSettings.Template.Annually };
-            var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var ctx = new XrmFakedContext
+      {
+        FiscalYearSettings = new FiscalYearSettings() { StartDate = new DateTime(thisYear, 1, 2), FiscalPeriodTemplate = FiscalYearSettings.Template.Annually }
+      };
+      var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='anniversary' />
                                         <filter type='and'>
@@ -1688,9 +1733,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(2, collection.Entities.Count);
-
-            Assert.Equal(((DateTime)collection.Entities[0]["anniversary"]).Year, thisYear);
-            Assert.Equal(((DateTime)collection.Entities[1]["anniversary"]).Year, thisYear);
+            Assert.All(collection.Entities, e => Assert.Equal(thisYear, ((DateTime)e["anniversary"]).Year));
         }
 
         [Fact]
@@ -1722,10 +1765,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(3, collection.Entities.Count);
-
-            Assert.Equal(((DateTime)collection.Entities[0]["anniversary"]).Month, thisMonth);
-            Assert.Equal(((DateTime)collection.Entities[1]["anniversary"]).Month, thisMonth);
-            Assert.Equal(((DateTime)collection.Entities[2]["anniversary"]).Month, thisMonth);
+            Assert.All(collection.Entities, e => Assert.Equal(thisMonth, ((DateTime)e["anniversary"]).Month));
         }
 
         [Fact]
@@ -1757,9 +1797,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(2, collection.Entities.Count);
-
-            Assert.Equal(((DateTime)collection.Entities[0]["anniversary"]).Month, lastMonth);
-            Assert.Equal(((DateTime)collection.Entities[1]["anniversary"]).Month, lastMonth);
+            Assert.All(collection.Entities, e => Assert.Equal(lastMonth, ((DateTime)e["anniversary"]).Month));
         }
 
         [Fact]
@@ -1793,9 +1831,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(2, collection.Entities.Count);
-
-            Assert.Equal(((DateTime)collection.Entities[0]["anniversary"]).Month, nextMonth);
-            Assert.Equal(((DateTime)collection.Entities[1]["anniversary"]).Month, nextMonth);
+            Assert.All(collection.Entities, e => Assert.Equal(nextMonth, ((DateTime)e["anniversary"]).Month));
         }
 
         [Fact]
@@ -1826,10 +1862,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(3, collection.Entities.Count);
-
-            Assert.Equal(((DateTime)collection.Entities[0]["anniversary"]).Year, thisYear - 1);
-            Assert.Equal(((DateTime)collection.Entities[1]["anniversary"]).Year, thisYear - 1);
-            Assert.Equal(((DateTime)collection.Entities[2]["anniversary"]).Year, thisYear - 1);
+            Assert.All(collection.Entities, e => Assert.Equal(thisYear - 1, ((DateTime)e["anniversary"]).Year));
         }
 
         [Fact]
@@ -1860,10 +1893,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Equal(3, collection.Entities.Count);
-
-            Assert.Equal(((DateTime)collection.Entities[0]["anniversary"]).Year, thisYear + 1);
-            Assert.Equal(((DateTime)collection.Entities[1]["anniversary"]).Year, thisYear + 1);
-            Assert.Equal(((DateTime)collection.Entities[2]["anniversary"]).Year, thisYear + 1);
+            Assert.All(collection.Entities, e => Assert.Equal(thisYear + 1, ((DateTime)e["anniversary"]).Year));
         }
 
         [Fact]
@@ -1909,7 +1939,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Single(collection.Entities);
-            var retrievedUser = collection.Entities[0].Id;
+            var retrievedUser = Assert.Single(collection.Entities).Id;
             Assert.Equal(retrievedUser, su1.Id);
         }
 
@@ -1956,7 +1986,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Single(collection.Entities);
-            var retrievedUser = collection.Entities[0].Id;
+            var retrievedUser = Assert.Single(collection.Entities).Id;
             Assert.Equal(retrievedUser, su2.Id);
         }
         [Fact]
@@ -2019,7 +2049,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Single(collection.Entities);
-            var retrievedUser = collection.Entities[0].Id;
+            var retrievedUser = Assert.Single(collection.Entities).Id;
             Assert.Equal(retrievedUser, ct1.Id);
         }
         [Fact]
@@ -2068,7 +2098,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Single(collection.Entities);
-            var retrievedUser = collection.Entities[0].Id;
+            var retrievedUser = Assert.Single(collection.Entities).Id;
             Assert.Equal(retrievedUser, ct1.Id);
         }
         [Fact]
@@ -2117,7 +2147,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Single(collection.Entities);
-            var retrievedUser = collection.Entities[0].Id;
+            var retrievedUser = Assert.Single(collection.Entities).Id;
             Assert.Equal(retrievedUser, ct1.Id);
         }
         [Fact]
@@ -2166,7 +2196,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Single(collection.Entities);
-            var retrievedUser = collection.Entities[0].Id;
+            var retrievedUser = Assert.Single(collection.Entities).Id;
             Assert.Equal(retrievedUser, ct1.Id);
         }
 
@@ -2175,10 +2205,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_ContainValues_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version=""1.0"" output-format=""xml-platform"" mapping=""logical"" distinct=""false"">
+      var fetchXml = @"<fetch version=""1.0"" output-format=""xml-platform"" mapping=""logical"" distinct=""false"">
                                <entity name=""contact"">
                                  <attribute name=""firstname"" />
                                  <filter type=""and"">
@@ -2231,10 +2263,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_DoesNotContainValues_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version=""1.0"" output-format=""xml-platform"" mapping=""logical"" distinct=""false"">
+      var fetchXml = @"<fetch version=""1.0"" output-format=""xml-platform"" mapping=""logical"" distinct=""false"">
                                <entity name=""contact"">
                                  <attribute name=""firstname"" />
                                  <filter type=""and"">
@@ -2434,10 +2468,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_X_Hours_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -2460,10 +2496,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_X_Hours_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -2492,17 +2530,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var collection = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Single(collection.Entities);
-            var retrievedUser = collection.Entities[0].Id;
+            var retrievedUser = Assert.Single(collection.Entities).Id;
             Assert.Equal(retrievedUser, ct1.Id);
         }
 
         [Fact]
         public void FetchXml_Operator_Next_X_Hours_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -2525,10 +2565,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Next_X_Hours_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -2564,10 +2606,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_X_Days_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -2590,10 +2634,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_X_Days_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -2629,10 +2675,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Next_X_Days_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -2655,10 +2703,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Next_X_Days_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -2694,10 +2744,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_X_Weeks_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -2720,10 +2772,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_X_Weeks_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -2759,10 +2813,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Next_X_Weeks_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -2785,10 +2841,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_X_Months_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -2811,10 +2869,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_X_Months_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -2850,10 +2910,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Next_X_Months_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -2876,10 +2938,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Next_X_Months_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -2915,10 +2979,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_X_Years_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -2941,10 +3007,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Last_X_Years_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />
@@ -2980,10 +3048,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Next_X_Years_Translation()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -3006,10 +3076,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void FetchXml_Operator_Next_X_Years_Execution()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                                <entity name='contact'>
                                  <attribute name='fullname' />
                                  <attribute name='telephone1' />

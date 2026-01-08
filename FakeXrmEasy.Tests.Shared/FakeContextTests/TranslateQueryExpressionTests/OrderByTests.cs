@@ -15,15 +15,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
         {
             List<Entity> contactList = new List<Entity>();
 
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["lastname"] = "Bloggs";
             contact1.Attributes["new_somefield"] = new Money(12345); // (decimal)678910
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["lastname"] = "Bloggs";
             contact2.Attributes["new_somefield"] = new Money(678910); // (decimal)678910
 
@@ -34,9 +38,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_somefield", OrderType.Ascending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_somefield", OrderType.Ascending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = results.Entities[0]["new_somefield"] as Money;
@@ -49,15 +55,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
         {
             List<Entity> contactList = new List<Entity>();
 
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["lastname"] = "Bloggs";
             contact1.Attributes["new_somefield"] = new Money(12345); // (decimal)678910
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["lastname"] = "Bloggs";
             contact2.Attributes["new_somefield"] = new Money(678910); // (decimal)678910
 
@@ -68,9 +78,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_somefield", OrderType.Descending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_somefield", OrderType.Descending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = results.Entities[0]["new_somefield"] as Money;
@@ -83,9 +95,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
         {
             List<Entity> contactList = new List<Entity>();
 
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["lastname"] = "Bloggs";
             contact1.Attributes["new_somefield"] = new EntityReference()
             {
@@ -93,9 +107,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
                 Name = "Jordi"
             };
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["lastname"] = "Bloggs";
             contact2.Attributes["new_somefield"] = new EntityReference()
             {
@@ -110,9 +126,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_somefield", OrderType.Ascending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_somefield", OrderType.Ascending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = results.Entities[0]["new_somefield"] as EntityReference;
@@ -125,9 +143,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
         {
             List<Entity> contactList = new List<Entity>();
 
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["lastname"] = "Bloggs";
             contact1.Attributes["new_somefield"] = new EntityReference()
             {
@@ -135,9 +155,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
                 Name = "Jordi"
             };
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["lastname"] = "Bloggs";
             contact2.Attributes["new_somefield"] = new EntityReference()
             {
@@ -152,9 +174,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_somefield", OrderType.Descending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_somefield", OrderType.Descending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = results.Entities[0]["new_somefield"] as EntityReference;
@@ -167,14 +191,18 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
         {
             List<Entity> contactList = new List<Entity>();
 
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["new_optionsetfield"] = new OptionSetValue(1);
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["new_optionsetfield"] = new OptionSetValue(2);
 
             contactList.Add(contact2);
@@ -184,9 +212,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_optionsetfield", OrderType.Ascending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_optionsetfield", OrderType.Ascending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = results.Entities[0]["new_optionsetfield"] as OptionSetValue;
@@ -199,14 +229,18 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
         {
             List<Entity> contactList = new List<Entity>();
 
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["new_orderbyfield"] = 69;
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["new_orderbyfield"] = 6969;
 
             contactList.Add(contact2);
@@ -216,9 +250,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_orderbyfield", OrderType.Ascending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_orderbyfield", OrderType.Ascending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = (int)results.Entities[0]["new_orderbyfield"];
@@ -232,14 +268,18 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             List<Entity> contactList = new List<Entity>();
 
             var now = DateTime.UtcNow;
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["new_orderbyfield"] = now;
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["new_orderbyfield"] = now.AddDays(1);
 
             contactList.Add(contact2);
@@ -249,9 +289,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_orderbyfield", OrderType.Ascending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_orderbyfield", OrderType.Ascending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = (DateTime)results.Entities[0]["new_orderbyfield"];
@@ -269,14 +311,18 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             var g2 = new Guid(24, 0, 0, new byte[] {  new byte(), new byte(), new byte(), new byte(),
                                                       new byte(), new byte(), new byte(), new byte()  });
 
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["new_orderbyfield"] = g1;
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["new_orderbyfield"] = g2;
 
             contactList.Add(contact2);
@@ -286,9 +332,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_orderbyfield", OrderType.Ascending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_orderbyfield", OrderType.Ascending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = (Guid)results.Entities[0]["new_orderbyfield"];
@@ -301,14 +349,18 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
         {
             List<Entity> contactList = new List<Entity>();
 
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["new_orderbyfield"] = 69.69m;
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["new_orderbyfield"] = 6969.69m;
 
             contactList.Add(contact2);
@@ -318,9 +370,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_orderbyfield", OrderType.Ascending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_orderbyfield", OrderType.Ascending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = (decimal)results.Entities[0]["new_orderbyfield"];
@@ -333,14 +387,18 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
         {
             List<Entity> contactList = new List<Entity>();
 
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["new_orderbyfield"] = 69.69;
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["new_orderbyfield"] = 6969.69;
 
             contactList.Add(contact2);
@@ -350,9 +408,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_orderbyfield", OrderType.Ascending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_orderbyfield", OrderType.Ascending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = (double)results.Entities[0]["new_orderbyfield"];
@@ -365,14 +425,18 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
         {
             List<Entity> contactList = new List<Entity>();
 
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["new_orderbyfield"] = 69.69f;
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["new_orderbyfield"] = 6969.69f;
 
             contactList.Add(contact2);
@@ -382,9 +446,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_orderbyfield", OrderType.Ascending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_orderbyfield", OrderType.Ascending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = (float)results.Entities[0]["new_orderbyfield"];
@@ -397,14 +463,18 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
         {
             List<Entity> contactList = new List<Entity>();
 
-            Entity contact1 = new Entity("contact");
-            contact1.Id = Guid.NewGuid();
-            contact1.Attributes["firstname"] = "Fred";
+      Entity contact1 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact1.Attributes["firstname"] = "Fred";
             contact1.Attributes["new_orderbyfield"] = false;
 
-            Entity contact2 = new Entity("contact");
-            contact2.Id = Guid.NewGuid();
-            contact2.Attributes["firstname"] = "Jo";
+      Entity contact2 = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact2.Attributes["firstname"] = "Jo";
             contact2.Attributes["new_orderbyfield"] = true;
 
             contactList.Add(contact2);
@@ -414,9 +484,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             context.Initialize(contactList);
             var service = context.GetOrganizationService();
 
-            QueryExpression qry = new QueryExpression("contact");
-            qry.ColumnSet = new ColumnSet(true);
-            qry.AddOrder("new_orderbyfield", OrderType.Ascending);
+      QueryExpression qry = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      qry.AddOrder("new_orderbyfield", OrderType.Ascending);
             var results = service.RetrieveMultiple(qry);
 
             var firstResultValue = (bool)results.Entities[0]["new_orderbyfield"];
@@ -595,23 +667,29 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             IOrganizationService service = context.GetOrganizationService();
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity secondEntity = new Entity("entity");
-            secondEntity.Id = Guid.NewGuid();
-            secondEntity["int"] = 2;
+      Entity secondEntity = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      secondEntity["int"] = 2;
             secondEntity["text"] = "second";
             initialEntities.Add(secondEntity);
 
-            Entity firstEntity = new Entity("entity");
-            firstEntity.Id = Guid.NewGuid();
-            firstEntity["int"] = 1;
+      Entity firstEntity = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      firstEntity["int"] = 1;
             firstEntity["text"] = "first";
             initialEntities.Add(firstEntity);
 
             context.Initialize(initialEntities);
 
-            QueryExpression query = new QueryExpression("entity");
-            query.ColumnSet = new ColumnSet("text");
-            query.AddOrder("int", OrderType.Ascending);
+      QueryExpression query = new QueryExpression("entity")
+      {
+        ColumnSet = new ColumnSet("text")
+      };
+      query.AddOrder("int", OrderType.Ascending);
 
             EntityCollection result = service.RetrieveMultiple(query);
             Assert.Equal(firstEntity.Id, result.Entities[0].Id);
@@ -625,49 +703,74 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
             var service = context.GetOrganizationService();
             List<Entity> initialEntities = new List<Entity>();
 
-            var erNull = new EntityReference("account", Guid.NewGuid());
-            erNull.Name = null;
+      var erNull = new EntityReference("account", Guid.NewGuid())
+      {
+        Name = null
+      };
 
-            var erAnotherNull = new EntityReference("account", Guid.NewGuid());
-            erAnotherNull.Name = null;
+      var erAnotherNull = new EntityReference("account", Guid.NewGuid())
+      {
+        Name = null
+      };
 
-            var er1 = new EntityReference("account", Guid.NewGuid());
-            er1.Name = "first";
+      var er1 = new EntityReference("account", Guid.NewGuid())
+      {
+        Name = "first"
+      };
 
-            var er2 = new EntityReference("account", Guid.NewGuid());
-            er2.Name = "second";
+      var er2 = new EntityReference("account", Guid.NewGuid())
+      {
+        Name = "second"
+      };
 
-            Entity secondEntity = new Entity("entity");
-            secondEntity.Id = Guid.NewGuid();
-            secondEntity["lookup"] = er2;
+      Entity secondEntity = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      secondEntity["lookup"] = er2;
             initialEntities.Add(secondEntity);
 
-            Entity firstEntity = new Entity("entity");
-            firstEntity.Id = Guid.NewGuid();
-            firstEntity["lookup"] = er1;
+      Entity firstEntity = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      firstEntity["lookup"] = er1;
             initialEntities.Add(firstEntity);
 
-            Entity nullEntity = new Entity("entity");
-            nullEntity.Id = Guid.NewGuid();
-            nullEntity["lookup"] = erNull;
+      Entity nullEntity = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      nullEntity["lookup"] = erNull;
             initialEntities.Add(nullEntity);
 
-            Entity anotherNullEntity = new Entity("entity");
-            anotherNullEntity.Id = Guid.NewGuid();
-            anotherNullEntity["lookup"] = erAnotherNull;
+      Entity anotherNullEntity = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      anotherNullEntity["lookup"] = erAnotherNull;
             initialEntities.Add(anotherNullEntity);
 
             context.Initialize(initialEntities);
 
-            QueryExpression query = new QueryExpression("entity");
-            query.ColumnSet = new ColumnSet("text");
-            query.AddOrder("lookup", OrderType.Ascending);
+      QueryExpression query = new QueryExpression("entity")
+      {
+        ColumnSet = new ColumnSet("text")
+      };
+      query.AddOrder("lookup", OrderType.Ascending);
 
             EntityCollection result = service.RetrieveMultiple(query);
-            Assert.Equal(nullEntity.Id, result.Entities[0].Id);
-            Assert.Equal(anotherNullEntity.Id, result.Entities[1].Id);
-            Assert.Equal(firstEntity.Id, result.Entities[2].Id);
-            Assert.Equal(secondEntity.Id, result.Entities[3].Id);
+            Assert.Equal(4, result.Entities.Count);
+            var orderedIds = result.Entities.Select(e => e.Id).ToList();
+
+            // Null names should be first, but their internal ordering isn't guaranteed.
+            var firstTwoIds = orderedIds.Take(2).ToList();
+            Assert.Contains(nullEntity.Id, firstTwoIds);
+            Assert.Contains(anotherNullEntity.Id, firstTwoIds);
+
+            // Non-null names should follow and remain ordered by name.
+            Assert.Equal(firstEntity.Id, orderedIds[2]);
+            Assert.Equal(secondEntity.Id, orderedIds[3]);
         }
     }
 }

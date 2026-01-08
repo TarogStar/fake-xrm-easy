@@ -35,23 +35,28 @@ namespace FakeXrmEasy
 
         private QueryExpression CreateBrokenTestQuery(string contactId)
         {
-            QueryExpression query = new QueryExpression();
+      QueryExpression query = new QueryExpression
+      {
+        PageInfo = new PagingInfo
+        {
+          Count = 100,
+          PageNumber = 1,
+          PagingCookie = null
+        },
 
-            query.PageInfo = new PagingInfo();
-            query.PageInfo.Count = 100;
-            query.PageInfo.PageNumber = 1;
-            query.PageInfo.PagingCookie = null;
+        // Setup the query for the contact entity
+        EntityName = Contact.EntityLogicalName,
 
-            // Setup the query for the contact entity
-            query.EntityName = Contact.EntityLogicalName;
+        // Specify the columns to retrieve
+        ColumnSet = new ColumnSet(true),
 
-            // Specify the columns to retrieve
-            query.ColumnSet = new ColumnSet(true);
+        Criteria = new FilterExpression
+        {
+          FilterOperator = LogicalOperator.And
+        }
+      };
 
-            query.Criteria = new FilterExpression();
-            query.Criteria.FilterOperator = LogicalOperator.And;
-
-            FilterExpression filter = new FilterExpression(LogicalOperator.And);
+      FilterExpression filter = new FilterExpression(LogicalOperator.And);
 
             // Create the link from the contact to the account entity
             LinkEntity linkAccount = new LinkEntity();
@@ -63,16 +68,20 @@ namespace FakeXrmEasy
             linkAccount.Columns = new ColumnSet(true);
             linkAccount.EntityAlias = "accountItem";
 
-            #region this is the broken additional field condition
+      #region this is the broken additional field condition
 
-            linkAccount.LinkCriteria = new FilterExpression();
-            linkAccount.LinkCriteria.FilterOperator = LogicalOperator.And;
+      linkAccount.LinkCriteria = new FilterExpression
+      {
+        FilterOperator = LogicalOperator.And
+      };
 
-            // Create the primary contact condition
-            ConditionExpression condition3 = new ConditionExpression();
-            condition3.AttributeName = "primarycontactid";
-            condition3.Operator = ConditionOperator.Equal;
-            condition3.Values.Add(new Guid(contactId));
+      // Create the primary contact condition
+      ConditionExpression condition3 = new ConditionExpression
+      {
+        AttributeName = "primarycontactid",
+        Operator = ConditionOperator.Equal
+      };
+      condition3.Values.Add(new Guid(contactId));
 
             linkAccount.LinkCriteria.Conditions.Add(condition3);
 
@@ -84,48 +93,61 @@ namespace FakeXrmEasy
 
         private QueryExpression CreateWorkingTestQuery(string contactId)
         {
-            QueryExpression query = new QueryExpression();
+      QueryExpression query = new QueryExpression
+      {
+        PageInfo = new PagingInfo
+        {
+          Count = 100,
+          PageNumber = 1,
+          PagingCookie = null
+        },
 
-            query.PageInfo = new PagingInfo();
-            query.PageInfo.Count = 100;
-            query.PageInfo.PageNumber = 1;
-            query.PageInfo.PagingCookie = null;
+        // Setup the query for the contact entity
+        EntityName = Contact.EntityLogicalName,
 
-            // Setup the query for the contact entity
-            query.EntityName = Contact.EntityLogicalName;
+        // Specify the columns to retrieve
+        ColumnSet = new ColumnSet(true),
 
-            // Specify the columns to retrieve
-            query.ColumnSet = new ColumnSet(true);
+        Criteria = new FilterExpression
+        {
+          FilterOperator = LogicalOperator.And
+        }
+      };
 
-            query.Criteria = new FilterExpression();
-            query.Criteria.FilterOperator = LogicalOperator.And;
+      FilterExpression filter = new FilterExpression(LogicalOperator.And);
 
-            FilterExpression filter = new FilterExpression(LogicalOperator.And);
+      // Create the link from the contact to the account entity
+      LinkEntity linkAccount = new LinkEntity
+      {
+        JoinOperator = JoinOperator.Inner,
+        LinkFromEntityName = Contact.EntityLogicalName,
+        LinkFromAttributeName = "parentcustomerid",
+        LinkToEntityName = Account.EntityLogicalName,
+        LinkToAttributeName = "accountid",
+        Columns = new ColumnSet(true),
+        EntityAlias = "accountItem",
 
-            // Create the link from the contact to the account entity
-            LinkEntity linkAccount = new LinkEntity();
-            linkAccount.JoinOperator = JoinOperator.Inner;
-            linkAccount.LinkFromEntityName = Contact.EntityLogicalName;
-            linkAccount.LinkFromAttributeName = "parentcustomerid";
-            linkAccount.LinkToEntityName = Account.EntityLogicalName;
-            linkAccount.LinkToAttributeName = "accountid";
-            linkAccount.Columns = new ColumnSet(true);
-            linkAccount.EntityAlias = "accountItem";
+        LinkCriteria = new FilterExpression
+        {
+          FilterOperator = LogicalOperator.And
+        }
+      };
 
-            linkAccount.LinkCriteria = new FilterExpression();
-            linkAccount.LinkCriteria.FilterOperator = LogicalOperator.And;
+      #region this is the working additional field reference
 
-            #region this is the working additional field reference
+      // Create the primary contact condition
+      LinkEntity linkContact = new LinkEntity(Account.EntityLogicalName, Contact.EntityLogicalName, "primarycontactid", "contactid", JoinOperator.Inner)
+      {
+        Columns = new ColumnSet(true),
+        EntityAlias = "primaryContact",
 
-            // Create the primary contact condition
-            LinkEntity linkContact = new LinkEntity(Account.EntityLogicalName, Contact.EntityLogicalName, "primarycontactid", "contactid", JoinOperator.Inner);
-            linkContact.Columns = new ColumnSet(true);
-            linkContact.EntityAlias = "primaryContact";
+        LinkCriteria = new FilterExpression
+        {
+          FilterOperator = LogicalOperator.And
+        }
+      };
 
-            linkContact.LinkCriteria = new FilterExpression();
-            linkContact.LinkCriteria.FilterOperator = LogicalOperator.And;
-
-            linkContact.LinkCriteria.Conditions.Add(new ConditionExpression("contactid", ConditionOperator.Equal, new Guid(contactId)));
+      linkContact.LinkCriteria.Conditions.Add(new ConditionExpression("contactid", ConditionOperator.Equal, new Guid(contactId)));
             linkAccount.LinkEntities.Add(linkContact);
 
             #endregion this is the working additional field reference

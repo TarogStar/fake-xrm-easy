@@ -24,12 +24,14 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AddMemberListRequestTests
             var ctx = new XrmFakedContext();
             var service = ctx.GetOrganizationService();
 
-            AddMemberListRequest marketingList = new AddMemberListRequest(); // Set the properties of the request object.
-            marketingList.EntityId = Guid.NewGuid();
-            marketingList.ListId = Guid.NewGuid();
+      AddMemberListRequest marketingList = new AddMemberListRequest
+      {
+        EntityId = Guid.NewGuid(),
+        ListId = Guid.NewGuid()
+      }; // Set the properties of the request object.
 
-            // Execute the request.
-            Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(marketingList));
+      // Execute the request.
+      Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(marketingList));
         }
 
         [Fact]
@@ -38,12 +40,14 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AddMemberListRequestTests
             var ctx = new XrmFakedContext();
             var service = ctx.GetOrganizationService();
 
-            AddMemberListRequest marketingList = new AddMemberListRequest(); // Set the properties of the request object.
-            marketingList.EntityId = Guid.NewGuid();
-            marketingList.ListId = Guid.Empty;
+      AddMemberListRequest marketingList = new AddMemberListRequest
+      {
+        EntityId = Guid.NewGuid(),
+        ListId = Guid.Empty
+      }; // Set the properties of the request object.
 
-            // Execute the request.
-            Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(marketingList));
+      // Execute the request.
+      Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(marketingList));
         }
 
         [Fact]
@@ -52,12 +56,14 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AddMemberListRequestTests
             var ctx = new XrmFakedContext();
             var service = ctx.GetOrganizationService();
 
-            AddMemberListRequest marketingList = new AddMemberListRequest(); // Set the properties of the request object.
-            marketingList.EntityId = Guid.Empty;
-            marketingList.ListId = Guid.NewGuid();
+      AddMemberListRequest marketingList = new AddMemberListRequest
+      {
+        EntityId = Guid.Empty,
+        ListId = Guid.NewGuid()
+      }; // Set the properties of the request object.
 
-            // Execute the request.
-            Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(marketingList));
+      // Execute the request.
+      Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(marketingList));
         }
 
         [Fact]
@@ -77,11 +83,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AddMemberListRequestTests
                 list
             });
 
-            AddMemberListRequest marketingList = new AddMemberListRequest();
-            marketingList.EntityId = Guid.NewGuid();
-            marketingList.ListId = list.ToEntityReference().Id;
+      AddMemberListRequest marketingList = new AddMemberListRequest
+      {
+        EntityId = Guid.NewGuid(),
+        ListId = list.ToEntityReference().Id
+      };
 
-            Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(marketingList));
+      Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(marketingList));
         }
 
         [Fact]
@@ -102,11 +110,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AddMemberListRequestTests
                 list
             });
 
-            AddMemberListRequest request = new AddMemberListRequest();
-            request.EntityId = Guid.NewGuid();
-            request.ListId = list.ToEntityReference().Id;
+      AddMemberListRequest request = new AddMemberListRequest
+      {
+        EntityId = Guid.NewGuid(),
+        ListId = list.ToEntityReference().Id
+      };
 
-            Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(request));
+      Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Execute(request));
         }
 
         [Fact]
@@ -131,11 +141,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AddMemberListRequestTests
                 list, account
             });
 
-            AddMemberListRequest request = new AddMemberListRequest();
-            request.EntityId = account.Id;
-            request.ListId = list.ToEntityReference().Id;
+      AddMemberListRequest request = new AddMemberListRequest
+      {
+        EntityId = account.Id,
+        ListId = list.ToEntityReference().Id
+      };
 
-            service.Execute(request);
+      service.Execute(request);
 
             using (var context = new XrmServiceContext(service))
             {
@@ -173,11 +185,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AddMemberListRequestTests
                 list, contact
             });
 
-            AddMemberListRequest request = new AddMemberListRequest();
-            request.EntityId = contact.Id;
-            request.ListId = list.ToEntityReference().Id;
+      AddMemberListRequest request = new AddMemberListRequest
+      {
+        EntityId = contact.Id,
+        ListId = list.ToEntityReference().Id
+      };
 
-            service.Execute(request);
+      service.Execute(request);
 
             using (var context = new XrmServiceContext(service))
             {
@@ -215,11 +229,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AddMemberListRequestTests
                 list, lead
             });
 
-            AddMemberListRequest request = new AddMemberListRequest();
-            request.EntityId = lead.Id;
-            request.ListId = list.ToEntityReference().Id;
+      AddMemberListRequest request = new AddMemberListRequest
+      {
+        EntityId = lead.Id,
+        ListId = list.ToEntityReference().Id
+      };
 
-            service.Execute(request);
+      service.Execute(request);
 
             using (var context = new XrmServiceContext(service))
             {

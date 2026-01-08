@@ -51,10 +51,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.ThisMonth);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.ThisMonth);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -94,10 +96,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.LastMonth);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.LastMonth);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -132,10 +136,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.ThisYear);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.ThisYear);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -178,10 +184,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.ThisWeek);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.ThisWeek);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -222,10 +230,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.Between, startDate, endDate);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.Between, startDate, endDate);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -266,10 +276,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.LastWeek);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.LastWeek);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -306,10 +318,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.NextMonth);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.NextMonth);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -344,10 +358,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.LastYear);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.LastYear);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert
@@ -382,10 +398,12 @@ namespace FakeXrmEasy.Tests.DateOperatorTests
 
             context.Initialize(entities);
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalYear, fiscalYear);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.Criteria.AddCondition("createdon", ConditionOperator.InFiscalYear, fiscalYear);
             var results = XrmFakedContext.TranslateQueryExpressionToLinq(context, query).ToList();
 
             // Assert

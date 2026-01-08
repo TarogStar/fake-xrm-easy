@@ -42,12 +42,14 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ExecuteAsyncTests
         }
 
         [Fact]
-        public void ExecuteAsync_with_CreateRequest_should_create_record_and_return_job_id()
+        public async System.Threading.Tasks.Task ExecuteAsync_with_CreateRequest_should_create_record_and_return_job_id()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var account = new Account
             {
@@ -66,7 +68,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ExecuteAsyncTests
             };
 
             // Act
-            var response = (ExecuteAsyncResponse)service.Execute(executeAsyncRequest);
+            var response = (ExecuteAsyncResponse)await System.Threading.Tasks.Task.Run(() => service.Execute(executeAsyncRequest));
 
             // Assert
             Assert.NotNull(response);
@@ -79,12 +81,14 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ExecuteAsyncTests
         }
 
         [Fact]
-        public void ExecuteAsync_with_UpdateRequest_should_update_record_and_return_job_id()
+        public async System.Threading.Tasks.Task ExecuteAsync_with_UpdateRequest_should_update_record_and_return_job_id()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var accountId = Guid.NewGuid();
             var account = new Account
@@ -110,7 +114,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ExecuteAsyncTests
             };
 
             // Act
-            var response = (ExecuteAsyncResponse)service.Execute(executeAsyncRequest);
+            var response = (ExecuteAsyncResponse)await System.Threading.Tasks.Task.Run(() => service.Execute(executeAsyncRequest));
 
             // Assert
             Assert.NotNull(response);
@@ -122,12 +126,14 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ExecuteAsyncTests
         }
 
         [Fact]
-        public void ExecuteAsync_should_create_asyncoperation_record_with_completed_status()
+        public async System.Threading.Tasks.Task ExecuteAsync_should_create_asyncoperation_record_with_completed_status()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var account = new Account
             {
@@ -146,25 +152,26 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ExecuteAsyncTests
             };
 
             // Act
-            var response = (ExecuteAsyncResponse)service.Execute(executeAsyncRequest);
+            var response = (ExecuteAsyncResponse)await System.Threading.Tasks.Task.Run(() => service.Execute(executeAsyncRequest));
 
             // Assert - Verify asyncoperation record exists with correct state
             var asyncOperations = (from a in context.CreateQuery<AsyncOperation>()
                                    where a.AsyncOperationId == response.AsyncJobId
                                    select a).ToList();
 
-            Assert.Single(asyncOperations);
-            var asyncOperation = asyncOperations.First();
+            var asyncOperation = Assert.Single(asyncOperations);
             Assert.Equal(AsyncOperationState.Completed, asyncOperation.StateCode);
         }
 
         [Fact]
-        public void ExecuteAsync_asyncoperation_should_contain_request_name()
+        public async System.Threading.Tasks.Task ExecuteAsync_asyncoperation_should_contain_request_name()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var account = new Account
             {
@@ -183,7 +190,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ExecuteAsyncTests
             };
 
             // Act
-            var response = (ExecuteAsyncResponse)service.Execute(executeAsyncRequest);
+            var response = (ExecuteAsyncResponse)await System.Threading.Tasks.Task.Run(() => service.Execute(executeAsyncRequest));
 
             // Assert - Verify asyncoperation record has the request name
             var asyncOperation = service.Retrieve("asyncoperation", response.AsyncJobId, new ColumnSet(true));
@@ -192,12 +199,14 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ExecuteAsyncTests
         }
 
         [Fact]
-        public void ExecuteAsync_with_DeleteRequest_should_delete_record_and_return_job_id()
+        public async System.Threading.Tasks.Task ExecuteAsync_with_DeleteRequest_should_delete_record_and_return_job_id()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var accountId = Guid.NewGuid();
             var account = new Account
@@ -219,7 +228,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ExecuteAsyncTests
             };
 
             // Act
-            var response = (ExecuteAsyncResponse)service.Execute(executeAsyncRequest);
+            var response = (ExecuteAsyncResponse)await System.Threading.Tasks.Task.Run(() => service.Execute(executeAsyncRequest));
 
             // Assert
             Assert.NotNull(response);
@@ -231,26 +240,28 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ExecuteAsyncTests
         }
 
         [Fact]
-        public void ExecuteAsync_multiple_requests_should_create_separate_jobs()
+        public async System.Threading.Tasks.Task ExecuteAsync_multiple_requests_should_create_separate_jobs()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var account1 = new Account { Id = Guid.NewGuid(), Name = "Account 1" };
             var account2 = new Account { Id = Guid.NewGuid(), Name = "Account 2" };
 
             // Act
-            var response1 = (ExecuteAsyncResponse)service.Execute(new ExecuteAsyncRequest
+            var response1 = (ExecuteAsyncResponse)await System.Threading.Tasks.Task.Run(() => service.Execute(new ExecuteAsyncRequest
             {
                 Request = new CreateRequest { Target = account1 }
-            });
+            }));
 
-            var response2 = (ExecuteAsyncResponse)service.Execute(new ExecuteAsyncRequest
+            var response2 = (ExecuteAsyncResponse)await System.Threading.Tasks.Task.Run(() => service.Execute(new ExecuteAsyncRequest
             {
                 Request = new CreateRequest { Target = account2 }
-            });
+            }));
 
             // Assert
             Assert.NotEqual(response1.AsyncJobId, response2.AsyncJobId);

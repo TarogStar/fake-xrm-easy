@@ -20,13 +20,17 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ModifyAccessRightsTests
             IOrganizationService service = context.GetOrganizationService();
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity contact = new Entity("contact");
-            contact.Id = Guid.NewGuid();
-            initialEntities.Add(contact);
+      Entity contact = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(contact);
 
-            Entity user = new Entity("systemuser");
-            user.Id = Guid.NewGuid();
-            initialEntities.Add(user);
+      Entity user = new Entity("systemuser")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(user);
 
             context.Initialize(initialEntities);
 
@@ -74,13 +78,17 @@ namespace FakeXrmEasy.Tests.FakeContextTests.ModifyAccessRightsTests
             IOrganizationService service = context.GetOrganizationService();
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity contact = new Entity("contact");
-            contact.Id = Guid.NewGuid();
-            initialEntities.Add(contact);
+      Entity contact = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(contact);
 
-            Entity user = new Entity("systemuser");
-            user.Id = Guid.NewGuid();
-            initialEntities.Add(user);
+      Entity user = new Entity("systemuser")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(user);
 
             context.Initialize(initialEntities);
 

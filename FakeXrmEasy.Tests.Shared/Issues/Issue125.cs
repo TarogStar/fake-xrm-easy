@@ -13,19 +13,25 @@ namespace FakeXrmEasy.Tests.Issues
         [Fact]
         public void Reproduce_issue_125()
         {
-            Account account = new Account();
-            account.Id = Guid.NewGuid();
-            account.Name = "Goggle ltd";
+      Account account = new Account
+      {
+        Id = Guid.NewGuid(),
+        Name = "Goggle ltd"
+      };
 
-            Contact contact = new Contact();
-            contact.Id = Guid.NewGuid();
-            contact.FirstName = "Test";
-            contact.LastName = "Contact 1";
-            contact.ParentCustomerId = account.ToEntityReference();
+      Contact contact = new Contact
+      {
+        Id = Guid.NewGuid(),
+        FirstName = "Test",
+        LastName = "Contact 1",
+        ParentCustomerId = account.ToEntityReference()
+      };
 
-            PhoneCall phonecall = new PhoneCall();
-            phonecall.Id = Guid.NewGuid();
-            phonecall["statecode"] = PhoneCallState.Open;
+      PhoneCall phonecall = new PhoneCall
+      {
+        Id = Guid.NewGuid()
+      };
+      phonecall["statecode"] = PhoneCallState.Open;
             //phonecall.To = new List<ActivityParty>() { contact.ToEntityReference() };
             phonecall.StatusCode = new OptionSetValue(1);
             phonecall.Subject = "Test phone call";

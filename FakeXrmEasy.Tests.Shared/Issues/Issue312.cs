@@ -18,24 +18,30 @@ namespace FakeXrmEasy.Tests.Issues
 
             var accountId = Guid.NewGuid();
 
-            Account account = new Account();
-            account.Id = accountId;
-            account.Name = "Test Account";
+      Account account = new Account
+      {
+        Id = accountId,
+        Name = "Test Account"
+      };
 
-            Contact contact = new Contact();
-            contact.FirstName = "Dave";
-            contact.LastName = "Contact";
-            contact.ParentCustomerId = new EntityReference("account", accountId);
-            contact.JobTitle = "Developer";
+      Contact contact = new Contact
+      {
+        FirstName = "Dave",
+        LastName = "Contact",
+        ParentCustomerId = new EntityReference("account", accountId),
+        JobTitle = "Developer"
+      };
 
-            Contact contact2 = new Contact();
-            contact2.FirstName = "Simon";
-            contact2.LastName = "Contact";
-            contact2.ParentCustomerId = new EntityReference("account", accountId);
-            contact2.JobTitle = "Tester2";
+      Contact contact2 = new Contact
+      {
+        FirstName = "Simon",
+        LastName = "Contact",
+        ParentCustomerId = new EntityReference("account", accountId),
+        JobTitle = "Tester2"
+      };
 
 
-            service.Create(account);
+      service.Create(account);
             service.Create(contact);
             service.Create(contact2);
 

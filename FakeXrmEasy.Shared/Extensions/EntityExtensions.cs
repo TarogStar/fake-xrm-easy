@@ -1,7 +1,8 @@
-﻿using FakeXrmEasy.Metadata;
+using FakeXrmEasy.Metadata;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -250,10 +251,15 @@ namespace FakeXrmEasy.Extensions
                     clone.Name = original.Name;
                 }
                 // Only auto-populate from metadata if Name is not already set
-                else if (context != null && !string.IsNullOrEmpty(original.LogicalName) && context.EntityMetadata.ContainsKey(original.LogicalName) && !string.IsNullOrEmpty(context.EntityMetadata[original.LogicalName].PrimaryNameAttribute) &&
-                    context.Data.ContainsKey(original.LogicalName) && context.Data[original.LogicalName].ContainsKey(original.Id))
+                else if (context != null && !string.IsNullOrEmpty(original.LogicalName) && context.EntityMetadata.ContainsKey(original.LogicalName) && !string.IsNullOrEmpty(context.EntityMetadata[original.LogicalName].PrimaryNameAttribute))
                 {
-                    clone.Name = context.Data[original.LogicalName][original.Id].GetAttributeValue<string>(context.EntityMetadata[original.LogicalName].PrimaryNameAttribute);
+                    ConcurrentDictionary<Guid, Entity> entityDict;
+                    Entity referencedEntity;
+                    if (context.Data.TryGetValue(original.LogicalName, out entityDict) &&
+                        entityDict.TryGetValue(original.Id, out referencedEntity))
+                    {
+                        clone.Name = referencedEntity.GetAttributeValue<string>(context.EntityMetadata[original.LogicalName].PrimaryNameAttribute);
+                    }
                 }
 
 #if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013 && !FAKE_XRM_EASY_2015
@@ -344,27 +350,49 @@ namespace FakeXrmEasy.Extensions
         /// <returns>A new entity instance with cloned attributes.</returns>
         public static Entity Clone(this Entity e, XrmFakedContext context = null)
         {
-            var cloned = new Entity(e.LogicalName);
-            cloned.Id = e.Id;
-            cloned.LogicalName = e.LogicalName;
+      var cloned = new Entity(e.LogicalName)
+      {
+        Id = e.Id,
+        LogicalName = e.LogicalName
+      };
 
-            if (e.FormattedValues != null)
+      if (e.FormattedValues != null)
             {
                 var formattedValues = new FormattedValueCollection();
-                foreach (var key in e.FormattedValues.Keys)
-                    formattedValues.Add(key, e.FormattedValues[key]);
+                // Take a snapshot of keys to avoid collection modified exception
+                var formattedValueKeys = e.FormattedValues.Keys.ToList();
+                foreach (var key in formattedValueKeys)
+                {
+                    string value;
+                    if (e.FormattedValues.TryGetValue(key, out value))
+                    {
+                        formattedValues.Add(key, value);
+                    }
+                }
 
                 cloned.Inject("FormattedValues", formattedValues);
             }
 
-            foreach (var attKey in e.Attributes.Keys)
+            // Take a snapshot of attribute keys to avoid collection modified exception
+            var attributeKeys = e.Attributes.Keys.ToList();
+            foreach (var attKey in attributeKeys)
             {
-                cloned[attKey] = e[attKey] != null ? CloneAttribute(e[attKey], context) : null;
+                object attValue;
+                if (e.Attributes.TryGetValue(attKey, out attValue))
+                {
+                    cloned[attKey] = attValue != null ? CloneAttribute(attValue, context) : null;
+                }
             }
 #if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013 && !FAKE_XRM_EASY_2015
-            foreach (var attKey in e.KeyAttributes.Keys)
+            // Take a snapshot of key attribute keys to avoid collection modified exception
+            var keyAttributeKeys = e.KeyAttributes.Keys.ToList();
+            foreach (var attKey in keyAttributeKeys)
             {
-                cloned.KeyAttributes[attKey] = e.KeyAttributes[attKey] != null ? CloneAttribute(e.KeyAttributes[attKey]) : null;
+                object attValue;
+                if (e.KeyAttributes.TryGetValue(attKey, out attValue))
+                {
+                    cloned.KeyAttributes[attKey] = attValue != null ? CloneAttribute(attValue) : null;
+                }
             }
 #endif
             return cloned;
@@ -401,21 +429,41 @@ namespace FakeXrmEasy.Extensions
             if (e.FormattedValues != null)
             {
                 var formattedValues = new FormattedValueCollection();
-                foreach (var key in e.FormattedValues.Keys)
-                    formattedValues.Add(key, e.FormattedValues[key]);
+                // Take a snapshot of keys to avoid collection modified exception
+                var formattedValueKeys = e.FormattedValues.Keys.ToList();
+                foreach (var key in formattedValueKeys)
+                {
+                    string value;
+                    if (e.FormattedValues.TryGetValue(key, out value))
+                    {
+                        formattedValues.Add(key, value);
+                    }
+                }
 
                 cloned.Inject("FormattedValues", formattedValues);
             }
 
-            foreach (var attKey in e.Attributes.Keys)
+            // Take a snapshot of attribute keys to avoid collection modified exception
+            var attributeKeys = e.Attributes.Keys.ToList();
+            foreach (var attKey in attributeKeys)
             {
-                cloned[attKey] = e[attKey] != null ? CloneAttribute(e[attKey], context) : null;
+                object attValue;
+                if (e.Attributes.TryGetValue(attKey, out attValue))
+                {
+                    cloned[attKey] = attValue != null ? CloneAttribute(attValue, context) : null;
+                }
             }
 
 #if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013 && !FAKE_XRM_EASY_2015
-            foreach (var attKey in e.KeyAttributes.Keys)
+            // Take a snapshot of key attribute keys to avoid collection modified exception
+            var keyAttributeKeys = e.KeyAttributes.Keys.ToList();
+            foreach (var attKey in keyAttributeKeys)
             {
-                cloned.KeyAttributes[attKey] = e.KeyAttributes[attKey] != null ? CloneAttribute(e.KeyAttributes[attKey]) : null;
+                object attValue;
+                if (e.KeyAttributes.TryGetValue(attKey, out attValue))
+                {
+                    cloned.KeyAttributes[attKey] = attValue != null ? CloneAttribute(attValue) : null;
+                }
             }
 #endif
             return cloned;

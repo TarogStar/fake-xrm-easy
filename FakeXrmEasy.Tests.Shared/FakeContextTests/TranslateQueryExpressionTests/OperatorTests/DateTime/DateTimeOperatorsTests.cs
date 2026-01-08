@@ -30,17 +30,21 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             context.Initialize(new List<Entity>() { contact1, contact2, contact3 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("anniversary", ConditionOperator.On, new DateTime(2017, 07, 28, 0, 0, 0));
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("anniversary", ConditionOperator.On, new DateTime(2017, 07, 28, 0, 0, 0));
             qe.Criteria.AddCondition(condition);
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
 
             Assert.True(result.Count() == 2);
-            Assert.True(result[0].Id == contact1.Id);
-            Assert.True(result[1].Id == contact2.Id);
+            var resultIds = result.Select(e => e.Id).ToList();
+            Assert.Contains(contact1.Id, resultIds);
+            Assert.Contains(contact2.Id, resultIds);
         }
 
         [Fact]
@@ -70,18 +74,22 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             context.Initialize(new List<Entity>() { contact1, contact2, contact3, contact4 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("anniversary", ConditionOperator.OnOrAfter, new DateTime(2017, 07, 28, 0, 0, 0));
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("anniversary", ConditionOperator.OnOrAfter, new DateTime(2017, 07, 28, 0, 0, 0));
             qe.Criteria.AddCondition(condition);
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
 
             Assert.True(result.Count() == 3);
-            Assert.True(result[0].Id == contact1.Id);
-            Assert.True(result[1].Id == contact2.Id);
-            Assert.True(result[2].Id == contact3.Id);
+            var resultIds = result.Select(e => e.Id).ToList();
+            Assert.Contains(contact1.Id, resultIds);
+            Assert.Contains(contact2.Id, resultIds);
+            Assert.Contains(contact3.Id, resultIds);
         }
         [Fact]
         public void When_executing_a_query_expression_with_on_or_before_operator_time_part_is_ignored()
@@ -110,18 +118,22 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             context.Initialize(new List<Entity>() { contact1, contact2, contact3, contact4 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("anniversary", ConditionOperator.OnOrBefore, new DateTime(2017, 07, 28, 0, 0, 0));
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("anniversary", ConditionOperator.OnOrBefore, new DateTime(2017, 07, 28, 0, 0, 0));
             qe.Criteria.AddCondition(condition);
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
 
             Assert.True(result.Count() == 3);
-            Assert.True(result[0].Id == contact1.Id);
-            Assert.True(result[1].Id == contact2.Id);
-            Assert.True(result[2].Id == contact4.Id);
+            var resultIds = result.Select(e => e.Id).ToList();
+            Assert.Contains(contact1.Id, resultIds);
+            Assert.Contains(contact2.Id, resultIds);
+            Assert.Contains(contact4.Id, resultIds);
         }
 
         [Fact]
@@ -141,16 +153,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             context.Initialize(new List<Entity>() { contact1, contact2 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("anniversary", ConditionOperator.Today, new DateTime(2017, 07, 28, 0, 0, 0));
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("anniversary", ConditionOperator.Today, new DateTime(2017, 07, 28, 0, 0, 0));
             qe.Criteria.AddCondition(condition);
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
 
             Assert.True(result.Count() == 1);
-            Assert.True(result[0].Id == contact1.Id);
+            Assert.Equal(contact1.Id, Assert.Single(result).Id);
         }
 
         [Fact]
@@ -170,16 +185,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             context.Initialize(new List<Entity>() { contact1, contact2 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("anniversary", ConditionOperator.Yesterday, new DateTime(2017, 07, 28, 0, 0, 0));
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("anniversary", ConditionOperator.Yesterday, new DateTime(2017, 07, 28, 0, 0, 0));
             qe.Criteria.AddCondition(condition);
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
 
             Assert.True(result.Count() == 1);
-            Assert.True(result[0].Id == contact2.Id);
+            Assert.Equal(contact2.Id, Assert.Single(result).Id);
         }
 
         [Fact]
@@ -199,16 +217,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
 
             context.Initialize(new List<Entity>() { contact1, contact2 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.And);
-            var condition = new ConditionExpression("anniversary", ConditionOperator.Tomorrow, new DateTime(2017, 07, 28, 0, 0, 0));
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.And)
+      };
+      var condition = new ConditionExpression("anniversary", ConditionOperator.Tomorrow, new DateTime(2017, 07, 28, 0, 0, 0));
             qe.Criteria.AddCondition(condition);
 
             var result = XrmFakedContext.TranslateQueryExpressionToLinq(context, qe).ToList();
 
             Assert.True(result.Count() == 1);
-            Assert.True(result[0].Id == contact2.Id);
+            Assert.Equal(contact2.Id, Assert.Single(result).Id);
         }
 
         [Fact]
@@ -248,7 +269,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             var collection = ctx.GetOrganizationService().RetrieveMultiple(new FetchExpression(fetchXml));
 
             Assert.Single(collection.Entities);
-            Assert.Equal(contact2.Id, collection.Entities[0].Id);
+            Assert.Equal(contact2.Id, Assert.Single(collection.Entities).Id);
         }
 
 

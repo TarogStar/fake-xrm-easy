@@ -411,10 +411,12 @@ namespace FakeXrmEasy.Tests.FetchXml
 
             var fetchResults = service.RetrieveMultiple(new FetchExpression(fetchXml));
 
-            // Act with QueryExpression - Equivalent query
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
-            query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+      // Act with QueryExpression - Equivalent query
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
+      query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
             query.Criteria.AddCondition("name", ConditionOperator.Like, "%Test%");
 
             var queryResults = service.RetrieveMultiple(query);

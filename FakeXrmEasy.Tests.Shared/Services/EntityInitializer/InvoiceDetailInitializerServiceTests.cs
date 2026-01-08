@@ -22,9 +22,11 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
             overridenDefaultInitializer.InitializerServiceDictionary["invoicedetail"] = fakeService;
             context.EntityInitializerService = overridenDefaultInitializer;
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             context.Initialize(invoiceDetail);
 
             A.CallTo(() => fakeService.Initialize(A<Entity>._, A<Guid>._, A<XrmFakedContext>._, A<bool>._)).MustNotHaveHappened();
@@ -37,9 +39,11 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             initialEntities.Add(invoiceDetail);
 
             context.Initialize(initialEntities);
@@ -58,13 +62,17 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            initialEntities.Add(invoice);
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(invoice);
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             invoiceDetail["invoiceid"] = invoice.ToEntityReference();
             initialEntities.Add(invoiceDetail);
 
@@ -87,17 +95,23 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            initialEntities.Add(invoice);
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(invoice);
 
-            Entity product = new Entity("product");
-            product.Id = Guid.NewGuid();
-            initialEntities.Add(product);
+      Entity product = new Entity("product")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(product);
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             invoiceDetail["invoiceid"] = invoice.ToEntityReference();
             invoiceDetail["productid"] = product.ToEntityReference();
             initialEntities.Add(invoiceDetail);
@@ -121,23 +135,31 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity priceLevel = new Entity("pricelevel");
-            priceLevel.Id = Guid.NewGuid();
-            priceLevel["amount"] = new Money(10m);
+      Entity priceLevel = new Entity("pricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      priceLevel["amount"] = new Money(10m);
             initialEntities.Add(priceLevel);
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            invoice["pricelevelid"] = priceLevel.ToEntityReference();
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoice["pricelevelid"] = priceLevel.ToEntityReference();
             initialEntities.Add(invoice);
 
-            Entity product = new Entity("product");
-            product.Id = Guid.NewGuid();
-            initialEntities.Add(product);
+      Entity product = new Entity("product")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(product);
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             invoiceDetail["invoiceid"] = invoice.ToEntityReference();
             invoiceDetail["productid"] = product.ToEntityReference();
             initialEntities.Add(invoiceDetail);
@@ -161,27 +183,37 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity uom = new Entity("unitofmeasure");
-            uom.Id = Guid.NewGuid();
-            initialEntities.Add(uom);
+      Entity uom = new Entity("unitofmeasure")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(uom);
 
-            Entity priceLevel = new Entity("pricelevel");
-            priceLevel.Id = Guid.NewGuid();
-            priceLevel["amount"] = new Money(10m);
+      Entity priceLevel = new Entity("pricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      priceLevel["amount"] = new Money(10m);
             initialEntities.Add(priceLevel);
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            invoice["pricelevelid"] = priceLevel.ToEntityReference();
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoice["pricelevelid"] = priceLevel.ToEntityReference();
             initialEntities.Add(invoice);
 
-            Entity product = new Entity("product");
-            product.Id = Guid.NewGuid();
-            initialEntities.Add(product);
+      Entity product = new Entity("product")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(product);
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             invoiceDetail["invoiceid"] = invoice.ToEntityReference();
             invoiceDetail["productid"] = product.ToEntityReference();
             invoiceDetail["uomid"] = uom.ToEntityReference();
@@ -206,44 +238,58 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity uom = new Entity("unitofmeasure");
-            uom.Id = Guid.NewGuid();
-            initialEntities.Add(uom);
+      Entity uom = new Entity("unitofmeasure")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(uom);
 
-            Entity priceLevel = new Entity("pricelevel");
-            priceLevel.Id = Guid.NewGuid();
-            priceLevel["amount"] = new Money(10m);
+      Entity priceLevel = new Entity("pricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      priceLevel["amount"] = new Money(10m);
             initialEntities.Add(priceLevel);
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            invoice["pricelevelid"] = priceLevel.ToEntityReference();
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoice["pricelevelid"] = priceLevel.ToEntityReference();
             initialEntities.Add(invoice);
 
-            Entity product = new Entity("product");
-            product.Id = Guid.NewGuid();
-            initialEntities.Add(product);
+      Entity product = new Entity("product")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(product);
 
-            Entity productPriceLevel = new Entity("productpricelevel");
-            productPriceLevel.Id = Guid.NewGuid();
-            productPriceLevel["amount"] = new Money(10m);
+      Entity productPriceLevel = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel["amount"] = new Money(10m);
             productPriceLevel["pricelevelid"] = priceLevel.ToEntityReference();
             productPriceLevel["productid"] = product.ToEntityReference();
             productPriceLevel["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel);
 
-            //another productpricelevel to ensure that the request takes the correct one
-            Entity productPriceLevel2 = new Entity("productpricelevel");
-            productPriceLevel2.Id = Guid.NewGuid();
-            productPriceLevel2["amount"] = new Money(15m);
+      //another productpricelevel to ensure that the request takes the correct one
+      Entity productPriceLevel2 = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel2["amount"] = new Money(15m);
             productPriceLevel2["pricelevelid"] = new EntityReference("pricelevel", Guid.NewGuid());
             productPriceLevel2["productid"] = product.ToEntityReference();
             productPriceLevel2["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel2);
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             invoiceDetail["invoiceid"] = invoice.ToEntityReference();
             invoiceDetail["productid"] = product.ToEntityReference();
             invoiceDetail["uomid"] = uom.ToEntityReference();
@@ -268,45 +314,59 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity uom = new Entity("unitofmeasure");
-            uom.Id = Guid.NewGuid();
-            initialEntities.Add(uom);
+      Entity uom = new Entity("unitofmeasure")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(uom);
 
-            Entity priceLevel = new Entity("pricelevel");
-            priceLevel.Id = Guid.NewGuid();
-            priceLevel["amount"] = new Money(10m);
+      Entity priceLevel = new Entity("pricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      priceLevel["amount"] = new Money(10m);
             initialEntities.Add(priceLevel);
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            invoice["pricelevelid"] = priceLevel.ToEntityReference();
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoice["pricelevelid"] = priceLevel.ToEntityReference();
             initialEntities.Add(invoice);
 
-            Entity product = new Entity("product");
-            product.Id = Guid.NewGuid();
-            product["defaultuomid"] = uom.ToEntityReference();
+      Entity product = new Entity("product")
+      {
+        Id = Guid.NewGuid()
+      };
+      product["defaultuomid"] = uom.ToEntityReference();
             initialEntities.Add(product);
 
-            Entity productPriceLevel = new Entity("productpricelevel");
-            productPriceLevel.Id = Guid.NewGuid();
-            productPriceLevel["amount"] = new Money(10m);
+      Entity productPriceLevel = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel["amount"] = new Money(10m);
             productPriceLevel["pricelevelid"] = priceLevel.ToEntityReference();
             productPriceLevel["productid"] = product.ToEntityReference();
             productPriceLevel["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel);
 
-            //another productpricelevel to ensure that the request takes the correct one
-            Entity productPriceLevel2 = new Entity("productpricelevel");
-            productPriceLevel2.Id = Guid.NewGuid();
-            productPriceLevel2["amount"] = new Money(15m);
+      //another productpricelevel to ensure that the request takes the correct one
+      Entity productPriceLevel2 = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel2["amount"] = new Money(15m);
             productPriceLevel2["pricelevelid"] = new EntityReference("pricelevel", Guid.NewGuid());
             productPriceLevel2["productid"] = product.ToEntityReference();
             productPriceLevel2["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel2);
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             invoiceDetail["invoiceid"] = invoice.ToEntityReference();
             invoiceDetail["productid"] = product.ToEntityReference();
             initialEntities.Add(invoiceDetail);
@@ -331,45 +391,59 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity uom = new Entity("unitofmeasure");
-            uom.Id = Guid.NewGuid();
-            initialEntities.Add(uom);
+      Entity uom = new Entity("unitofmeasure")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(uom);
 
-            Entity priceLevel = new Entity("pricelevel");
-            priceLevel.Id = Guid.NewGuid();
-            priceLevel["amount"] = new Money(10m);
+      Entity priceLevel = new Entity("pricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      priceLevel["amount"] = new Money(10m);
             initialEntities.Add(priceLevel);
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            invoice["pricelevelid"] = priceLevel.ToEntityReference();
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoice["pricelevelid"] = priceLevel.ToEntityReference();
             initialEntities.Add(invoice);
 
-            Entity product = new Entity("product");
-            product.Id = Guid.NewGuid();
-            product["defaultuomscheduleid"] = uom.ToEntityReference();
+      Entity product = new Entity("product")
+      {
+        Id = Guid.NewGuid()
+      };
+      product["defaultuomscheduleid"] = uom.ToEntityReference();
             initialEntities.Add(product);
 
-            Entity productPriceLevel = new Entity("productpricelevel");
-            productPriceLevel.Id = Guid.NewGuid();
-            productPriceLevel["amount"] = new Money(10m);
+      Entity productPriceLevel = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel["amount"] = new Money(10m);
             productPriceLevel["pricelevelid"] = priceLevel.ToEntityReference();
             productPriceLevel["productid"] = product.ToEntityReference();
             productPriceLevel["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel);
 
-            //another productpricelevel to ensure that the request takes the correct one
-            Entity productPriceLevel2 = new Entity("productpricelevel");
-            productPriceLevel2.Id = Guid.NewGuid();
-            productPriceLevel2["amount"] = new Money(15m);
+      //another productpricelevel to ensure that the request takes the correct one
+      Entity productPriceLevel2 = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel2["amount"] = new Money(15m);
             productPriceLevel2["pricelevelid"] = new EntityReference("pricelevel", Guid.NewGuid());
             productPriceLevel2["productid"] = product.ToEntityReference();
             productPriceLevel2["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel2);
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             invoiceDetail["invoiceid"] = invoice.ToEntityReference();
             invoiceDetail["productid"] = product.ToEntityReference();
             initialEntities.Add(invoiceDetail);
@@ -394,44 +468,58 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity uom = new Entity("unitofmeasure");
-            uom.Id = Guid.NewGuid();
-            initialEntities.Add(uom);
+      Entity uom = new Entity("unitofmeasure")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(uom);
 
-            Entity priceLevel = new Entity("pricelevel");
-            priceLevel.Id = Guid.NewGuid();
-            priceLevel["amount"] = new Money(10m);
+      Entity priceLevel = new Entity("pricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      priceLevel["amount"] = new Money(10m);
             initialEntities.Add(priceLevel);
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            invoice["pricelevelid"] = priceLevel.ToEntityReference();
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoice["pricelevelid"] = priceLevel.ToEntityReference();
             initialEntities.Add(invoice);
 
-            Entity product = new Entity("product");
-            product.Id = Guid.NewGuid();
-            initialEntities.Add(product);
+      Entity product = new Entity("product")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(product);
 
-            Entity productPriceLevel = new Entity("productpricelevel");
-            productPriceLevel.Id = Guid.NewGuid();
-            productPriceLevel["amount"] = new Money(10m);
+      Entity productPriceLevel = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel["amount"] = new Money(10m);
             productPriceLevel["pricelevelid"] = priceLevel.ToEntityReference();
             productPriceLevel["productid"] = product.ToEntityReference();
             productPriceLevel["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel);
 
-            //another productpricelevel to ensure that the request takes the correct one
-            Entity productPriceLevel2 = new Entity("productpricelevel");
-            productPriceLevel2.Id = Guid.NewGuid();
-            productPriceLevel2["amount"] = new Money(15m);
+      //another productpricelevel to ensure that the request takes the correct one
+      Entity productPriceLevel2 = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel2["amount"] = new Money(15m);
             productPriceLevel2["pricelevelid"] = new EntityReference("pricelevel", Guid.NewGuid());
             productPriceLevel2["productid"] = product.ToEntityReference();
             productPriceLevel2["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel2);
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             invoiceDetail["invoiceid"] = invoice.ToEntityReference();
             invoiceDetail["productid"] = product.ToEntityReference();
             invoiceDetail["uomid"] = uom.ToEntityReference();
@@ -457,44 +545,58 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity uom = new Entity("unitofmeasure");
-            uom.Id = Guid.NewGuid();
-            initialEntities.Add(uom);
+      Entity uom = new Entity("unitofmeasure")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(uom);
 
-            Entity priceLevel = new Entity("pricelevel");
-            priceLevel.Id = Guid.NewGuid();
-            priceLevel["amount"] = new Money(10m);
+      Entity priceLevel = new Entity("pricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      priceLevel["amount"] = new Money(10m);
             initialEntities.Add(priceLevel);
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            invoice["pricelevelid"] = priceLevel.ToEntityReference();
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoice["pricelevelid"] = priceLevel.ToEntityReference();
             initialEntities.Add(invoice);
 
-            Entity product = new Entity("product");
-            product.Id = Guid.NewGuid();
-            initialEntities.Add(product);
+      Entity product = new Entity("product")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(product);
 
-            Entity productPriceLevel = new Entity("productpricelevel");
-            productPriceLevel.Id = Guid.NewGuid();
-            productPriceLevel["amount"] = new Money(10m);
+      Entity productPriceLevel = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel["amount"] = new Money(10m);
             productPriceLevel["pricelevelid"] = priceLevel.ToEntityReference();
             productPriceLevel["productid"] = product.ToEntityReference();
             productPriceLevel["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel);
 
-            //another productpricelevel to ensure that the request takes the correct one
-            Entity productPriceLevel2 = new Entity("productpricelevel");
-            productPriceLevel2.Id = Guid.NewGuid();
-            productPriceLevel2["amount"] = new Money(15m);
+      //another productpricelevel to ensure that the request takes the correct one
+      Entity productPriceLevel2 = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel2["amount"] = new Money(15m);
             productPriceLevel2["pricelevelid"] = new EntityReference("pricelevel", Guid.NewGuid());
             productPriceLevel2["productid"] = product.ToEntityReference();
             productPriceLevel2["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel2);
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             invoiceDetail["invoiceid"] = invoice.ToEntityReference();
             invoiceDetail["productid"] = product.ToEntityReference();
             invoiceDetail["uomid"] = uom.ToEntityReference();
@@ -522,45 +624,59 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity uom = new Entity("unitofmeasure");
-            uom.Id = Guid.NewGuid();
-            initialEntities.Add(uom);
+      Entity uom = new Entity("unitofmeasure")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(uom);
 
-            Entity priceLevel = new Entity("pricelevel");
-            priceLevel.Id = Guid.NewGuid();
-            priceLevel["amount"] = new Money(10m);
+      Entity priceLevel = new Entity("pricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      priceLevel["amount"] = new Money(10m);
             initialEntities.Add(priceLevel);
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            invoice["pricelevelid"] = priceLevel.ToEntityReference();
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoice["pricelevelid"] = priceLevel.ToEntityReference();
             invoice["totalamount"] = new Money(40m);
             initialEntities.Add(invoice);
 
-            Entity product = new Entity("product");
-            product.Id = Guid.NewGuid();
-            initialEntities.Add(product);
+      Entity product = new Entity("product")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(product);
 
-            Entity productPriceLevel = new Entity("productpricelevel");
-            productPriceLevel.Id = Guid.NewGuid();
-            productPriceLevel["amount"] = new Money(10m);
+      Entity productPriceLevel = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel["amount"] = new Money(10m);
             productPriceLevel["pricelevelid"] = priceLevel.ToEntityReference();
             productPriceLevel["productid"] = product.ToEntityReference();
             productPriceLevel["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel);
 
-            //another productpricelevel to ensure that the request takes the correct one
-            Entity productPriceLevel2 = new Entity("productpricelevel");
-            productPriceLevel2.Id = Guid.NewGuid();
-            productPriceLevel2["amount"] = new Money(15m);
+      //another productpricelevel to ensure that the request takes the correct one
+      Entity productPriceLevel2 = new Entity("productpricelevel")
+      {
+        Id = Guid.NewGuid()
+      };
+      productPriceLevel2["amount"] = new Money(15m);
             productPriceLevel2["pricelevelid"] = new EntityReference("pricelevel", Guid.NewGuid());
             productPriceLevel2["productid"] = product.ToEntityReference();
             productPriceLevel2["uomid"] = uom.ToEntityReference();
             initialEntities.Add(productPriceLevel2);
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = false;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = false;
             invoiceDetail["invoiceid"] = invoice.ToEntityReference();
             invoiceDetail["productid"] = product.ToEntityReference();
             invoiceDetail["uomid"] = uom.ToEntityReference();
@@ -586,13 +702,17 @@ namespace FakeXrmEasy.Tests.Services.EntityInitializer
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity invoice = new Entity("invoice");
-            invoice.Id = Guid.NewGuid();
-            initialEntities.Add(invoice);
+      Entity invoice = new Entity("invoice")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(invoice);
 
-            Entity invoiceDetail = new Entity("invoicedetail");
-            invoiceDetail.Id = Guid.NewGuid();
-            invoiceDetail["ispriceoverridden"] = true;
+      Entity invoiceDetail = new Entity("invoicedetail")
+      {
+        Id = Guid.NewGuid()
+      };
+      invoiceDetail["ispriceoverridden"] = true;
             invoiceDetail["priceperunit"] = new Money(10m);
             invoiceDetail["invoiceid"] = invoice.ToEntityReference();
             initialEntities.Add(invoiceDetail);

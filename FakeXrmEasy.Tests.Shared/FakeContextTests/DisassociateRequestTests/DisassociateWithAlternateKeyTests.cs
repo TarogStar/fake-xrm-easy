@@ -23,10 +23,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.DisassociateRequestTests
         [Fact]
         public void When_Disassociate_Uses_AlternateKey_Should_Resolve_And_Disassociate()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
 
             // Set up alternate key metadata for systemuser entity
             var userMetadata = context.GetEntityMetadataByName("systemuser");
@@ -125,10 +127,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.DisassociateRequestTests
         [Fact]
         public void When_Disassociate_Uses_AlternateKey_For_Target_Only_Should_Resolve_And_Disassociate()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
 
             // Set up alternate key metadata for systemuser entity only
             var userMetadata = context.GetEntityMetadataByName("systemuser");
@@ -204,10 +208,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.DisassociateRequestTests
         [Fact]
         public void When_Disassociate_Uses_AlternateKey_For_Related_Only_Should_Resolve_And_Disassociate()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
 
             // Set up alternate key metadata for team entity only
             var teamMetadata = context.GetEntityMetadataByName("team");
@@ -283,10 +289,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.DisassociateRequestTests
         [Fact]
         public void When_Disassociate_Uses_Multiple_Related_Entities_With_AlternateKeys_Should_Resolve_All()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
 
             // Set up alternate key metadata
             var userMetadata = context.GetEntityMetadataByName("systemuser");

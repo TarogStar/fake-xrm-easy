@@ -13,40 +13,50 @@ namespace FakeXrmEasy.Tests.Issues
         [Fact]
         public void When_I_run_connection_fetchXml_it_should_return_all_matching_record1id()
         {
-            // Arrange
-            // Create Contacts
-            var contact = new Entity("contact");
-            contact.Id = Guid.NewGuid();
-            contact.Attributes.Add("firstname", "First");
+      // Arrange
+      // Create Contacts
+      var contact = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      contact.Attributes.Add("firstname", "First");
             contact.Attributes.Add("lastname", "User");
             contact.Attributes.Add("statecode", new OptionSetValue(0));
 
-            // Create Other User
-            var otherContact = new Entity("contact");
-            otherContact.Id = Guid.NewGuid();
-            otherContact.Attributes.Add("firstname", "Other");
+      // Create Other User
+      var otherContact = new Entity("contact")
+      {
+        Id = Guid.NewGuid()
+      };
+      otherContact.Attributes.Add("firstname", "Other");
             otherContact.Attributes.Add("lastname", "User");
             otherContact.Attributes.Add("statecode", new OptionSetValue(0));
 
-            // Connection Role
-            var conRole = new Entity("connectionrole");
-            conRole.Id = Guid.NewGuid();
-            conRole.Attributes.Add("name", "Contact");
+      // Connection Role
+      var conRole = new Entity("connectionrole")
+      {
+        Id = Guid.NewGuid()
+      };
+      conRole.Attributes.Add("name", "Contact");
             conRole.Attributes.Add("statecode", new OptionSetValue(0));
 
-            // Create connection with disclosure AND CONTACT
-            var conn = new Entity("connection");
-            conn.Id = Guid.NewGuid();
-            conn.Attributes.Add("record1id", contact.ToEntityReference()); // discloser
+      // Create connection with disclosure AND CONTACT
+      var conn = new Entity("connection")
+      {
+        Id = Guid.NewGuid()
+      };
+      conn.Attributes.Add("record1id", contact.ToEntityReference()); // discloser
             conn.Attributes.Add("record2id", otherContact.ToEntityReference()); // contact
             conn.Attributes.Add("record2roleid", conRole.ToEntityReference()); // Connection Role
             conn.Attributes.Add("statecode", new OptionSetValue(0));
 
-            // Create Faked Context
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Connection));
-            //ctx.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            ctx.Initialize(new List<Entity>() { contact, otherContact, conRole, conn });
+      // Create Faked Context
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Connection))
+      };
+      //ctx.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      ctx.Initialize(new List<Entity>() { contact, otherContact, conRole, conn });
 
             // Fetch Xml
             string fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>

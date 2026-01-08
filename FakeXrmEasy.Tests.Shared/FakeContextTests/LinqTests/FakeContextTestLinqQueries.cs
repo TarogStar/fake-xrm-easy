@@ -100,10 +100,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_and_proxy_types_projection_must_be_applied_after_where_clause()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var guid1 = Guid.NewGuid();
+      var guid1 = Guid.NewGuid();
             var guid2 = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
@@ -182,8 +184,9 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 2);
-                Assert.Equal("Jordi 1", matches[0].FirstName);
-                Assert.Equal("Jordi 2", matches[1].FirstName);
+                var firstNames = matches.Select(m => m.FirstName).ToList();
+                Assert.Contains("Jordi 1", firstNames);
+                Assert.Contains("Jordi 2", firstNames);
             }
         }
 
@@ -210,8 +213,9 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 2);
-                Assert.Equal("Jordi 2", matches[0].FirstName);
-                Assert.Equal("Other", matches[1].FirstName);
+                var firstNames = matches.Select(m => m.FirstName).ToList();
+                Assert.Contains("Jordi 2", firstNames);
+                Assert.Contains("Other", firstNames);
             }
         }
 
@@ -264,9 +268,10 @@ namespace FakeXrmEasy.Tests
                                where c.FirstName.Contains("Garcia")
                                select c).ToList();
 
-                Assert.True(matches.Count == 2);
-                Assert.Equal("Jordi Garcia", matches[0].FirstName);
-                Assert.Equal("Javi Garcia", matches[1].FirstName);
+                Assert.Equal(2, matches.Count);
+                var firstNames = matches.Select(m => m.FirstName).ToList();
+                Assert.Contains("Jordi Garcia", firstNames);
+                Assert.Contains("Javi Garcia", firstNames);
             }
         }
 
@@ -320,8 +325,8 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 2);
-                Assert.True(matches[0].FirstName == null);
-                Assert.True(matches[1].FirstName == null);
+                var firstNames = matches.Select(m => m.FirstName).ToList();
+                Assert.True(firstNames.All(fn => fn == null));
             }
         }
 
@@ -401,8 +406,9 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 2);
-                Assert.True(matches[0].Id == guid1);
-                Assert.True(matches[1].Id == guid3);
+                var matchIds = matches.Select(e => e.Id).ToList();
+                Assert.Contains(guid1, matchIds);
+                Assert.Contains(guid3, matchIds);
             }
         }
 
@@ -429,8 +435,9 @@ namespace FakeXrmEasy.Tests
                                select c).ToList();
 
                 Assert.True(matches.Count == 2);
-                Assert.True(matches[0].Id == guid2);
-                Assert.True(matches[1].Id == guid3);
+                var matchIds = matches.Select(e => e.Id).ToList();
+                Assert.Contains(guid2, matchIds);
+                Assert.Contains(guid3, matchIds);
             }
         }
 
@@ -463,10 +470,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_entity_reference_in_where_filter_record_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
             var accountId = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
@@ -490,10 +499,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_entity_reference_with_nulls_in_where_filter_record_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
             var accountId = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
@@ -519,10 +530,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_entity_reference_with_nulls_against_nulls_in_where_filter_record_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
             var accountId = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
@@ -546,10 +559,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_optionset_in_where_filter_record_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
                 new Contact() { Id = contactId, StatusCode = new OptionSetValue(1) },
@@ -570,10 +585,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_optionset_with_nulls_in_where_filter_record_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
                 new Contact() { Id = contactId, StatusCode = new OptionSetValue(1) },
@@ -595,10 +612,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_optionset_with_nulls_against_nulls_in_where_filter_record_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
                 new Contact() { Id = contactId, StatusCode = new OptionSetValue(1) },
@@ -621,10 +640,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_optionsetvaluecollection_in_where_filter_exception_is_thrown()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
                 new Contact() { Id = contactId, new_MultiSelectAttribute = new OptionSetValueCollection(new[] { new OptionSetValue(1) }) },
@@ -645,10 +666,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_optionsetvaluecollection_with_nulls_against_nulls_in_where_filter_record_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
                 new Contact() { Id = contactId, new_MultiSelectAttribute = new OptionSetValueCollection(new[] { new OptionSetValue(1) }) },
@@ -671,10 +694,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_innerjoin_right_result_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
             var accountId = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
@@ -700,10 +725,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_intersect_entity_and_joins_right_result_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var user = new SystemUser() { Id = Guid.NewGuid() };
+      var user = new SystemUser() { Id = Guid.NewGuid() };
             var systemRole = new SystemUserRoles() { Id = Guid.NewGuid() };
             var role = new Role() { Id = Guid.NewGuid() };
 
@@ -730,10 +757,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_aliases_with_uppercase_chars_right_result_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
+      var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
             var parentAccount = new Account()
             {
                 Id = Guid.NewGuid(),
@@ -769,10 +798,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_and_selecting_an_entire_object_all_attributes_are_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
+      var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
             var parentAccount = new Account()
             {
                 Id = Guid.NewGuid(),
@@ -809,10 +840,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_and_selecting_an_entire_object_and_a_subset_of_the_attributes_all_attributes_are_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
+      var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
             var parentAccount = new Account()
             {
                 Id = Guid.NewGuid(),
@@ -850,10 +883,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_and_selecting_an_entire_object_between_joins_all_attributes_are_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
+      var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
             var parentAccount = new Account()
             {
                 Id = Guid.NewGuid(),
@@ -893,10 +928,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_and_selecting_an_entire_object_between_joins_all_attributes_are_returned_2()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
+      var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
             var parentAccount = new Account()
             {
                 Id = Guid.NewGuid(),
@@ -938,10 +975,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_and_selecting_an_entire_object_plus_some_attributes_of_the_same_object_between_joins_all_attributes_are_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
+      var contact = new Contact() { Id = Guid.NewGuid(), FirstName = "Chuck" };
             var parentAccount = new Account()
             {
                 Id = Guid.NewGuid(),
@@ -981,10 +1020,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_intersect_entity_and_joins_and_where_clauses_right_result_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var user = new SystemUser() { Id = Guid.NewGuid(), FirstName = "Jordi" };
+      var user = new SystemUser() { Id = Guid.NewGuid(), FirstName = "Jordi" };
             var systemRole = new SystemUserRoles() { Id = Guid.NewGuid() };
             var role = new Role() { Id = Guid.NewGuid(), Name = "System Administrator" };
 
@@ -1021,10 +1062,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_intersect_entity_and_2_levels_of_joins_and_where_clauses_right_result_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var parentRole = new Role() { Id = Guid.NewGuid(), Name = "System Administrator" };
+      var parentRole = new Role() { Id = Guid.NewGuid(), Name = "System Administrator" };
             var role = new Role() { Id = Guid.NewGuid(), Name = "Sys Admin" };
             var user = new SystemUser() { Id = Guid.NewGuid(), FirstName = "Jordi" };
             var systemRole = new SystemUserRoles() { Id = Guid.NewGuid() };
@@ -1056,10 +1099,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_intersect_entity_and_2_levels_of_joins_the_order_of_where_clauses_is_irrelevant_between_linked_entities()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var parentRole = new Role() { Id = Guid.NewGuid(), Name = "System Administrator" };
+      var parentRole = new Role() { Id = Guid.NewGuid(), Name = "System Administrator" };
             var role = new Role() { Id = Guid.NewGuid(), Name = "Sys Admin" };
             var user = new SystemUser() { Id = Guid.NewGuid(), FirstName = "Jordi" };
             var systemRole = new SystemUserRoles() { Id = Guid.NewGuid() };
@@ -1105,10 +1150,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_an_intersect_entity_and_2_levels_of_joins_the_order_of_where_clauses_is_irrelevant_between_main_and_linked_entity()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var account = new Account() { Id = Guid.NewGuid(), Name = "Barcelona" };
+      var account = new Account() { Id = Guid.NewGuid(), Name = "Barcelona" };
             var contact1 = new Contact()
             {
                 Id = Guid.NewGuid(),
@@ -1156,10 +1203,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_a_leftjoin_right_result_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
             var accountId = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
@@ -1186,10 +1235,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_a_leftjoin_with_a_where_expression_right_result_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
             var accountId = Guid.NewGuid();
 
             fakedContext.Initialize(new List<Entity>() {
@@ -1217,10 +1268,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_a_2_innerjoins_right_result_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
             var accountId = Guid.NewGuid();
             var accountId2 = Guid.NewGuid();
 
@@ -1259,10 +1312,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_a_an_and_filter_result_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var taskId = Guid.NewGuid();
+      var taskId = Guid.NewGuid();
             var accountId = Guid.NewGuid();
 
             //Contact is related to first account, but because first account is not related to itself then the query must return 0 records
@@ -1286,10 +1341,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_with_2_and_filters_result_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var taskId = Guid.NewGuid();
+      var taskId = Guid.NewGuid();
             var accountId = Guid.NewGuid();
             var euroId = Guid.NewGuid();
 
@@ -1316,10 +1373,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_doing_a_crm_linq_query_that_produces_a_filter_expression_plus_condition_expression_at_same_level_result_is_returned()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var taskId = Guid.NewGuid();
+      var taskId = Guid.NewGuid();
             var accountId = Guid.NewGuid();
             var euroId = Guid.NewGuid();
 
@@ -1353,12 +1412,14 @@ namespace FakeXrmEasy.Tests
         [Fact(DisplayName = "When_doing_a_join_with_filter_then_can_filter_by_the_joined_entity_attributes")]
         public void When_doing_a_join_with_filter_then_can_filter_by_the_joined_entity_attributes()
         {
-            //REVIEW: Different implementations of the ConditionExpression class in Microsoft.Xrm.Sdk (which has EntityName property for versions >= 2013)
+      //REVIEW: Different implementations of the ConditionExpression class in Microsoft.Xrm.Sdk (which has EntityName property for versions >= 2013)
 
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contactId = Guid.NewGuid();
+      var contactId = Guid.NewGuid();
             var accountId = Guid.NewGuid();
             var accountId2 = Guid.NewGuid();
 

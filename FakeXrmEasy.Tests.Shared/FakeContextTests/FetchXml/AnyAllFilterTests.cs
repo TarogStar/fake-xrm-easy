@@ -1006,10 +1006,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
                     </entity>
                 </fetch>";
 
-            // Equivalent QueryExpression
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
-            var linkEntity = query.AddLink("contact", "accountid", "parentcustomerid", JoinOperator.Any);
+      // Equivalent QueryExpression
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
+      var linkEntity = query.AddLink("contact", "accountid", "parentcustomerid", JoinOperator.Any);
             linkEntity.LinkCriteria.AddCondition("firstname", ConditionOperator.Equal, "John");
 
             // Act

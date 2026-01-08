@@ -199,10 +199,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_translating_a_fetch_xml_filter_default_operator_is_and()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -222,10 +224,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_translating_a_fetch_xml_filter_with_and_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -245,10 +249,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_translating_a_fetch_xml_filter_with_or_is_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -268,10 +274,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_translating_a_fetch_xml_expression_nested_filters_are_correct()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -385,10 +393,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_translating_a_linked_entity_with_filters_right_result_is_returned()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"
+      var fetchXml = @"
                     <fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
                       <entity name='account'>
                         <attribute name='name' />
@@ -530,14 +540,18 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         {
             var context = new XrmFakedContext();
             var accountId = Guid.NewGuid();
-            var license1 = new Entity("pl_license");
-            license1.Id = Guid.NewGuid();
-            license1.Attributes["pl_no"] = 1;
+      var license1 = new Entity("pl_license")
+      {
+        Id = Guid.NewGuid()
+      };
+      license1.Attributes["pl_no"] = 1;
             license1.Attributes["pl_accountid"] = new EntityReference("account", accountId);
 
-            var license2 = new Entity("pl_license");
-            license2.Id = Guid.NewGuid();
-            license2.Attributes["pl_no"] = 2;
+      var license2 = new Entity("pl_license")
+      {
+        Id = Guid.NewGuid()
+      };
+      license2.Attributes["pl_no"] = 2;
             license2.Attributes["pl_accountid"] = new EntityReference("account", accountId);
 
             context.Initialize(new List<Entity> { license1, license2 });
@@ -559,21 +573,27 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_filtering_by_a_guid_attribute_and_using_proxy_types_right_result_is_returned()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var contactId1 = Guid.NewGuid();
+      var contactId1 = Guid.NewGuid();
             var contactId2 = Guid.NewGuid();
 
-            var account1 = new Account();
-            account1.Id = Guid.NewGuid();
-            account1.PrimaryContactId = new EntityReference(Contact.EntityLogicalName, contactId1);
+      var account1 = new Account
+      {
+        Id = Guid.NewGuid(),
+        PrimaryContactId = new EntityReference(Contact.EntityLogicalName, contactId1)
+      };
 
-            var account2 = new Account();
-            account2.Id = Guid.NewGuid();
-            account2.PrimaryContactId = new EntityReference(Contact.EntityLogicalName, contactId2);
+      var account2 = new Account
+      {
+        Id = Guid.NewGuid(),
+        PrimaryContactId = new EntityReference(Contact.EntityLogicalName, contactId2)
+      };
 
-            context.Initialize(new List<Entity> { account1, account2 });
+      context.Initialize(new List<Entity> { account1, account2 });
 
             var fetchXml =
                  "<fetch>" +
@@ -592,21 +612,27 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_filtering_by_an_optionsetvalue_attribute_and_using_proxy_types_right_result_is_returned()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var contactId1 = Guid.NewGuid();
+      var contactId1 = Guid.NewGuid();
             var contactId2 = Guid.NewGuid();
 
-            var account1 = new Account();
-            account1.Id = Guid.NewGuid();
-            account1.IndustryCode = new OptionSetValue(2);
+      var account1 = new Account
+      {
+        Id = Guid.NewGuid(),
+        IndustryCode = new OptionSetValue(2)
+      };
 
-            var account2 = new Account();
-            account2.Id = Guid.NewGuid();
-            account2.IndustryCode = new OptionSetValue(3);
+      var account2 = new Account
+      {
+        Id = Guid.NewGuid(),
+        IndustryCode = new OptionSetValue(3)
+      };
 
-            context.Initialize(new List<Entity> { account1, account2 });
+      context.Initialize(new List<Entity> { account1, account2 });
 
             var fetchXml =
                  "<fetch>" +
@@ -624,17 +650,23 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_filtering_by_a_boolean_attribute_right_result_is_returned()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var account1 = new Entity("account");
-            account1.Id = Guid.NewGuid();
-            account1["name"] = "Test 1";
+      var account1 = new Entity("account")
+      {
+        Id = Guid.NewGuid()
+      };
+      account1["name"] = "Test 1";
             account1["donotemail"] = false;
 
-            var account2 = new Entity("account");
-            account2.Id = Guid.NewGuid();
-            account2["name"] = "Test 2";
+      var account2 = new Entity("account")
+      {
+        Id = Guid.NewGuid()
+      };
+      account2["name"] = "Test 2";
             account2["donotemail"] = true;
 
             context.Initialize(new List<Entity> { account1, account2 });
@@ -650,26 +682,33 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
                  "</fetch>";
             var rows = context.GetOrganizationService().RetrieveMultiple(new FetchExpression(fetchXml));
             Assert.Single(rows.Entities);
-            Assert.Equal(rows.Entities[0]["name"], account1["name"]);
+            var account = Assert.Single(rows.Entities);
+            Assert.Equal(account1["name"], account["name"]);
         }
 
         [Fact]
         public void When_filtering_by_a_boolean_attribute_and_using_proxy_types_right_result_is_returned()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var account1 = new Account();
-            account1.Id = Guid.NewGuid();
-            account1.Name = "Test 1";
-            account1.DoNotEMail = false;
+      var account1 = new Account
+      {
+        Id = Guid.NewGuid(),
+        Name = "Test 1",
+        DoNotEMail = false
+      };
 
-            var account2 = new Account();
-            account2.Id = Guid.NewGuid();
-            account2.Name = "Test 2";
-            account2.DoNotEMail = true;
+      var account2 = new Account
+      {
+        Id = Guid.NewGuid(),
+        Name = "Test 2",
+        DoNotEMail = true
+      };
 
-            context.Initialize(new List<Entity> { account1, account2 });
+      context.Initialize(new List<Entity> { account1, account2 });
 
             var fetchXml =
                  "<fetch>" +
@@ -682,7 +721,8 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
                  "</fetch>";
             var rows = context.GetOrganizationService().RetrieveMultiple(new FetchExpression(fetchXml));
             Assert.Single(rows.Entities);
-            Assert.Equal(rows.Entities[0].ToEntity<Account>().Name, account1.Name);
+            var account = Assert.Single(rows.Entities).ToEntity<Account>();
+            Assert.Equal(account1.Name, account.Name);
         }
 
         [Fact]
@@ -725,21 +765,27 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_filtering_by_a_money_attribute_and_using_proxy_types_right_result_is_returned()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var contactId1 = Guid.NewGuid();
+      var contactId1 = Guid.NewGuid();
             var contactId2 = Guid.NewGuid();
 
-            var account1 = new Account();
-            account1.Id = Guid.NewGuid();
-            account1.MarketCap = new Money(123.45m);
+      var account1 = new Account
+      {
+        Id = Guid.NewGuid(),
+        MarketCap = new Money(123.45m)
+      };
 
-            var account2 = new Account();
-            account2.Id = Guid.NewGuid();
-            account2.MarketCap = new Money(223.45m);
+      var account2 = new Account
+      {
+        Id = Guid.NewGuid(),
+        MarketCap = new Money(223.45m)
+      };
 
-            context.Initialize(new List<Entity> { account1, account2 });
+      context.Initialize(new List<Entity> { account1, account2 });
 
             var fetchXml =
                  "<fetch>" +
@@ -926,17 +972,21 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
 
             var entities = response.EntityCollection.Entities;
             Assert.True(entities.Count == 2);
-            Assert.Equal("Lionel", (entities[0]["aa.firstname"] as AliasedValue).Value.ToString());
-            Assert.False(entities[1].Attributes.ContainsKey("aa.firstname"));
+            var entitiesWithAlias = entities.Where(e => e.Attributes.ContainsKey("aa.firstname")).ToList();
+            Assert.Single(entitiesWithAlias);
+            Assert.Equal("Lionel", ((AliasedValue)entitiesWithAlias[0]["aa.firstname"]).Value.ToString());
+            Assert.Single(entities, e => !e.Attributes.ContainsKey("aa.firstname"));
         }
 
         [Fact]
         public void When_translating_a_fetch_xml_return_total_count_is_translated_correctly()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' returntotalrecordcount='true'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' returntotalrecordcount='true'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -952,10 +1002,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_translating_a_fetch_xml_distinct_is_translated_correctly()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true' returntotalrecordcount='true'>
+      var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true' returntotalrecordcount='true'>
                               <entity name='contact'>
                                     <attribute name='fullname' />
                                     <attribute name='telephone1' />
@@ -966,6 +1018,116 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             var query = XrmFakedContext.TranslateFetchXmlToQueryExpression(ctx, fetchXml);
 
             Assert.True(query.Distinct);
+        }
+
+        [Fact]
+        public void When_translating_a_fetch_xml_with_no_attrs_element_columnset_is_empty()
+        {
+            var ctx = new XrmFakedContext();
+
+            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                              <entity name='contact'>
+                                    <no-attrs />
+                              </entity>
+                            </fetch>";
+
+            var query = XrmFakedContext.TranslateFetchXmlToQueryExpression(ctx, fetchXml);
+
+            Assert.NotNull(query.ColumnSet);
+            Assert.False(query.ColumnSet.AllColumns);
+            Assert.Empty(query.ColumnSet.Columns);
+        }
+
+        [Fact]
+        public void When_translating_a_fetch_xml_with_no_attrs_in_link_entity_columnset_is_empty()
+        {
+            var ctx = new XrmFakedContext();
+
+            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                              <entity name='account'>
+                                    <attribute name='name' />
+                                    <link-entity name='contact' from='contactid' to='primarycontactid' alias='c'>
+                                        <no-attrs />
+                                    </link-entity>
+                              </entity>
+                            </fetch>";
+
+            var query = XrmFakedContext.TranslateFetchXmlToQueryExpression(ctx, fetchXml);
+
+            Assert.NotNull(query.LinkEntities);
+            Assert.Single(query.LinkEntities);
+            Assert.NotNull(query.LinkEntities[0].Columns);
+            Assert.False(query.LinkEntities[0].Columns.AllColumns);
+            Assert.Empty(query.LinkEntities[0].Columns.Columns);
+        }
+
+        [Fact]
+        public void When_executing_fetchxml_with_no_attrs_element_entities_are_returned_with_id_only()
+        {
+            var ctx = new XrmFakedContext();
+            var contact1Id = Guid.NewGuid();
+            var contact2Id = Guid.NewGuid();
+
+            ctx.Initialize(new List<Entity>()
+            {
+                new Contact() { Id = contact1Id, FirstName = "Leo", LastName = "Messi" },
+                new Contact() { Id = contact2Id, FirstName = "Cristiano", LastName = "Ronaldo" }
+            });
+
+            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                              <entity name='contact'>
+                                    <no-attrs />
+                              </entity>
+                            </fetch>";
+
+            var service = ctx.GetOrganizationService();
+            var response = service.RetrieveMultiple(new FetchExpression(fetchXml));
+
+            Assert.Equal(2, response.Entities.Count);
+
+            // Each entity should have the Id but no other attributes (except possibly the entity id attribute)
+            foreach (var entity in response.Entities)
+            {
+                Assert.Equal("contact", entity.LogicalName);
+                // The Id should be present
+                Assert.NotEqual(Guid.Empty, entity.Id);
+                // No firstname or lastname attributes should be returned
+                Assert.False(entity.Attributes.ContainsKey("firstname"));
+                Assert.False(entity.Attributes.ContainsKey("lastname"));
+            }
+        }
+
+        [Fact]
+        public void When_executing_fetchxml_with_no_attrs_and_filter_correct_entities_are_returned()
+        {
+            var ctx = new XrmFakedContext();
+            var contact1Id = Guid.NewGuid();
+            var contact2Id = Guid.NewGuid();
+
+            ctx.Initialize(new List<Entity>()
+            {
+                new Contact() { Id = contact1Id, FirstName = "Leo", LastName = "Messi" },
+                new Contact() { Id = contact2Id, FirstName = "Cristiano", LastName = "Ronaldo" }
+            });
+
+            var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                              <entity name='contact'>
+                                    <no-attrs />
+                                    <filter type='and'>
+                                        <condition attribute='firstname' operator='eq' value='Leo' />
+                                    </filter>
+                              </entity>
+                            </fetch>";
+
+            var service = ctx.GetOrganizationService();
+            var response = service.RetrieveMultiple(new FetchExpression(fetchXml));
+
+            Assert.Single(response.Entities);
+            Assert.Equal(contact1Id, Assert.Single(response.Entities).Id);
+            // No firstname or lastname attributes should be returned
+            var entity = Assert.Single(response.Entities);
+            Assert.False(entity.Attributes.ContainsKey("firstname"));
+            Assert.False(entity.Attributes.ContainsKey("lastname"));
         }
     }
 }

@@ -47,10 +47,12 @@ namespace FakeXrmEasy.Metadata
             {
                 EntityLogicalNameAttribute entityLogicalNameAttribute = GetCustomAttribute<EntityLogicalNameAttribute>(earlyBoundEntity);
                 if (entityLogicalNameAttribute == null) continue;
-                EntityMetadata metadata = new EntityMetadata();
-                metadata.LogicalName = entityLogicalNameAttribute.LogicalName;
+        EntityMetadata metadata = new EntityMetadata
+        {
+          LogicalName = entityLogicalNameAttribute.LogicalName
+        };
 
-                FieldInfo entityTypeCode = earlyBoundEntity.GetField("EntityTypeCode", BindingFlags.Static | BindingFlags.Public);
+        FieldInfo entityTypeCode = earlyBoundEntity.GetField("EntityTypeCode", BindingFlags.Static | BindingFlags.Public);
                 if (entityTypeCode != null)
                 {
                     metadata.SetFieldValue("ObjectTypeCode", entityTypeCode.GetValue(null));
@@ -116,10 +118,12 @@ namespace FakeXrmEasy.Metadata
                             PropertyInfo peerProperty = property.PropertyType.GetGenericArguments()[0].GetProperties().SingleOrDefault(x => x.PropertyType == earlyBoundEntity && GetCustomAttribute<RelationshipSchemaNameAttribute>(x)?.SchemaName == relationshipSchemaNameAttribute.SchemaName);
                             if (peerProperty == null || peerProperty.PropertyType.Name == "IEnumerable`1") // N:N relationship
                             {
-                                ManyToManyRelationshipMetadata relationshipMetadata = new ManyToManyRelationshipMetadata();
-                                relationshipMetadata.SchemaName = relationshipSchemaNameAttribute.SchemaName;
+                ManyToManyRelationshipMetadata relationshipMetadata = new ManyToManyRelationshipMetadata
+                {
+                  SchemaName = relationshipSchemaNameAttribute.SchemaName
+                };
 
-                                manyToManyRelationshipMetadatas.Add(relationshipMetadata);
+                manyToManyRelationshipMetadatas.Add(relationshipMetadata);
                             }
                             else // 1:N relationship
                             {
@@ -195,10 +199,12 @@ namespace FakeXrmEasy.Metadata
             EntityLogicalNameAttribute entityLogicalNameAttribute = GetCustomAttribute<EntityLogicalNameAttribute>(earlyBoundType);
             if (entityLogicalNameAttribute == null) return null;
 
-            EntityMetadata metadata = new EntityMetadata();
-            metadata.LogicalName = entityLogicalNameAttribute.LogicalName;
+      EntityMetadata metadata = new EntityMetadata
+      {
+        LogicalName = entityLogicalNameAttribute.LogicalName
+      };
 
-            FieldInfo entityTypeCode = earlyBoundType.GetField("EntityTypeCode", BindingFlags.Static | BindingFlags.Public);
+      FieldInfo entityTypeCode = earlyBoundType.GetField("EntityTypeCode", BindingFlags.Static | BindingFlags.Public);
             if (entityTypeCode != null)
             {
                 metadata.SetFieldValue("ObjectTypeCode", entityTypeCode.GetValue(null));
@@ -264,10 +270,12 @@ namespace FakeXrmEasy.Metadata
                         PropertyInfo peerProperty = property.PropertyType.GetGenericArguments()[0].GetProperties().SingleOrDefault(x => x.PropertyType == earlyBoundType && GetCustomAttribute<RelationshipSchemaNameAttribute>(x)?.SchemaName == relationshipSchemaNameAttribute.SchemaName);
                         if (peerProperty == null || peerProperty.PropertyType.Name == "IEnumerable`1") // N:N relationship
                         {
-                            ManyToManyRelationshipMetadata relationshipMetadata = new ManyToManyRelationshipMetadata();
-                            relationshipMetadata.SchemaName = relationshipSchemaNameAttribute.SchemaName;
+              ManyToManyRelationshipMetadata relationshipMetadata = new ManyToManyRelationshipMetadata
+              {
+                SchemaName = relationshipSchemaNameAttribute.SchemaName
+              };
 
-                            manyToManyRelationshipMetadatas.Add(relationshipMetadata);
+              manyToManyRelationshipMetadatas.Add(relationshipMetadata);
                         }
                         else // 1:N relationship
                         {
@@ -464,14 +472,16 @@ namespace FakeXrmEasy.Metadata
         private static void AddOneToManyRelationshipMetadata(Type referencingEntity, PropertyInfo referencingAttribute, Type referencedEntity, PropertyInfo referencedAttribute, List<OneToManyRelationshipMetadata> relationshipMetadatas)
         {
             if (referencingEntity == null || referencingAttribute == null || referencedEntity == null || referencedAttribute == null) return;
-            OneToManyRelationshipMetadata relationshipMetadata = new OneToManyRelationshipMetadata();
-            relationshipMetadata.SchemaName = GetCustomAttribute<RelationshipSchemaNameAttribute>(referencingAttribute).SchemaName;
-            relationshipMetadata.ReferencingEntity = GetCustomAttribute<EntityLogicalNameAttribute>(referencingEntity).LogicalName;
-            relationshipMetadata.ReferencingAttribute = GetCustomAttribute<AttributeLogicalNameAttribute>(referencingAttribute)?.LogicalName;
-            relationshipMetadata.ReferencedEntity = GetCustomAttribute<EntityLogicalNameAttribute>(referencedEntity).LogicalName;
-            relationshipMetadata.ReferencedAttribute = GetCustomAttribute<AttributeLogicalNameAttribute>(referencedAttribute).LogicalName;
+      OneToManyRelationshipMetadata relationshipMetadata = new OneToManyRelationshipMetadata
+      {
+        SchemaName = GetCustomAttribute<RelationshipSchemaNameAttribute>(referencingAttribute).SchemaName,
+        ReferencingEntity = GetCustomAttribute<EntityLogicalNameAttribute>(referencingEntity).LogicalName,
+        ReferencingAttribute = GetCustomAttribute<AttributeLogicalNameAttribute>(referencingAttribute)?.LogicalName,
+        ReferencedEntity = GetCustomAttribute<EntityLogicalNameAttribute>(referencedEntity).LogicalName,
+        ReferencedAttribute = GetCustomAttribute<AttributeLogicalNameAttribute>(referencedAttribute).LogicalName
+      };
 
-            relationshipMetadatas.Add(relationshipMetadata);
+      relationshipMetadatas.Add(relationshipMetadata);
         }
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using System;
+using System.Collections.Concurrent;
 
 namespace FakeXrmEasy.FakeMessageExecutors
 {
@@ -93,16 +94,15 @@ namespace FakeXrmEasy.FakeMessageExecutors
             var entityId = rollupRequest.Target.Id;
             var fieldName = rollupRequest.FieldName;
 
-            // Verify the entity exists in the context
-            if (!ctx.Data.ContainsKey(entityName) ||
-                !ctx.Data[entityName].ContainsKey(entityId))
+            // Verify the entity exists in the context - thread-safe access
+            ConcurrentDictionary<Guid, Entity> entityDict;
+            Entity entity;
+            if (!ctx.Data.TryGetValue(entityName, out entityDict) ||
+                !entityDict.TryGetValue(entityId, out entity))
             {
                 throw new InvalidOperationException(
                     $"Entity '{entityName}' with Id '{entityId}' does not exist in the context.");
             }
-
-            // Retrieve the entity
-            var entity = ctx.Data[entityName][entityId];
 
             // Verify the field exists on the entity
             if (!entity.Contains(fieldName))

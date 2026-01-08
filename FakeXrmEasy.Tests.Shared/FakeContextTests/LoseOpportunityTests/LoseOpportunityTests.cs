@@ -13,9 +13,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.LoseOpportunityTests
         [Fact]
         public void Check_if_Opportunity_status_is_Lose_after_set()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var opportunity = new Opportunity()
             {

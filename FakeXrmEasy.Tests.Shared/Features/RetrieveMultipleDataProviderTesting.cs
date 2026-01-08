@@ -11,14 +11,16 @@ namespace FakeXrmEasy.Tests.Features
         [Fact]
         public void IServiceProvider_should_has_IEntityDataSourceRetrieverService_in_v9()
         {
-            var context = new XrmFakedContext();
-            context.EntityDataSourceRetriever = new Entity("abc_customdatasource")
-            {
-                ["abc_crmurl"] = "https://...",
-                ["abc_username"] = "abcd",
-                ["abc_password"] = "1234"
-            };
-            var pluginContext = context.GetDefaultPluginContext();
+      var context = new XrmFakedContext
+      {
+        EntityDataSourceRetriever = new Entity("abc_customdatasource")
+        {
+          ["abc_crmurl"] = "https://...",
+          ["abc_username"] = "abcd",
+          ["abc_password"] = "1234"
+        }
+      };
+      var pluginContext = context.GetDefaultPluginContext();
             var entity = new Entity();
             var query = new QueryExpression();
             pluginContext.InputParameters["Query"] = query;

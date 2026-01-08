@@ -22,11 +22,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_filtering_on_deeply_nested_link_entity_attribute_correct_results_are_returned()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            // Create test data: Account -> Contact -> Lead (nested relationship)
-            var lead1 = new Lead
+      // Create test data: Account -> Contact -> Lead (nested relationship)
+      var lead1 = new Lead
             {
                 Id = Guid.NewGuid(),
                 Subject = "Hot Lead",
@@ -101,10 +103,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_filtering_using_entityname_without_explicit_alias_correct_results_are_returned()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var contact1 = new Contact
+      var contact1 = new Contact
             {
                 Id = Guid.NewGuid(),
                 FirstName = "John",
@@ -161,11 +165,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_multiple_levels_of_nesting_with_filters_correct_results_are_returned()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            // Create a 3-level nested structure
-            var systemUser = new SystemUser
+      // Create a 3-level nested structure
+      var systemUser = new SystemUser
             {
                 Id = Guid.NewGuid(),
                 FirstName = "Admin",
@@ -238,15 +244,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         {
             var qe = new QueryExpression("account");
 
-            // First level link
-            var contactLink = new LinkEntity("account", "contact", "primarycontactid", "contactid", JoinOperator.Inner);
-            contactLink.EntityAlias = "c";
+      // First level link
+      var contactLink = new LinkEntity("account", "contact", "primarycontactid", "contactid", JoinOperator.Inner)
+      {
+        EntityAlias = "c"
+      };
 
-            // Nested link
-            var leadLink = new LinkEntity("contact", "lead", "originatingleadid", "leadid", JoinOperator.Inner);
-            leadLink.EntityAlias = "l";
+      // Nested link
+      var leadLink = new LinkEntity("contact", "lead", "originatingleadid", "leadid", JoinOperator.Inner)
+      {
+        EntityAlias = "l"
+      };
 
-            contactLink.LinkEntities.Add(leadLink);
+      contactLink.LinkEntities.Add(leadLink);
             qe.LinkEntities.Add(contactLink);
 
             // Test that we can find the nested alias
@@ -285,10 +295,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         {
             var qe = new QueryExpression("account");
 
-            var contactLink = new LinkEntity("account", "contact", "primarycontactid", "contactid", JoinOperator.Inner);
-            contactLink.EntityAlias = "c";
+      var contactLink = new LinkEntity("account", "contact", "primarycontactid", "contactid", JoinOperator.Inner)
+      {
+        EntityAlias = "c"
+      };
 
-            qe.LinkEntities.Add(contactLink);
+      qe.LinkEntities.Add(contactLink);
 
             // Test with dot notation (extracting entity portion)
             var result = FakeXrmEasy.Extensions.QueryExpressionExtensions.GetEntityNameFromAlias(qe, "c.fullname");
@@ -302,10 +314,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
         [Fact]
         public void When_using_queryexpression_with_deeply_nested_link_entities_and_filters_correct_results_are_returned()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var lead1 = new Lead
+      var lead1 = new Lead
             {
                 Id = Guid.NewGuid(),
                 Subject = "Target Lead"
@@ -347,11 +361,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
 
             context.Initialize(new List<Entity> { lead1, lead2, contact1, contact2, account1, account2 });
 
-            // Create QueryExpression with nested LinkEntities
-            var qe = new QueryExpression("account");
-            qe.ColumnSet = new ColumnSet("name");
+      // Create QueryExpression with nested LinkEntities
+      var qe = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
 
-            var contactLink = qe.AddLink("contact", "primarycontactid", "contactid", JoinOperator.Inner);
+      var contactLink = qe.AddLink("contact", "primarycontactid", "contactid", JoinOperator.Inner);
             contactLink.EntityAlias = "c";
             contactLink.Columns = new ColumnSet("firstname");
 

@@ -26,15 +26,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryLookupTests
 
             var service = context.GetOrganizationService();
 
-            QueryExpression query = new QueryExpression();
-            query.ColumnSet = new ColumnSet(new string[] { "name" });
-            query.EntityName = Account.EntityLogicalName;
-            query.Criteria = new FilterExpression { Conditions = { new ConditionExpression("createdby", ConditionOperator.Equal, user.Id) } };
+      QueryExpression query = new QueryExpression
+      {
+        ColumnSet = new ColumnSet(new string[] { "name" }),
+        EntityName = Account.EntityLogicalName,
+        Criteria = new FilterExpression { Conditions = { new ConditionExpression("createdby", ConditionOperator.Equal, user.Id) } }
+      };
 
-            //Execute using a request to test the OOB (XRM) message contracts
-            RetrieveMultipleRequest request = new RetrieveMultipleRequest();
-            request.Query = query;
-            Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
+      //Execute using a request to test the OOB (XRM) message contracts
+      RetrieveMultipleRequest request = new RetrieveMultipleRequest
+      {
+        Query = query
+      };
+      Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
 
             Assert.True(entityList.Count == 1);
             Assert.Equal("Test", entityList[0]["name"].ToString());
@@ -55,15 +59,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryLookupTests
 
             var service = context.GetOrganizationService();
 
-            QueryExpression query = new QueryExpression();
-            query.ColumnSet = new ColumnSet(new string[] { "name" });
-            query.EntityName = Account.EntityLogicalName;
-            query.Criteria = new FilterExpression { Conditions = { new ConditionExpression("createdby", ConditionOperator.Equal, user.Id.ToString("N").ToUpperInvariant()) } };
+      QueryExpression query = new QueryExpression
+      {
+        ColumnSet = new ColumnSet(new string[] { "name" }),
+        EntityName = Account.EntityLogicalName,
+        Criteria = new FilterExpression { Conditions = { new ConditionExpression("createdby", ConditionOperator.Equal, user.Id.ToString("N").ToUpperInvariant()) } }
+      };
 
-            //Execute using a request to test the OOB (XRM) message contracts
-            RetrieveMultipleRequest request = new RetrieveMultipleRequest();
-            request.Query = query;
-            Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
+      //Execute using a request to test the OOB (XRM) message contracts
+      RetrieveMultipleRequest request = new RetrieveMultipleRequest
+      {
+        Query = query
+      };
+      Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
 
             Assert.True(entityList.Count == 1);
             Assert.Equal("Test", entityList[0]["name"].ToString());
@@ -84,15 +92,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryLookupTests
 
             var service = context.GetOrganizationService();
 
-            QueryExpression query = new QueryExpression();
-            query.ColumnSet = new ColumnSet(new string[] { "name" });
-            query.EntityName = Account.EntityLogicalName;
-            query.Criteria = new FilterExpression { Conditions = { new ConditionExpression("createdbyname", ConditionOperator.Equal, "User") } };
+      QueryExpression query = new QueryExpression
+      {
+        ColumnSet = new ColumnSet(new string[] { "name" }),
+        EntityName = Account.EntityLogicalName,
+        Criteria = new FilterExpression { Conditions = { new ConditionExpression("createdbyname", ConditionOperator.Equal, "User") } }
+      };
 
-            //Execute using a request to test the OOB (XRM) message contracts
-            RetrieveMultipleRequest request = new RetrieveMultipleRequest();
-            request.Query = query;
-            Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
+      //Execute using a request to test the OOB (XRM) message contracts
+      RetrieveMultipleRequest request = new RetrieveMultipleRequest
+      {
+        Query = query
+      };
+      Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
 
             Assert.True(entityList.Count == 1);
             Assert.Equal("Test", entityList[0]["name"].ToString());

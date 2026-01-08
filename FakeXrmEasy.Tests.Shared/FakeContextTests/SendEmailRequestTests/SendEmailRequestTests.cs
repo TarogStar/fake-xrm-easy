@@ -12,9 +12,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.SendEmailRequestTests
         [Fact]
         public void When_SendEmailRequest_call_statecode_is_Completed_and_statuscode_is_Sent()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var email = new Crm.Email()
             {

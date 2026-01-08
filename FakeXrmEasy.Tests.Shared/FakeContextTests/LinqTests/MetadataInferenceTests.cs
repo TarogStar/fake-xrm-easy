@@ -17,12 +17,14 @@ namespace FakeXrmEasy.Tests.FakeContextTests.LinqTests
         [Fact]
         public static void When_using_proxy_types_assembly_the_entity_metadata_is_inferred_from_the_proxy_types_assembly()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            //Empty contecxt (no Initialize), but we should be able to query any typed entity without an entity not found exception
+      //Empty contecxt (no Initialize), but we should be able to query any typed entity without an entity not found exception
 
-            var service = fakedContext.GetOrganizationService();
+      var service = fakedContext.GetOrganizationService();
 
             using (XrmServiceContext ctx = new XrmServiceContext(service))
             {
@@ -37,10 +39,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.LinqTests
         [Fact]
         public static void When_using_proxy_types_assembly_the_attribute_metadata_is_inferred_from_the_proxy_types_assembly()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contact1 = new Entity("contact") { Id = Guid.NewGuid() }; contact1["fullname"] = "Contact 1"; contact1["firstname"] = "First 1";
+      var contact1 = new Entity("contact") { Id = Guid.NewGuid() }; contact1["fullname"] = "Contact 1"; contact1["firstname"] = "First 1";
             var contact2 = new Entity("contact") { Id = Guid.NewGuid() }; contact2["fullname"] = "Contact 2"; contact2["firstname"] = "First 2";
 
             fakedContext.Initialize(new List<Entity>() { contact1, contact2 });
@@ -64,10 +68,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.LinqTests
         [Fact]
         public static void When_using_proxy_types_assembly_the_attribute_metadata_is_inferred_from_injected_metadata_as_a_fallback()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contact1 = new Entity("contact") { Id = Guid.NewGuid() }; contact1["injectedAttribute"] = "Contact 1";
+      var contact1 = new Entity("contact") { Id = Guid.NewGuid() }; contact1["injectedAttribute"] = "Contact 1";
             var contact2 = new Entity("contact") { Id = Guid.NewGuid() }; contact2["injectedAttribute"] = "Contact 2";
 
             fakedContext.Initialize(new List<Entity>() { contact1, contact2 });
@@ -105,10 +111,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.LinqTests
         [Fact]
         public static void When_using_proxy_types_assembly_the_optionset_metadata_is_inferred_from_injected_metadata_as_a_fallback()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contact1 = new Entity("contact") { Id = Guid.NewGuid() }; contact1["injectedAttribute"] = new OptionSetValue(10001);
+      var contact1 = new Entity("contact") { Id = Guid.NewGuid() }; contact1["injectedAttribute"] = new OptionSetValue(10001);
             var contact2 = new Entity("contact") { Id = Guid.NewGuid() }; contact2["injectedAttribute"] = new OptionSetValue(10002);
 
             fakedContext.Initialize(new List<Entity>() { contact1, contact2 });
@@ -145,10 +153,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.LinqTests
         [Fact]
         public static void When_using_proxy_types_assembly_multi_select_option_set_metadata_is_inferred_from_injected_metadata_as_a_fallback()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var record1 = new Entity("contact")
+      var record1 = new Entity("contact")
             {
                 Id = Guid.NewGuid(),
                 ["new_injectedmultiselectoptionset"] = new OptionSetValueCollection(
@@ -209,10 +219,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.LinqTests
         [Fact]
         public static void When_using_proxy_types_assembly_the_finding_attribute_metadata_fails_if_neither_proxy_type_or_injected_metadata_exist()
         {
-            var fakedContext = new XrmFakedContext();
-            fakedContext.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var fakedContext = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            var contact1 = new Entity("contact") { Id = Guid.NewGuid() }; contact1["injectedAttribute"] = "Contact 1";
+      var contact1 = new Entity("contact") { Id = Guid.NewGuid() }; contact1["injectedAttribute"] = "Contact 1";
             var contact2 = new Entity("contact") { Id = Guid.NewGuid() }; contact2["injectedAttribute"] = "Contact 2";
 
             fakedContext.Initialize(new List<Entity>() { contact1, contact2 });

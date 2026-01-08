@@ -47,25 +47,27 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 
 | Status | Count | Issues |
 |--------|-------|--------|
-| **Fixed (v1.1.0+)** | 40 | See "Fixed Issues" section below |
+| **Fixed (v1.1.0+)** | 45 | See "Fixed Issues" section below |
 | **Custom Additions** | 18 | See "Custom Additions" section below |
-| **v1.1.1 Roadmap** | 26 | Categorized below (P0: 0, P1: 13, P2: 13) |
+| **v1.1.1 Roadmap** | 21 | Categorized below (P0: 0, P1: 8, P2: 13) |
 | **Won't Fix** | 5 | #414, #453, #523, #372, #444 |
 | **TOTAL (Upstream)** | **71** | All open issues from archived upstream repo |
 | **TOTAL (All Work)** | **89** | Upstream issues (71) + Custom additions (18) |
 
-**Fixed Issues (40 total):**
+**Fixed Issues (45 total):**
 - **Plugin/Pipeline:** #279, #451, #500, #573
-- **Query Engine:** #340, #445, #467, #485, #506, #509, #514, #545, #547, #560, #569, #584, #607, #608, #612
+- **Query Engine:** #258, #287, #340, #415, #445, #467, #485, #490, #506, #509, #514, #545, #547, #560, #569, #584, #607, #608, #612
 - **Date/Time:** #458, #491, #539, #543, #551, #587
 - **Message Executors:** #610, #615
-- **CRUD/Core:** #255, #470, #472, #476, #479, #482, #508, #521, #524, #553, #555, #562, #566
+- **CRUD/Core:** #74, #255, #470, #472, #476, #479, #482, #508, #521, #524, #553, #555, #562, #566
 
 **v1.1.0 Roadmap Status: COMPLETE** - All P0-P3 items resolved
 
 **v1.1.1 Phase 1 Status: COMPLETE** - 4 critical query engine bugs fixed (#279, #467, #560, #584)
 
-**v1.1.1 Roadmap:** 26 remaining issues categorized and prioritized. See "v1.1.1 Roadmap" section below.
+**v1.1.1 Phase 2 Status: COMPLETE** - 5 thread safety and validation fixes (#74, #258, #287, #415, #490)
+
+**v1.1.1 Roadmap:** 21 remaining issues categorized and prioritized. See "v1.1.1 Roadmap" section below.
 
 ---
 
@@ -518,17 +520,17 @@ All 4 issues fixed in v1.1.1 Phase 1. See "Fixed Issues - v1.1.1 Phase 1" sectio
 | 560 | FindReflectedAttributeType NRE | **FIXED** |
 | 584 | Complex filters on nested entities | **FIXED** |
 
-### Phase 2 — Thread Safety & Validation (P1 batch 1)
+### Phase 2 — Thread Safety & Validation (P1 batch 1) ✓ COMPLETE
 
 *Common scenarios: parallel operations, type validation, hierarchy operators*
 
-| # | Title | Category | Complexity | Description |
-|---|-------|----------|------------|-------------|
-| 74 | Thread-safe parallel creates | CRUD | Medium | Parallel Create requests fail - data dictionary not thread-safe |
-| 258 | GUID comparison type validation | Query | Low | FakeXrmEasy allows GUID-to-EntityReference comparison; real CRM throws |
-| 287 | AboveOrEqual hierarchy operator | Query | Medium | AboveOrEqual condition operator not implemented |
-| 415 | AddLink attribute validation | Query | Medium | AddLink doesn't validate join attributes exist on entities |
-| 490 | no-attrs node support | Query | Low | "no-attrs" FetchXML node not recognized |
+| # | Title | Category | Status | Implementation |
+|---|-------|----------|--------|----------------|
+| 74 | Thread-safe parallel creates | CRUD | **FIXED** | ConcurrentDictionary for Data storage, thread-safe CRUD operations |
+| 258 | GUID comparison type validation | Query | **FIXED** | Type validation throws FaultException for GUID vs EntityReference mismatch |
+| 287 | AboveOrEqual hierarchy operator | Query | **FIXED** | Full hierarchy operators: Above, AboveOrEqual, Under, UnderOrEqual, NotUnder |
+| 415 | AddLink attribute validation | Query | **FIXED** | Validates LinkFromAttributeName exists on source entity |
+| 490 | no-attrs node support | Query | **FIXED** | `<no-attrs>` returns empty ColumnSet only if no explicit attributes present |
 
 ### Phase 3 — Message Executor Parity (P1 batch 2)
 

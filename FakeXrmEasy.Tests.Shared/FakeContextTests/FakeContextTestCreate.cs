@@ -185,10 +185,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_Creating_Using_Organization_Context_Record_Should_Be_Created()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var account = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
+      var account = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
 
             var service = context.GetOrganizationService();
 
@@ -204,10 +206,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_Creating_Using_Organization_Context_Without_Saving_Changes_Record_Should_Not_Be_Created()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var account = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
+      var account = new Account() { Id = Guid.NewGuid(), Name = "Super Great Customer", AccountNumber = "69" };
 
             var service = context.GetOrganizationService();
 
@@ -259,12 +263,16 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_creating_a_record_using_early_bound_entities_and_proxytypes_primary_key_should_be_populated()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
-            var c = new Contact();
-            c.Id = Guid.NewGuid();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
+      var c = new Contact
+      {
+        Id = Guid.NewGuid()
+      };
 
-            IOrganizationService service = context.GetOrganizationService();
+      IOrganizationService service = context.GetOrganizationService();
 
             context.Initialize(new List<Entity>() { c });
 
@@ -391,9 +399,11 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void Shouldnt_modify_objects_passed_to_the_service() // *PLEASE_READ* This test is correct?
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
-            var account = new Account { Id = Guid.NewGuid(), Name = "Test account" };
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
+      var account = new Account { Id = Guid.NewGuid(), Name = "Test account" };
 
             IOrganizationService service = context.GetOrganizationService();
 

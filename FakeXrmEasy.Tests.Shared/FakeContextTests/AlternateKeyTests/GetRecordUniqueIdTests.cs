@@ -19,10 +19,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AlternateKeyTests
         [Fact]
         public void When_AlternateKey_Does_Not_Exist_And_Validate_True_Should_Throw_Exception()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
 
             // Set up alternate key metadata for account entity
             var metadata = context.GetEntityMetadataByName("account");
@@ -58,10 +60,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AlternateKeyTests
         [Fact]
         public void When_AlternateKey_Does_Not_Exist_And_Validate_False_Should_Return_Empty_Guid()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
 
             // Set up alternate key metadata for account entity
             var metadata = context.GetEntityMetadataByName("account");
@@ -99,10 +103,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AlternateKeyTests
         [Fact]
         public void When_AlternateKey_Exists_Should_Return_Record_Id()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
 
             // Set up alternate key metadata for account entity
             var metadata = context.GetEntityMetadataByName("account");
@@ -140,10 +146,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AlternateKeyTests
         [Fact]
         public void When_AlternateKey_Attributes_Not_Defined_In_Metadata_And_Validate_True_Should_Throw_Exception()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
 
             // Initialize with an account but no alternate key metadata defined
             var accountId = Guid.NewGuid();
@@ -171,10 +179,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.AlternateKeyTests
         [Fact]
         public void When_Composite_AlternateKey_Does_Not_Match_And_Validate_True_Should_Throw_Exception()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
 
             // Set up composite alternate key metadata for account entity
             var metadata = context.GetEntityMetadataByName("account");

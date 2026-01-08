@@ -13,9 +13,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.SetStateRequestTests
         [Fact]
         public void When_set_state_request_is_called_an_entity_is_updated()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var c = new Contact()
             {
@@ -44,9 +46,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.SetStateRequestTests
         [Fact]
         public void Should_set_a_statecode_by_default_when_an_entity_record_is_added_to_the_context()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var c = new Contact()
             {
@@ -65,9 +69,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.SetStateRequestTests
         [Fact]
         public void Should_not_override_a_statecode_already_initialized()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var c = new Contact()
             {

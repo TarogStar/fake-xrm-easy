@@ -62,17 +62,21 @@ namespace FakeXrmEasy.Tests.Issues
 
         private static IOrganizationService Arrange()
         {
-            Account account = new Account();
-            account.Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
-            account.Name = "Goggle ltd";
+      Account account = new Account
+      {
+        Id = new Guid("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+        Name = "Goggle ltd"
+      };
 
-            Contact contact = new Contact();
-            contact.Id = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc");
-            contact.FirstName = "Test";
-            contact.LastName = "Contact 1";
-            contact.ParentCustomerId = account.ToEntityReference();
+      Contact contact = new Contact
+      {
+        Id = new Guid("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+        FirstName = "Test",
+        LastName = "Contact 1",
+        ParentCustomerId = account.ToEntityReference()
+      };
 
-            gbp_globecountry country = new gbp_globecountry()
+      gbp_globecountry country = new gbp_globecountry()
             {
                 Id = Guid.NewGuid(),
                 gbp_name = "United Kingdom",

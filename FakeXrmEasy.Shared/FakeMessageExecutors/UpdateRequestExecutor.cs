@@ -1,6 +1,7 @@
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using System;
+using System.Collections.Concurrent;
 using System.ServiceModel;
 
 namespace FakeXrmEasy.FakeMessageExecutors
@@ -80,13 +81,13 @@ namespace FakeXrmEasy.FakeMessageExecutors
             }
 
             // Get stored entity
-            if (!ctx.Data.ContainsKey(target.LogicalName) ||
-                !ctx.Data[target.LogicalName].ContainsKey(target.Id))
+            ConcurrentDictionary<Guid, Entity> entityDict;
+            Entity storedEntity;
+            if (!ctx.Data.TryGetValue(target.LogicalName, out entityDict) ||
+                !entityDict.TryGetValue(target.Id, out storedEntity))
             {
                 return; // Let normal update handle missing entity
             }
-
-            var storedEntity = ctx.Data[target.LogicalName][target.Id];
             var storedVersion = storedEntity.Contains("versionnumber")
                 ? storedEntity.GetAttributeValue<long>("versionnumber")
                 : 0L;

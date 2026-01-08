@@ -1,6 +1,7 @@
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.ServiceModel;
@@ -76,12 +77,13 @@ namespace FakeXrmEasy.FakeMessageExecutors
                     bool recordCreated = false;
                     Guid id = entity.Id;
 
-                    // Check if entity exists
+                    // Check if entity exists - thread-safe access
                     bool exists = false;
                     if (id != Guid.Empty)
                     {
-                        exists = ctx.Data.ContainsKey(entity.LogicalName) &&
-                                ctx.Data[entity.LogicalName].ContainsKey(id);
+                        ConcurrentDictionary<Guid, Entity> entityDict;
+                        exists = ctx.Data.TryGetValue(entity.LogicalName, out entityDict) &&
+                                entityDict.ContainsKey(id);
                     }
 
                     if (exists)

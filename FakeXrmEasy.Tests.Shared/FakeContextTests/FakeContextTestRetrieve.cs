@@ -145,15 +145,20 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_retrieve_is_invoked_with_an_existing_entity_and_proxy_types_the_returned_entity_must_be_of_the_appropiate_subclass()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
 
-            //Initialize the context with a single entity
-            var guid = Guid.NewGuid();
-            var account = new Account() { Id = guid };
-            account.Name = "Test account";
+      //Initialize the context with a single entity
+      var guid = Guid.NewGuid();
+      var account = new Account
+      {
+        Id = guid,
+        Name = "Test account"
+      };
 
-            var data = new List<Entity>() { account }.AsQueryable();
+      var data = new List<Entity>() { account }.AsQueryable();
             context.Initialize(data);
 
             var service = context.GetOrganizationService();
@@ -166,10 +171,12 @@ namespace FakeXrmEasy.Tests
         [Fact]
         public void When_retrieving_entity_that_does_not_exist_with_proxy_types_entity_name_should_be_known()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account));
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Account))
+      };
 
-            var service = context.GetOrganizationService();
+      var service = context.GetOrganizationService();
             Assert.Throws<FaultException<OrganizationServiceFault>>(() => service.Retrieve("account", Guid.NewGuid(), new ColumnSet(true)));
         }
 

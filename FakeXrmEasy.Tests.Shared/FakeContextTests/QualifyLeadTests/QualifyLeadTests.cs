@@ -14,9 +14,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QualifyLeadTests
         [Fact]
         public void Check_if_Account_was_created_after_sending_request()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var lead = new Lead()
             {
@@ -45,9 +47,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QualifyLeadTests
         [Fact]
         public void Check_if_Contact_was_created_after_sending_request()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var lead = new Lead()
             {
@@ -76,9 +80,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QualifyLeadTests
         [Fact]
         public void Check_if_Opportunity_was_created_after_sending_request()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var lead = new Lead()
             {
@@ -107,9 +113,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QualifyLeadTests
         [Fact]
         public void Check_if_Account_was_associated_with_Opportunity()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var account = new Account()
             {

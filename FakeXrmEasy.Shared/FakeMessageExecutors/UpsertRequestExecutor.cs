@@ -2,6 +2,7 @@
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using System;
+using System.Collections.Concurrent;
 
 #if !FAKE_XRM_EASY && !FAKE_XRM_EASY_2013 && !FAKE_XRM_EASY_2015
 
@@ -62,8 +63,9 @@ namespace FakeXrmEasy.FakeMessageExecutors
             var entityLogicalName = upsertRequest.Target.LogicalName;
             var entityId = ctx.GetRecordUniqueId(upsertRequest.Target.ToEntityReferenceWithKeyAttributes(), validate: false);
 
-            if (ctx.Data.ContainsKey(entityLogicalName) &&
-                ctx.Data[entityLogicalName].ContainsKey(entityId))
+            ConcurrentDictionary<Guid, Entity> entityDict;
+            if (ctx.Data.TryGetValue(entityLogicalName, out entityDict) &&
+                entityDict.ContainsKey(entityId))
             {
                 recordCreated = false;
                 service.Update(upsertRequest.Target);

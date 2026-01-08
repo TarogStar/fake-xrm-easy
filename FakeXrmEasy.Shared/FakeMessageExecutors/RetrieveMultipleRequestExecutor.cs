@@ -4,6 +4,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -316,10 +317,11 @@ namespace FakeXrmEasy.FakeMessageExecutors
                             var primaryNameAttribute = context.EntityMetadata[entityRef.LogicalName].PrimaryNameAttribute;
 
                             // Check if the referenced entity exists in the context
-                            if (context.Data.ContainsKey(entityRef.LogicalName) &&
-                                context.Data[entityRef.LogicalName].ContainsKey(entityRef.Id))
+                            ConcurrentDictionary<Guid, Entity> refEntityDict;
+                            Entity referencedEntity;
+                            if (context.Data.TryGetValue(entityRef.LogicalName, out refEntityDict) &&
+                                refEntityDict.TryGetValue(entityRef.Id, out referencedEntity))
                             {
-                                var referencedEntity = context.Data[entityRef.LogicalName][entityRef.Id];
                                 if (referencedEntity.Contains(primaryNameAttribute))
                                 {
                                     entityRef.Name = referencedEntity.GetAttributeValue<string>(primaryNameAttribute);

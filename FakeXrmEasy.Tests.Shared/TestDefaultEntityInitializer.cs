@@ -16,15 +16,19 @@ namespace FakeXrmEasy.Tests
 
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity user = new Entity("systemuser");
-            user.Id = Guid.NewGuid();
-            initialEntities.Add(user);
+      Entity user = new Entity("systemuser")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(user);
 
             context.CallerId = user.ToEntityReference();
 
-            Entity testEntity = new Entity("test");
-            testEntity.Id = Guid.NewGuid();
-            initialEntities.Add(testEntity);
+      Entity testEntity = new Entity("test")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(testEntity);
 
             context.Initialize(initialEntities);
             Entity testPostCreate = service.Retrieve("test", testEntity.Id, new ColumnSet(true));

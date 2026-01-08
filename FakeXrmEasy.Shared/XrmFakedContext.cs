@@ -7,6 +7,7 @@ using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -51,8 +52,15 @@ namespace FakeXrmEasy
         /// <summary>
         /// Gets or sets the in-memory data store containing all entities in this fake CRM context.
         /// The outer dictionary is keyed by entity logical name, and the inner dictionary maps entity GUIDs to Entity objects.
+        /// This is a thread-safe concurrent dictionary to support parallel operations.
         /// </summary>
-        public Dictionary<string, Dictionary<Guid, Entity>> Data { get; set; }
+        public ConcurrentDictionary<string, ConcurrentDictionary<Guid, Entity>> Data { get; set; }
+
+        /// <summary>
+        /// Lock object used to ensure thread safety for complex operations on the Data dictionary
+        /// that require atomicity across multiple dictionary operations.
+        /// </summary>
+        private readonly object _dataLock = new object();
 
         /// <summary>
         /// Counter for generating auto-incrementing version numbers (RowVersion).
@@ -123,6 +131,14 @@ namespace FakeXrmEasy
 
         private Dictionary<string, XrmFakedRelationship> Relationships { get; set; }
 
+        /// <summary>
+        /// Stores hierarchical relationship definitions for entities.
+        /// Key is the entity logical name, value is the attribute name that stores the parent reference
+        /// (e.g., "account" -> "parentaccountid").
+        /// Used by hierarchy operators (Above, AboveOrEqual/EqOrAbove, Under, UnderOrEqual/EqOrUnder, NotUnder).
+        /// </summary>
+        public Dictionary<string, string> HierarchicalRelationships { get; set; }
+
 
         /// <summary>
         /// Gets or sets the entity initializer service responsible for setting default values on entities
@@ -159,8 +175,8 @@ namespace FakeXrmEasy
         {
             MaxRetrieveCount = 5000;
 
-            AttributeMetadataNames = new Dictionary<string, Dictionary<string, string>>();
-            Data = new Dictionary<string, Dictionary<Guid, Entity>>();
+            AttributeMetadataNames = new ConcurrentDictionary<string, ConcurrentDictionary<string, string>>();
+            Data = new ConcurrentDictionary<string, ConcurrentDictionary<Guid, Entity>>();
             ExecutionMocks = new Dictionary<Type, ServiceRequestExecution>();
             OptionSetValuesMetadata = new Dictionary<string, OptionSetMetadata>();
             StatusAttributeMetadata = new Dictionary<string, StatusAttributeMetadata>();
@@ -208,6 +224,8 @@ namespace FakeXrmEasy
             }
 
             Relationships = new Dictionary<string, XrmFakedRelationship>();
+
+            HierarchicalRelationships = new Dictionary<string, string>();
 
             EntityInitializerService = new DefaultEntityInitializerService();
 

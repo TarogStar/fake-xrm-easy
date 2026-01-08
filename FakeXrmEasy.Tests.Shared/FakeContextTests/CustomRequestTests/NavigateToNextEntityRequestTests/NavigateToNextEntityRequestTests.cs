@@ -36,23 +36,23 @@ namespace FakeXrmEasy.Tests.FakeContextTests.CustomRequestTests.NavigateToNextEn
                 Id = Guid.NewGuid()
             };
 
-            var currentStage = new ProcessStage()
-            {
-                Id = Guid.NewGuid()
-            };
-            currentStage.ProcessId = workflow.ToEntityReference();
+      var currentStage = new ProcessStage
+      {
+        Id = Guid.NewGuid(),
+        ProcessId = workflow.ToEntityReference()
+      };
 
-            opp.StageId = currentStage.Id;
+      opp.StageId = currentStage.Id;
 
-            // Next Stage with Entity
+      // Next Stage with Entity
 
-            var nextStage = new ProcessStage()
-            {
-                Id = Guid.NewGuid()
-            };
-            nextStage.ProcessId = workflow.ToEntityReference();
+      var nextStage = new ProcessStage
+      {
+        Id = Guid.NewGuid(),
+        ProcessId = workflow.ToEntityReference()
+      };
 
-            context.Initialize(new Entity[] { workflow, contract, opp, currentStage, nextStage });
+      context.Initialize(new Entity[] { workflow, contract, opp, currentStage, nextStage });
 
             // Build Request
 

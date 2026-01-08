@@ -515,9 +515,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             IOrganizationService service = context.GetOrganizationService();
             var entity = new Entity("entity") { Id = Guid.NewGuid(), ["name"] = "test" };
             context.Initialize(entity);
-            var query = new QueryExpression("entity");
-            query.ColumnSet = new ColumnSet(true);
-            query.AddLink("entity", "name", "name");
+      var query = new QueryExpression("entity")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      query.AddLink("entity", "name", "name");
 
             var queryResult = service.RetrieveMultiple(query);
 
@@ -583,10 +585,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests
         [Fact]
         public void When_querying_by_an_attribute_which_wasnt_initialised_null_value_is_returned_for_early_bound_and_not_an_exception()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var service = ctx.GetOrganizationService();
+      var service = ctx.GetOrganizationService();
             ctx.Initialize(new List<Entity>()
             {
                 new Contact()
@@ -612,10 +616,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests
         [Fact]
         public void When_sorting_by_an_attribute_which_wasnt_initialised_an_exception_is_not_thrown()
         {
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var service = ctx.GetOrganizationService();
+      var service = ctx.GetOrganizationService();
             ctx.Initialize(new List<Entity>()
             {
                 new Contact() {Id = Guid.NewGuid(), FirstName = "Ronald", LastName = "Mcdonald"},
@@ -647,10 +653,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             var contact5 = new Contact() { Id = Guid.NewGuid(), FirstName = "5 Cont", LastName = "Cont 5", Address1_City = "2 City", ParentCustomerId = account2.ToEntityReference() };
             var contact6 = new Contact() { Id = Guid.NewGuid(), FirstName = "6 Cont", LastName = "Cont 6", Address1_City = "2 City", ParentCustomerId = account3.ToEntityReference() };
 
-            var ctx = new XrmFakedContext();
-            ctx.ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact));
+      var ctx = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetAssembly(typeof(Contact))
+      };
 
-            var service = ctx.GetOrganizationService();
+      var service = ctx.GetOrganizationService();
             ctx.Initialize(new List<Entity>() {
                 account1, account2, account3, contact1, contact2, contact3, contact4, contact5, contact6
             });
@@ -881,7 +889,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             };
 
             var result = service.RetrieveMultiple(query);
-            var resultingEntity = result.Entities[0];
+            var resultingEntity = Assert.Single(result.Entities);
             Assert.Equal(2, resultingEntity.Attributes.Count);
             Assert.Equal("User1", ((AliasedValue)resultingEntity["systemuser1.fullname"]).Value);
         }
@@ -936,7 +944,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             };
 
             var result = service.RetrieveMultiple(query);
-            var resultingEntity = result.Entities[0];
+            var resultingEntity = Assert.Single(result.Entities);
             Assert.Equal(3, resultingEntity.Attributes.Count);
             Assert.Equal("User1", ((AliasedValue)resultingEntity["systemuser1.fullname"]).Value);
             Assert.Equal("BusinessUnit1", ((AliasedValue)resultingEntity["businessunit1.name"]).Value);
@@ -994,7 +1002,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             };
 
             var result = service.RetrieveMultiple(query);
-            var resultingEntity = result.Entities[0];
+            var resultingEntity = Assert.Single(result.Entities);
             Assert.Equal(3, resultingEntity.Attributes.Count);
             Assert.Equal("User2", ((AliasedValue)resultingEntity["systemuser1.fullname"]).Value);
             Assert.Equal("User1", ((AliasedValue)resultingEntity["systemuser2.fullname"]).Value);
@@ -1068,7 +1076,7 @@ namespace FakeXrmEasy.Tests.FakeContextTests
             };
 
             var result = service.RetrieveMultiple(query);
-            var resultingEntity = result.Entities[0];
+            var resultingEntity = Assert.Single(result.Entities);
             Assert.Equal(4, resultingEntity.Attributes.Count);
             Assert.Equal("User3", ((AliasedValue)resultingEntity["systemuser1.fullname"]).Value);
             Assert.Equal("User2", ((AliasedValue)resultingEntity["systemuserwithalias.fullname"]).Value);
@@ -1108,15 +1116,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests
 
             context.Initialize(initialEntities);
 
-            // the query selects the "parent" entity, and joins to the "child" entities
-            QueryExpression query = new QueryExpression("parent");
-            query.ColumnSet = new ColumnSet("parentname");
+      // the query selects the "parent" entity, and joins to the "child" entities
+      QueryExpression query = new QueryExpression("parent")
+      {
+        ColumnSet = new ColumnSet("parentname")
+      };
 
-            LinkEntity link = new LinkEntity("parent", "child", "parentid", "parent", JoinOperator.Inner);
-            link.EntityAlias = "c";
-            link.Columns = new ColumnSet("name", "myvalue");
+      LinkEntity link = new LinkEntity("parent", "child", "parentid", "parent", JoinOperator.Inner)
+      {
+        EntityAlias = "c",
+        Columns = new ColumnSet("name", "myvalue")
+      };
 
-            query.LinkEntities.Add(link);
+      query.LinkEntities.Add(link);
 
             // ACT
 
@@ -1124,23 +1136,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests
 
             // ASSERT
 
-            // fields for the first entity work as expected...
-            string entity1Name = results[0].GetAttributeValue<AliasedValue>("c.name").Value as string;
-            string entity1Value = results[0].GetAttributeValue<AliasedValue>("c.myvalue").Value as string;
+            Assert.Equal(2, results.Count);
 
-            Assert.Equal("entity1", entity1Name);
+            var resultsList = results.ToList();
+
+            var row1 = resultsList.Single(r => (r.GetAttributeValue<AliasedValue>("c.name").Value as string) == "entity1");
+            var row2 = resultsList.Single(r => (r.GetAttributeValue<AliasedValue>("c.name").Value as string) == "entity2");
+
+            // fields for the first entity work as expected...
+            string entity1Value = row1.GetAttributeValue<AliasedValue>("c.myvalue").Value as string;
             Assert.Equal("value", entity1Value);
 
-            // fields for the second entity do not.  
-            // The child "name" field is correct, but the "myvalue" field is returning the value of the previous
-            // entity when it should be returning null
-            string entity2Name = results[1].GetAttributeValue<AliasedValue>("c.name").Value as string;
-            string entity2Value = results[1].GetAttributeValue<AliasedValue>("c.myvalue")?.Value as string;
-
-            // this works fine:
-            Assert.Equal("entity2", entity2Name);
-
-            // this fails (entity2Value is "value")
+            // fields for the second entity should be null
+            string entity2Value = row2.GetAttributeValue<AliasedValue>("c.myvalue")?.Value as string;
             Assert.Null(entity2Value);
         }
     }

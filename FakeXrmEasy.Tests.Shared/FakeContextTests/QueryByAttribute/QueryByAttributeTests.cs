@@ -66,13 +66,15 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryByAttributeTests
             query.EntityName = Account.EntityLogicalName;
             query.Values.AddRange(new object[] { "Test" });
 
-            //Execute using a request to test the OOB (XRM) message contracts
-            RetrieveMultipleRequest request = new RetrieveMultipleRequest();
-            request.Query = query;
-            Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
+      //Execute using a request to test the OOB (XRM) message contracts
+      RetrieveMultipleRequest request = new RetrieveMultipleRequest
+      {
+        Query = query
+      };
+      Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
 
-            Assert.True(entityList.Count == 1);
-            Assert.Equal("Test", entityList[0]["name"].ToString());
+            var entity = Assert.Single(entityList);
+            Assert.Equal("Test", entity["name"].ToString());
         }
 
         [Fact]
@@ -96,13 +98,15 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryByAttributeTests
 
             query.AddAttributeValue("donotemail", false);
 
-            //Execute using a request to test the OOB (XRM) message contracts
-            RetrieveMultipleRequest request = new RetrieveMultipleRequest();
-            request.Query = query;
-            Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
+      //Execute using a request to test the OOB (XRM) message contracts
+      RetrieveMultipleRequest request = new RetrieveMultipleRequest
+      {
+        Query = query
+      };
+      Collection<Entity> entityList = ((RetrieveMultipleResponse)service.Execute(request)).EntityCollection.Entities;
 
-            Assert.True(entityList.Count == 1);
-            Assert.Equal("Test", entityList[0]["name"].ToString());
+            var entity = Assert.Single(entityList);
+            Assert.Equal("Test", entity["name"].ToString());
         }
 
         [Fact]
@@ -120,9 +124,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryByAttributeTests
 
             fakedContext.Initialize(new List<Entity> { contact });
 
-            QueryByAttribute query = new QueryByAttribute("contact");
-            query.ColumnSet = new ColumnSet("firstname", "lastname");
-            var results = fakedService.RetrieveMultiple(query);
+      QueryByAttribute query = new QueryByAttribute("contact")
+      {
+        ColumnSet = new ColumnSet("firstname", "lastname")
+      };
+      var results = fakedService.RetrieveMultiple(query);
 
             Assert.True(results.Entities[0].Attributes.ContainsKey("lastname"));
             Assert.False(results.Entities[0].Attributes.ContainsKey("firstname"));
@@ -142,9 +148,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryByAttributeTests
 
             fakedContext.Initialize(new List<Entity> { contact });
 
-            QueryByAttribute query = new QueryByAttribute("contact");
-            query.ColumnSet = new ColumnSet("firstname", "lastname");
-            var results = fakedService.RetrieveMultiple(query);
+      QueryByAttribute query = new QueryByAttribute("contact")
+      {
+        ColumnSet = new ColumnSet("firstname", "lastname")
+      };
+      var results = fakedService.RetrieveMultiple(query);
 
             Assert.True(results.Entities[0].Attributes.ContainsKey("lastname"));
             Assert.False(results.Entities[0].Attributes.ContainsKey("firstname"));
@@ -170,14 +178,16 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryByAttributeTests
 
             fakedContext.Initialize(new List<Entity> { contact1, contact2 });
 
-            QueryByAttribute query = new QueryByAttribute("contact");
-            query.ColumnSet = new ColumnSet("firstname", "lastname");
-            query.PageInfo = new PagingInfo()
-            {
-                PageNumber = 1,
-                Count = 1,
-            };
-            var results = fakedService.RetrieveMultiple(query);
+      QueryByAttribute query = new QueryByAttribute("contact")
+      {
+        ColumnSet = new ColumnSet("firstname", "lastname"),
+        PageInfo = new PagingInfo()
+        {
+          PageNumber = 1,
+          Count = 1,
+        }
+      };
+      var results = fakedService.RetrieveMultiple(query);
 
             Assert.True(results.MoreRecords);
             Assert.NotNull(results.PagingCookie);
@@ -203,15 +213,17 @@ namespace FakeXrmEasy.Tests.FakeContextTests.QueryByAttributeTests
 
             fakedContext.Initialize(new List<Entity> { contact1, contact2 });
 
-            QueryByAttribute query = new QueryByAttribute("contact");
-            query.ColumnSet = new ColumnSet("firstname", "lastname");
-            query.PageInfo = new PagingInfo()
-            {
-                PageNumber = 1,
-                Count = 1,
-                ReturnTotalRecordCount = true
-            };
-            var results = fakedService.RetrieveMultiple(query);
+      QueryByAttribute query = new QueryByAttribute("contact")
+      {
+        ColumnSet = new ColumnSet("firstname", "lastname"),
+        PageInfo = new PagingInfo()
+        {
+          PageNumber = 1,
+          Count = 1,
+          ReturnTotalRecordCount = true
+        }
+      };
+      var results = fakedService.RetrieveMultiple(query);
 
             Assert.Single(results.Entities);
             Assert.Equal(2, results.TotalRecordCount);

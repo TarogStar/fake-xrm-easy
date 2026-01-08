@@ -3,6 +3,7 @@ using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Xunit;
 
@@ -120,10 +121,12 @@ namespace FakeXrmEasy.Tests
             context.Initialize(entities);
             var service = context.GetOrganizationService();
 
-            // Act
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
-            var results = service.RetrieveMultiple(query);
+      // Act
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
+      var results = service.RetrieveMultiple(query);
 
             // Assert
             Assert.Equal(2, results.Entities.Count);
@@ -134,9 +137,9 @@ namespace FakeXrmEasy.Tests
                 Assert.False(string.IsNullOrEmpty(primaryContact.Name));
             }
 
-            var firstAccount = results.Entities[0];
-            var firstContact = firstAccount.GetAttributeValue<EntityReference>("primarycontactid");
-            Assert.Equal("Jane Smith", firstContact.Name);
+            var account1 = results.Entities.Cast<Entity>().Single(e => e.Id == account1Id);
+            var contact1 = account1.GetAttributeValue<EntityReference>("primarycontactid");
+            Assert.Equal("Jane Smith", contact1.Name);
         }
 
         [Fact]
@@ -440,7 +443,7 @@ namespace FakeXrmEasy.Tests
 
             // Assert
             Assert.Single(results.Entities);
-            var account = results.Entities[0];
+            var account = Assert.Single(results.Entities);
             var primaryContact = account.GetAttributeValue<EntityReference>("primarycontactid");
             Assert.NotNull(primaryContact);
             Assert.Equal("FetchXML Test Contact", primaryContact.Name);

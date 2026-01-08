@@ -57,13 +57,15 @@ namespace FakeXrmEasy.Tests.Issues
 
             Assert.Equal(label, option.Label.LocalizedLabels[0].Label);
 
-            // Get a list of Option Set values for the Status Reason fields from its metadata
-            RetrieveAttributeRequest attReq = new RetrieveAttributeRequest();
-            attReq.EntityLogicalName = "contact";
-            attReq.LogicalName = "statuscode";
-            attReq.RetrieveAsIfPublished = true;
+      // Get a list of Option Set values for the Status Reason fields from its metadata
+      RetrieveAttributeRequest attReq = new RetrieveAttributeRequest
+      {
+        EntityLogicalName = "contact",
+        LogicalName = "statuscode",
+        RetrieveAsIfPublished = true
+      };
 
-            RetrieveAttributeResponse attResponse = (RetrieveAttributeResponse)fakedService.Execute(attReq);
+      RetrieveAttributeResponse attResponse = (RetrieveAttributeResponse)fakedService.Execute(attReq);
 
             // Cast as StatusAttributeMetadata
             StatusAttributeMetadata statusAttributeMetadata = (StatusAttributeMetadata)attResponse.AttributeMetadata;

@@ -98,6 +98,9 @@ namespace FakeXrmEasy.Extensions.FetchXml
                 case "all-attributes":
                     return true;
 
+                case "no-attrs":
+                    return true;
+
                 case "attribute":
                     return elem.GetAttribute("name") != null;
 
@@ -141,7 +144,7 @@ namespace FakeXrmEasy.Extensions.FetchXml
         /// Converts an entity node into a <see cref="ColumnSet"/> representation.
         /// </summary>
         /// <param name="el">The entity element.</param>
-        /// <returns>A populated <see cref="ColumnSet"/> honoring all-attributes or explicit attribute declarations.</returns>
+        /// <returns>A populated <see cref="ColumnSet"/> honoring all-attributes, no-attrs, or explicit attribute declarations.</returns>
         public static ColumnSet ToColumnSet(this XElement el)
         {
             var allAttributes = el.Elements()
@@ -153,12 +156,27 @@ namespace FakeXrmEasy.Extensions.FetchXml
                 return new ColumnSet(true);
             }
 
+            // Get explicitly specified attributes
             var attributes = el.Elements()
                                 .Where(e => e.Name.LocalName.Equals("attribute"))
                                 .Select(e => e.GetAttribute("name").Value)
                                 .ToArray();
 
+            // Check for no-attrs element
+            // Per Dataverse behavior: no-attrs defaults to empty ColumnSet,
+            // but if explicit attribute elements are ALSO present, those attributes are returned
+            // Issue #490
+            var noAttrs = el.Elements()
+                    .Where(e => e.Name.LocalName.Equals("no-attrs"))
+                    .FirstOrDefault();
 
+            if (noAttrs != null && attributes.Length == 0)
+            {
+                // no-attrs present with no explicit attributes = empty ColumnSet
+                return new ColumnSet();
+            }
+
+            // Return explicitly specified attributes (or empty if none specified and no no-attrs)
             return new ColumnSet(attributes);
         }
 
@@ -363,15 +381,16 @@ namespace FakeXrmEasy.Extensions.FetchXml
         /// <returns>A populated <see cref="LinkEntity"/>.</returns>
         public static LinkEntity ToLinkEntity(this XElement el, XrmFakedContext ctx)
         {
-            //Create this node
-            var linkEntity = new LinkEntity();
+      //Create this node
+      var linkEntity = new LinkEntity
+      {
+        LinkFromEntityName = el.Parent.GetAttribute("name").Value,
+        LinkFromAttributeName = el.GetAttribute("to").Value,
+        LinkToAttributeName = el.GetAttribute("from").Value,
+        LinkToEntityName = el.GetAttribute("name").Value
+      };
 
-            linkEntity.LinkFromEntityName = el.Parent.GetAttribute("name").Value;
-            linkEntity.LinkFromAttributeName = el.GetAttribute("to").Value;
-            linkEntity.LinkToAttributeName = el.GetAttribute("from").Value;
-            linkEntity.LinkToEntityName = el.GetAttribute("name").Value;
-
-            if (el.GetAttribute("alias") != null)
+      if (el.GetAttribute("alias") != null)
             {
                 linkEntity.EntityAlias = el.GetAttribute("alias").Value;
             }
@@ -798,6 +817,22 @@ namespace FakeXrmEasy.Extensions.FetchXml
                     op = ConditionOperator.DoesNotContainValues;
                     break;
 #endif
+                // Hierarchy operators (issue #287)
+                case "above":
+                    op = ConditionOperator.Above;
+                    break;
+                case "eq-or-above":
+                    op = ConditionOperator.AboveOrEqual;
+                    break;
+                case "under":
+                    op = ConditionOperator.Under;
+                    break;
+                case "eq-or-under":
+                    op = ConditionOperator.UnderOrEqual;
+                    break;
+                case "not-under":
+                    op = ConditionOperator.NotUnder;
+                    break;
                 default:
                     throw PullRequestException.FetchXmlOperatorNotImplemented(elem.GetAttribute("operator").Value);
             }

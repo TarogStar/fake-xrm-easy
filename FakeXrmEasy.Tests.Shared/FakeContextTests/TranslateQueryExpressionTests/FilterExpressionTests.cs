@@ -18,10 +18,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
 
             context.Initialize(new List<Entity>() { contact1, contact2 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true)
+      };
 
-            var filter1 = new FilterExpression();
+      var filter1 = new FilterExpression();
             filter1.AddCondition(new ConditionExpression("fullname", ConditionOperator.Equal, "Contact 1"));
 
             var filter2 = new FilterExpression();
@@ -45,10 +48,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests
 
             context.Initialize(new List<Entity>() { contact1, contact2 });
 
-            var qe = new QueryExpression() { EntityName = "contact" };
-            qe.ColumnSet = new ColumnSet(true);
-            qe.Criteria = new FilterExpression(LogicalOperator.Or);
-            qe.Criteria.AddCondition(new ConditionExpression("fullname", ConditionOperator.Equal, "Contact 1"));
+      var qe = new QueryExpression
+      {
+        EntityName = "contact",
+        ColumnSet = new ColumnSet(true),
+        Criteria = new FilterExpression(LogicalOperator.Or)
+      };
+      qe.Criteria.AddCondition(new ConditionExpression("fullname", ConditionOperator.Equal, "Contact 1"));
 
             var filter1 = new FilterExpression();
             filter1.AddCondition(new ConditionExpression("fullname", ConditionOperator.Equal, "Contact 2"));

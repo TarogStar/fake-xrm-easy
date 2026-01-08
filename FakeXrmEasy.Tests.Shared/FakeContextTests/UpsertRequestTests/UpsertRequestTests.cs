@@ -15,9 +15,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.UpsertRequestTests
         [Fact]
         public void Upsert_Creates_Record_When_It_Does_Not_Exist()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var contact = new Contact()
             {
@@ -42,9 +44,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.UpsertRequestTests
         [Fact]
         public void Upsert_Updates_Record_When_It_Exists()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            var service = context.GetOrganizationService();
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
 
             var contact = new Contact()
             {
@@ -76,9 +80,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.UpsertRequestTests
         [Fact]
         public void Upsert_Creates_Record_When_It_Does_Not_Exist_Using_Alternate_Key()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
             var service = context.GetOrganizationService();
 
             var metadata = context.GetEntityMetadataByName("contact");
@@ -110,9 +116,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.UpsertRequestTests
         [Fact]
         public void Upsert_Updates_Record_When_It_Exists_Using_Alternate_Key()
         {
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
             var service = context.GetOrganizationService();
 
 
@@ -164,10 +172,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.UpsertRequestTests
         [Fact]
         public void Upsert_Create_With_Alt_Key_Should_Copy_Key_To_Attribute()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
             var service = context.GetOrganizationService();
 
             var metadata = context.GetEntityMetadataByName("contact");
@@ -213,10 +223,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.UpsertRequestTests
         [Fact]
         public void Upsert_Create_With_Alt_Key_Should_Not_Override_Existing_Attribute()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
             var service = context.GetOrganizationService();
 
             var metadata = context.GetEntityMetadataByName("contact");
@@ -261,10 +273,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.UpsertRequestTests
         [Fact]
         public void Upsert_Create_With_Composite_Alt_Key_Should_Copy_All_Keys_To_Attributes()
         {
-            // Arrange
-            var context = new XrmFakedContext();
-            context.ProxyTypesAssembly = Assembly.GetExecutingAssembly();
-            context.InitializeMetadata(Assembly.GetExecutingAssembly());
+      // Arrange
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      context.InitializeMetadata(Assembly.GetExecutingAssembly());
             var service = context.GetOrganizationService();
 
             var metadata = context.GetEntityMetadataByName("contact");

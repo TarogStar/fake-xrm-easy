@@ -1,6 +1,7 @@
-﻿using Microsoft.Crm.Sdk.Messages;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.ServiceModel;
 
@@ -58,8 +59,9 @@ namespace FakeXrmEasy.FakeMessageExecutors
             }
 
             var incidentId = (EntityReference)incidentResolution[AttributeIncidentId];
-            if (ctx.Data.ContainsKey(IncidentLogicalName) &&
-                ctx.Data[IncidentLogicalName].Values.SingleOrDefault(p => p.Id == incidentId.Id) == null)
+            ConcurrentDictionary<Guid, Entity> incidentDict;
+            if (ctx.Data.TryGetValue(IncidentLogicalName, out incidentDict) &&
+                incidentDict.Values.SingleOrDefault(p => p.Id == incidentId.Id) == null)
             {
                 throw new FaultException<OrganizationServiceFault>(new OrganizationServiceFault(),
                     string.Format("Incident with id {0} not found.", incidentId.Id));

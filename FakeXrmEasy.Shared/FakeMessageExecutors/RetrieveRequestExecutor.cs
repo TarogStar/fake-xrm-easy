@@ -3,6 +3,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.ServiceModel;
 
@@ -81,14 +82,16 @@ namespace FakeXrmEasy.FakeMessageExecutors
             var id = context.GetRecordUniqueId(request.Target);
 
             //Entity logical name exists, so , check if the requested entity exists
-            if (context.Data.ContainsKey(entityName) && context.Data[entityName] != null
-                && context.Data[entityName].ContainsKey(id))
+            ConcurrentDictionary<Guid, Entity> entityDict;
+            Entity foundEntity;
+            if (context.Data.TryGetValue(entityName, out entityDict) && entityDict != null
+                && entityDict.TryGetValue(id, out foundEntity))
             {
                 //Return the subset of columns requested only
                 var reflectedType = context.FindReflectedType(entityName);
 
                 //Entity found => return only the subset of columns specified or all of them
-                var resultEntity = context.Data[entityName][id].Clone(reflectedType, context);
+                var resultEntity = foundEntity.Clone(reflectedType, context);
                 if (!columnSet.AllColumns)
                 {
                     resultEntity = resultEntity.ProjectAttributes(columnSet, context);
@@ -251,10 +254,11 @@ namespace FakeXrmEasy.FakeMessageExecutors
                             var primaryNameAttribute = context.EntityMetadata[entityRef.LogicalName].PrimaryNameAttribute;
 
                             // Check if the referenced entity exists in the context
-                            if (context.Data.ContainsKey(entityRef.LogicalName) &&
-                                context.Data[entityRef.LogicalName].ContainsKey(entityRef.Id))
+                            ConcurrentDictionary<Guid, Entity> refEntityDict;
+                            Entity referencedEntity;
+                            if (context.Data.TryGetValue(entityRef.LogicalName, out refEntityDict) &&
+                                refEntityDict.TryGetValue(entityRef.Id, out referencedEntity))
                             {
-                                var referencedEntity = context.Data[entityRef.LogicalName][entityRef.Id];
                                 if (referencedEntity.Contains(primaryNameAttribute))
                                 {
                                     entityRef.Name = referencedEntity.GetAttributeValue<string>(primaryNameAttribute);

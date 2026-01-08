@@ -46,19 +46,23 @@ namespace FakeXrmEasy.Tests.Issues
                 }
             );
 
-            QueryExpression contactQuery = new QueryExpression("testentity");
-            contactQuery.ColumnSet = new ColumnSet("field");
-            EntityCollection result = service.RetrieveMultiple(contactQuery);
+      QueryExpression contactQuery = new QueryExpression("testentity")
+      {
+        ColumnSet = new ColumnSet("field")
+      };
+      EntityCollection result = service.RetrieveMultiple(contactQuery);
             Assert.False(result.Entities[0].Contains("field"));
         }
 
         [Fact]
         public void TestRetrieveWithMissingField()
         {
-            Entity testEntity = new Entity("testentity");
-            testEntity.Id = Guid.NewGuid();
+      Entity testEntity = new Entity("testentity")
+      {
+        Id = Guid.NewGuid()
+      };
 
-            XrmFakedContext context = new XrmFakedContext();
+      XrmFakedContext context = new XrmFakedContext();
             IOrganizationService service = context.GetOrganizationService();
 
             context.Initialize(
@@ -75,10 +79,12 @@ namespace FakeXrmEasy.Tests.Issues
         [Fact]
         public void TestRetrieveMultipleWithMissingField()
         {
-            Entity testEntity = new Entity("testentity");
-            testEntity.Id = Guid.NewGuid();
+      Entity testEntity = new Entity("testentity")
+      {
+        Id = Guid.NewGuid()
+      };
 
-            XrmFakedContext context = new XrmFakedContext();
+      XrmFakedContext context = new XrmFakedContext();
             IOrganizationService service = context.GetOrganizationService();
 
             context.Initialize(
@@ -88,9 +94,11 @@ namespace FakeXrmEasy.Tests.Issues
                 }
             );
 
-            QueryExpression contactQuery = new QueryExpression("testentity");
-            contactQuery.ColumnSet = new ColumnSet("field");
-            EntityCollection result = service.RetrieveMultiple(contactQuery);
+      QueryExpression contactQuery = new QueryExpression("testentity")
+      {
+        ColumnSet = new ColumnSet("field")
+      };
+      EntityCollection result = service.RetrieveMultiple(contactQuery);
             Assert.False(result.Entities[0].Contains("field"));
         }
 
@@ -117,10 +125,12 @@ namespace FakeXrmEasy.Tests.Issues
             context.Initialize(initialEntities);
 
             QueryExpression query = new QueryExpression("child");
-            LinkEntity link = new LinkEntity("child", "parent", "parent", "parentid", JoinOperator.Inner);
-            link.EntityAlias = "parententity";
-            link.Columns = new ColumnSet("field");
-            query.LinkEntities.Add(link);
+      LinkEntity link = new LinkEntity("child", "parent", "parent", "parentid", JoinOperator.Inner)
+      {
+        EntityAlias = "parententity",
+        Columns = new ColumnSet("field")
+      };
+      query.LinkEntities.Add(link);
 
             Entity result = service.RetrieveMultiple(query).Entities[0];
 

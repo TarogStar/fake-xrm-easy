@@ -282,6 +282,32 @@ FakeXrmEasy supports **62+ standard CRM messages** organized by category:
 
 ## Query Operators
 
+## Result ordering
+
+FakeXrmEasy aims to match Dataverse behavior: **result ordering is not guaranteed unless you explicitly specify an `OrderExpression` (QueryExpression) or an `<order />` clause (FetchXML).**
+
+This has a couple of implications for tests:
+
+- Do **not** assert on `entities[0]`, `entities[1]`, etc. unless your query has an explicit order.
+- Even with an explicit order, if multiple rows have the **same sort key** (ties), the relative order between those tied rows should be treated as undefined unless you add an additional tie-break order.
+
+Example (order-independent assertion):
+
+```csharp
+var response = service.RetrieveMultiple(new FetchExpression(fetchXml));
+
+// prefer set/membership assertions over index-based assertions
+var ids = response.Entities.Select(e => e.Id).ToList();
+Assert.Contains(expectedId1, ids);
+Assert.Contains(expectedId2, ids);
+Assert.Equal(2, ids.Count);
+
+// for left outer joins, find the row that contains the aliased attribute
+var withAlias = response.Entities.Where(e => e.Attributes.ContainsKey("aa.firstname")).ToList();
+Assert.Single(withAlias);
+Assert.Equal("Lionel", ((AliasedValue)withAlias[0]["aa.firstname"]).Value.ToString());
+```
+
 FakeXrmEasy supports a comprehensive set of condition operators for QueryExpression and FetchXML queries:
 
 ### Comparison Operators

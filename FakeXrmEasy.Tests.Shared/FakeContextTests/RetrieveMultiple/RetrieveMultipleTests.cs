@@ -26,9 +26,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             context.MaxRetrieveCount = 1000;
             for (int i = 0; i < context.MaxRetrieveCount + excessNumberOfRecords; i++)
             {
-                Entity e = new Entity("entity");
-                e.Id = Guid.NewGuid();
-                initialEntities.Add(e);
+        Entity e = new Entity("entity")
+        {
+          Id = Guid.NewGuid()
+        };
+        initialEntities.Add(e);
             }
             context.Initialize(initialEntities);
 
@@ -66,13 +68,17 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             IOrganizationService service = context.GetOrganizationService();
 
 
-            Entity e1 = new Entity("entity");
-            e1.Id = Guid.NewGuid();
-            e1["name"] = "FakeXrmEasy";
+      Entity e1 = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      e1["name"] = "FakeXrmEasy";
 
-            Entity e2 = new Entity("entity");
-            e2.Id = Guid.NewGuid();
-            e2["name"] = "FakeXrmEasy";
+      Entity e2 = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      e2["name"] = "FakeXrmEasy";
 
             context.Initialize(new Entity[] { e1, e2 });
 
@@ -99,15 +105,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
 
             for (int i = 0; i < 10; i++)
             {
-                Entity e = new Entity("entity");
-                e.Id = Guid.NewGuid();
-                initialEntities.Add(e);
+        Entity e = new Entity("entity")
+        {
+          Id = Guid.NewGuid()
+        };
+        initialEntities.Add(e);
             }
             context.Initialize(initialEntities);
 
-            QueryExpression query = new QueryExpression("entity");
-            query.TopCount = 5;
-            EntityCollection result = service.RetrieveMultiple(query);
+      QueryExpression query = new QueryExpression("entity")
+      {
+        TopCount = 5
+      };
+      EntityCollection result = service.RetrieveMultiple(query);
             Assert.Equal(query.TopCount, result.Entities.Count);
             Assert.False(result.MoreRecords);
         }
@@ -122,9 +132,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             IOrganizationService service = context.GetOrganizationService();
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity e = new Entity("entity");
-            e.Id = Guid.NewGuid();
-            e["retrieve"] = false;
+      Entity e = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      e["retrieve"] = false;
             initialEntities.Add(e);
 
             context.Initialize(initialEntities);
@@ -150,21 +162,27 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             context.MaxRetrieveCount = 1000;
             for (int i = 0; i < context.MaxRetrieveCount + excessNumberOfRecords; i++)
             {
-                Entity second = new Entity("second");
-                second.Id = Guid.NewGuid();
-                second["filter"] = true;
+        Entity second = new Entity("second")
+        {
+          Id = Guid.NewGuid()
+        };
+        second["filter"] = true;
                 initialEntities.Add(second);
-                Entity first = new Entity("entity");
-                first.Id = Guid.NewGuid();
-                first["secondid"] = second.ToEntityReference();
+        Entity first = new Entity("entity")
+        {
+          Id = Guid.NewGuid()
+        };
+        first["secondid"] = second.ToEntityReference();
                 initialEntities.Add(first);
             }
             context.Initialize(initialEntities);
 
             QueryExpression query = new QueryExpression("entity");
-            LinkEntity link = new LinkEntity("entity", "second", "secondid", "secondid", JoinOperator.Inner);
-            link.EntityAlias = "second";
-            link.LinkCriteria.AddCondition("filter", ConditionOperator.Equal, true);
+      LinkEntity link = new LinkEntity("entity", "second", "secondid", "secondid", JoinOperator.Inner)
+      {
+        EntityAlias = "second"
+      };
+      link.LinkCriteria.AddCondition("filter", ConditionOperator.Equal, true);
             query.LinkEntities.Add(link);
             EntityCollection result = service.RetrieveMultiple(query);
             Assert.Equal(context.MaxRetrieveCount, result.Entities.Count);
@@ -191,20 +209,26 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             IOrganizationService service = context.GetOrganizationService();
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity second = new Entity("second");
-            second.Id = Guid.NewGuid();
-            second["filter"] = true;
-            Entity first = new Entity("entity");
-            first.Id = Guid.NewGuid();
-            first["secondid"] = second.ToEntityReference();
+      Entity second = new Entity("second")
+      {
+        Id = Guid.NewGuid()
+      };
+      second["filter"] = true;
+      Entity first = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      first["secondid"] = second.ToEntityReference();
             initialEntities.Add(first);
 
             context.Initialize(initialEntities);
 
             QueryExpression query = new QueryExpression("entity");
-            LinkEntity link = new LinkEntity("entity", "second", "secondid", "secondid", JoinOperator.Inner);
-            link.EntityAlias = "second";
-            link.LinkCriteria.AddCondition("filter", ConditionOperator.Equal, true);
+      LinkEntity link = new LinkEntity("entity", "second", "secondid", "secondid", JoinOperator.Inner)
+      {
+        EntityAlias = "second"
+      };
+      link.LinkCriteria.AddCondition("filter", ConditionOperator.Equal, true);
             query.LinkEntities.Add(link);
             service.RetrieveMultiple(query);
             Assert.Equal("filter", query.LinkEntities[0].LinkCriteria.Conditions[0].AttributeName);
@@ -222,15 +246,19 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             IOrganizationService service = context.GetOrganizationService();
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity first = new Entity("entity");
-            first.Id = Guid.NewGuid();
-            initialEntities.Add(first);
+      Entity first = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      initialEntities.Add(first);
 
             context.Initialize(initialEntities);
 
-            QueryExpression query = new QueryExpression("entity");
-            query.PageInfo = new PagingInfo() { PageNumber = 2, Count = 20 };
-            Assert.Empty(service.RetrieveMultiple(query).Entities);
+      QueryExpression query = new QueryExpression("entity")
+      {
+        PageInfo = new PagingInfo() { PageNumber = 2, Count = 20 }
+      };
+      Assert.Empty(service.RetrieveMultiple(query).Entities);
         }
 
         /// <summary>
@@ -243,30 +271,38 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             IOrganizationService service = context.GetOrganizationService();
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity first = new Entity("entity");
-            first.Id = Guid.NewGuid();
-            first["field"] = "value";
+      Entity first = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      first["field"] = "value";
             initialEntities.Add(first);
 
-            Entity related = new Entity("related");
-            related.Id = Guid.NewGuid();
-            related["entityid"] = first.ToEntityReference();
+      Entity related = new Entity("related")
+      {
+        Id = Guid.NewGuid()
+      };
+      related["entityid"] = first.ToEntityReference();
             related["include"] = true;
             initialEntities.Add(related);
 
-            Entity secondRelated = new Entity("related");
-            secondRelated.Id = Guid.NewGuid();
-            secondRelated["entityid"] = first.ToEntityReference();
+      Entity secondRelated = new Entity("related")
+      {
+        Id = Guid.NewGuid()
+      };
+      secondRelated["entityid"] = first.ToEntityReference();
             secondRelated["include"] = true;
             initialEntities.Add(secondRelated);
 
             context.Initialize(initialEntities);
 
-            QueryExpression query = new QueryExpression("entity");
-            query.ColumnSet = new ColumnSet("field");
-            query.Distinct = true;
+      QueryExpression query = new QueryExpression("entity")
+      {
+        ColumnSet = new ColumnSet("field"),
+        Distinct = true
+      };
 
-            LinkEntity link = new LinkEntity("entity", "related", "entityid", "entityid", JoinOperator.Inner);
+      LinkEntity link = new LinkEntity("entity", "related", "entityid", "entityid", JoinOperator.Inner);
             link.LinkCriteria.AddCondition("include", ConditionOperator.Equal, true);
 
             query.LinkEntities.Add(link);
@@ -285,32 +321,40 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             IOrganizationService service = context.GetOrganizationService();
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity first = new Entity("entity");
-            first.Id = Guid.NewGuid();
-            first["field"] = "value";
+      Entity first = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      first["field"] = "value";
             initialEntities.Add(first);
 
-            Entity related = new Entity("related");
-            related.Id = Guid.NewGuid();
-            related["entityid"] = first.ToEntityReference();
+      Entity related = new Entity("related")
+      {
+        Id = Guid.NewGuid()
+      };
+      related["entityid"] = first.ToEntityReference();
             related["include"] = true;
             related["linkfield"] = "value";
             initialEntities.Add(related);
 
-            Entity secondRelated = new Entity("related");
-            secondRelated.Id = Guid.NewGuid();
-            secondRelated["entityid"] = first.ToEntityReference();
+      Entity secondRelated = new Entity("related")
+      {
+        Id = Guid.NewGuid()
+      };
+      secondRelated["entityid"] = first.ToEntityReference();
             secondRelated["include"] = true;
             secondRelated["linkfield"] = "other value";
             initialEntities.Add(secondRelated);
 
             context.Initialize(initialEntities);
 
-            QueryExpression query = new QueryExpression("entity");
-            query.ColumnSet = new ColumnSet("field");
-            query.Distinct = true;
+      QueryExpression query = new QueryExpression("entity")
+      {
+        ColumnSet = new ColumnSet("field"),
+        Distinct = true
+      };
 
-            LinkEntity link = new LinkEntity("entity", "related", "entityid", "entityid", JoinOperator.Inner);
+      LinkEntity link = new LinkEntity("entity", "related", "entityid", "entityid", JoinOperator.Inner);
             link.LinkCriteria.AddCondition("include", ConditionOperator.Equal, true);
             link.Columns = new ColumnSet("linkfield");
 
@@ -329,19 +373,25 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             IOrganizationService service = context.GetOrganizationService();
             List<Entity> initialEntities = new List<Entity>();
 
-            Entity e = new Entity("entity");
-            e.Id = Guid.NewGuid();
-            e["retrieve"] = true;
+      Entity e = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      e["retrieve"] = true;
             initialEntities.Add(e);
 
-            Entity e2 = new Entity("entity");
-            e2.Id = Guid.NewGuid();
-            e2["retrieve"] = true;
+      Entity e2 = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      e2["retrieve"] = true;
             initialEntities.Add(e2);
 
-            Entity e3 = new Entity("entity");
-            e3.Id = Guid.NewGuid();
-            e3["retrieve"] = false;
+      Entity e3 = new Entity("entity")
+      {
+        Id = Guid.NewGuid()
+      };
+      e3["retrieve"] = false;
             initialEntities.Add(e3);
 
             context.Initialize(initialEntities);
@@ -367,9 +417,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
 
             for (int i = 0; i < 100; i++)
             {
-                Entity e = new Entity("entity");
-                e.Id = Guid.NewGuid();
-                initialEntities.Add(e);
+        Entity e = new Entity("entity")
+        {
+          Id = Guid.NewGuid()
+        };
+        initialEntities.Add(e);
             }
 
             context.Initialize(initialEntities);
@@ -414,9 +466,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
                 contact
             });
 
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
-            query.Criteria.AddCondition(new ConditionExpression("name", ConditionOperator.Like, "test"));
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
+      query.Criteria.AddCondition(new ConditionExpression("name", ConditionOperator.Like, "test"));
 
             var linkEntity = query.AddLink("contact", "accountid", "accountid", JoinOperator.Inner);
             linkEntity.LinkCriteria.AddFilter(new FilterExpression(LogicalOperator.Or)
@@ -447,10 +501,13 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             XrmFakedContext context = new XrmFakedContext();
             IOrganizationService service = context.GetOrganizationService();
 
-            Crm.Account account = new Crm.Account() { Id = Guid.NewGuid() };
-            account.Name = "test";
+      Crm.Account account = new Crm.Account
+      {
+        Id = Guid.NewGuid(),
+        Name = "test"
+      };
 
-            Crm.Contact contact = new Crm.Contact() { Id = Guid.NewGuid() };
+      Crm.Contact contact = new Crm.Contact() { Id = Guid.NewGuid() };
             contact["accountid"] = account.ToEntityReference();
             contact.BirthDate = null;
             contact.TerritoryCode = null;
@@ -461,9 +518,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
                 contact
             });
 
-            var query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
-            query.Criteria.AddCondition(new ConditionExpression("name", ConditionOperator.Like, "test"));
+      var query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
+      query.Criteria.AddCondition(new ConditionExpression("name", ConditionOperator.Like, "test"));
 
             var linkEntity = query.AddLink("contact", "accountid", "accountid", JoinOperator.Inner);
             linkEntity.LinkCriteria.AddFilter(new FilterExpression(LogicalOperator.Or)
@@ -508,12 +567,15 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
 
             var accountId = service.Create(account);
 
-            QueryExpression query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet(true);
+      QueryExpression query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet(true)
+      };
 
-            var accounts = service.RetrieveMultiple(query);
+      var accounts = service.RetrieveMultiple(query);
 
-            Assert.Equal("Fake XrmEasy", accounts.Entities[0].GetAttributeValue<EntityReference>("ownerid").Name);
+            var accountResult = Assert.Single(accounts.Entities);
+            Assert.Equal("Fake XrmEasy", accountResult.GetAttributeValue<EntityReference>("ownerid").Name);
         }
 
 
@@ -587,9 +649,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.RetrieveMultiple
             context.Initialize(new Entity[] { contact, account });
             var service = context.GetOrganizationService();
 
-            QueryExpression query = new QueryExpression("account");
-            query.ColumnSet = new ColumnSet("name");
-            var link = query.AddLink("contact", "contactid", "primarycontactid");
+      QueryExpression query = new QueryExpression("account")
+      {
+        ColumnSet = new ColumnSet("name")
+      };
+      var link = query.AddLink("contact", "contactid", "primarycontactid");
             link.EntityAlias = "primary.contact";
             link.Columns = new ColumnSet("firstname");
 

@@ -22,9 +22,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.Equal, 2);
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.Equal, 2);
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -44,9 +46,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.Equal, "2");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.Equal, "2");
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -94,9 +98,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.Equal, new[] { 2 });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.Equal, new[] { 2 });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -144,9 +150,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.NotEqual, 2);
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.NotEqual, 2);
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -166,9 +174,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.NotEqual, new[] { 2 });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.NotEqual, new[] { 2 });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -188,9 +198,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, 2);
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, 2);
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -210,9 +222,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, "2");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, "2");
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -260,9 +274,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, new[] { 2 });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, new[] { 2 });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -282,9 +298,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, new[] { 2, 3 });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, new[] { 2, 3 });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -304,9 +322,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, new[] { 3, 1, 2 });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, new[] { 3, 1, 2 });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -326,9 +346,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, 3, 1, 2);
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, 3, 1, 2);
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -348,9 +370,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, new[] { "2", "3" });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, new[] { "2", "3" });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -370,9 +394,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, "2", "3");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, "2", "3");
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -392,9 +418,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, new[] { "3", "2" });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.In, new[] { "3", "2" });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -414,9 +442,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.NotIn, new[] { 2, 3 });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.NotIn, new[] { 2, 3 });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -437,9 +467,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.NotIn, "3", "2");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.NotIn, "3", "2");
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -459,9 +491,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 1);
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 1);
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -481,9 +515,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, "1");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, "1");
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -531,9 +567,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, new[] { 1 });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, new[] { 1 });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -553,9 +591,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, new[] { 1, 3 });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, new[] { 1, 3 });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -575,9 +615,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 1, 3);
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 1, 3);
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -597,9 +639,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, new[] { 3, 2 });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, new[] { 3, 2 });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -619,9 +663,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, new[] { "1", "3" });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, new[] { "1", "3" });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -641,9 +687,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, new[] { "3", "1" });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, new[] { "3", "1" });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -663,9 +711,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.DoesNotContainValues, new[] { 2, 3 });
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.DoesNotContainValues, new[] { 2, 3 });
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -685,9 +735,11 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             service.Create(new Contact { FirstName = "1,2,3", new_MultiSelectAttribute = new OptionSetValueCollection() { new OptionSetValue(1), new OptionSetValue(2), new OptionSetValue(3) } });
             service.Create(new Contact { FirstName = "null" });
 
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.DoesNotContainValues, "3", "1");
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.DoesNotContainValues, "3", "1");
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -725,10 +777,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             // No multi-select attribute
             service.Create(entity4);
 
-            // Act
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 1);
+      // Act
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 1);
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -755,10 +809,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             // Attribute not set at all
             service.Create(entity2);
 
-            // Act - should not throw NRE
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 1);
+      // Act - should not throw NRE
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 1);
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -794,10 +850,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             // No multi-select attribute - should be included in DoesNotContainValues results
             service.Create(entity4);
 
-            // Act
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.DoesNotContainValues, 1);
+      // Act
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.DoesNotContainValues, 1);
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -828,10 +886,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             // Attribute not set at all
             service.Create(entity3);
 
-            // Act
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.DoesNotContainValues, 1);
+      // Act
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.DoesNotContainValues, 1);
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
@@ -862,10 +922,12 @@ namespace FakeXrmEasy.Tests.FakeContextTests.TranslateQueryExpressionTests.Opera
             entity3["new_multiselectattribute"] = new OptionSetValueCollection() { new OptionSetValue(3), new OptionSetValue(4) };
             service.Create(entity3);
 
-            // Act - search for entities containing 1 or 3
-            var qe = new QueryExpression("contact");
-            qe.ColumnSet = new ColumnSet(new[] { "firstname" });
-            qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 1, 3);
+      // Act - search for entities containing 1 or 3
+      var qe = new QueryExpression("contact")
+      {
+        ColumnSet = new ColumnSet(new[] { "firstname" })
+      };
+      qe.Criteria.AddCondition("new_multiselectattribute", ConditionOperator.ContainValues, 1, 3);
 
             var entities = service.RetrieveMultiple(qe).Entities;
 
