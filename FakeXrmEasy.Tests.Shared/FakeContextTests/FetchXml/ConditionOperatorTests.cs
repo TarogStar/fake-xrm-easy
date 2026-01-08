@@ -2045,27 +2045,23 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             Assert.Equal("anniversary", query.Criteria.Conditions[0].AttributeName);
             Assert.Equal(ConditionOperator.LastWeek, query.Criteria.Conditions[0].Operator);
 
-            var date = DateTime.Now;
-            var weekOfYear = CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(date, CultureInfo.CurrentCulture.DateTimeFormat.CalendarWeekRule, CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek);
-            var lastWeek = weekOfYear - 1;
+            // Use deterministic dates instead of random to avoid flaky tests
+            var today = DateTime.UtcNow.Date;
+            var culture = CultureInfo.CurrentCulture;
+            var firstDayOfWeek = culture.DateTimeFormat.FirstDayOfWeek;
 
-            Func<int, DateTime> getRandomDateOfWeek = (week) =>
-            {
-                Random rnd = new Random();
-                DateTime d = new DateTime();
-                do
-                {
-                    d = date.AddDays(rnd.Next(-10, 10));
-                }
-                while (CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(d
-                    , CultureInfo.CurrentCulture.DateTimeFormat.CalendarWeekRule
-                    , CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek)
-                    != week);
-                return d;
-            };
+            // Calculate the start of the current week
+            int daysToSubtract = ((int)today.DayOfWeek - (int)firstDayOfWeek + 7) % 7;
+            var startOfThisWeek = today.AddDays(-daysToSubtract);
 
-            var ct1 = new Contact() { Id = Guid.NewGuid(), Anniversary = getRandomDateOfWeek(lastWeek) }; //Should be returned
-            var ct2 = new Contact() { Id = Guid.NewGuid(), Anniversary = getRandomDateOfWeek(weekOfYear) }; //Shouldnt
+            // Use a date guaranteed to be in last week (middle of last week)
+            var lastWeekDate = startOfThisWeek.AddDays(-4);
+
+            // Use a date guaranteed to be in this week
+            var thisWeekDate = startOfThisWeek.AddDays(2);
+
+            var ct1 = new Contact() { Id = Guid.NewGuid(), Anniversary = lastWeekDate }; //Should be returned
+            var ct2 = new Contact() { Id = Guid.NewGuid(), Anniversary = thisWeekDate }; //Shouldnt
             ctx.Initialize(new[] { ct1, ct2 });
             var service = ctx.GetOrganizationService();
 
@@ -2098,27 +2094,23 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             Assert.Equal("anniversary", query.Criteria.Conditions[0].AttributeName);
             Assert.Equal(ConditionOperator.ThisWeek, query.Criteria.Conditions[0].Operator);
 
-            var date = DateTime.Now;
-            var weekOfYear = CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(date, CultureInfo.CurrentCulture.DateTimeFormat.CalendarWeekRule, CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek);
-            var lastWeek = weekOfYear - 1;
+            // Use deterministic dates instead of random to avoid flaky tests
+            var today = DateTime.UtcNow.Date;
+            var culture = CultureInfo.CurrentCulture;
+            var firstDayOfWeek = culture.DateTimeFormat.FirstDayOfWeek;
 
-            Func<int, DateTime> getRandomDateOfWeek = (week) =>
-            {
-                Random rnd = new Random();
-                DateTime d = new DateTime();
-                do
-                {
-                    d = date.AddDays(rnd.Next(-10, 10));
-                }
-                while (CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(d
-                    , CultureInfo.CurrentCulture.DateTimeFormat.CalendarWeekRule
-                    , CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek)
-                    != week);
-                return d;
-            };
+            // Calculate the start of the current week
+            int daysToSubtract = ((int)today.DayOfWeek - (int)firstDayOfWeek + 7) % 7;
+            var startOfThisWeek = today.AddDays(-daysToSubtract);
 
-            var ct1 = new Contact() { Id = Guid.NewGuid(), Anniversary = getRandomDateOfWeek(weekOfYear) }; //Should be returned
-            var ct2 = new Contact() { Id = Guid.NewGuid(), Anniversary = getRandomDateOfWeek(lastWeek) }; //Shouldnt
+            // Use a date guaranteed to be in this week (middle of week)
+            var thisWeekDate = startOfThisWeek.AddDays(2);
+
+            // Use a date guaranteed to be in last week
+            var lastWeekDate = startOfThisWeek.AddDays(-4);
+
+            var ct1 = new Contact() { Id = Guid.NewGuid(), Anniversary = thisWeekDate }; //Should be returned
+            var ct2 = new Contact() { Id = Guid.NewGuid(), Anniversary = lastWeekDate }; //Shouldnt
             ctx.Initialize(new[] { ct1, ct2 });
             var service = ctx.GetOrganizationService();
 
@@ -2151,27 +2143,23 @@ namespace FakeXrmEasy.Tests.FakeContextTests.FetchXml
             Assert.Equal("anniversary", query.Criteria.Conditions[0].AttributeName);
             Assert.Equal(ConditionOperator.NextWeek, query.Criteria.Conditions[0].Operator);
 
-            var date = DateTime.Now;
-            var weekOfYear = CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(date, CultureInfo.CurrentCulture.DateTimeFormat.CalendarWeekRule, CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek);
-            var nextWeek = weekOfYear + 1;
+            // Use deterministic dates instead of random to avoid flaky tests
+            var today = DateTime.UtcNow.Date;
+            var culture = CultureInfo.CurrentCulture;
+            var firstDayOfWeek = culture.DateTimeFormat.FirstDayOfWeek;
 
-            Func<int, DateTime> getRandomDateOfWeek = (week) =>
-            {
-                Random rnd = new Random();
-                DateTime d = new DateTime();
-                do
-                {
-                    d = date.AddDays(rnd.Next(-10, 10));
-                }
-                while (CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(d
-                    , CultureInfo.CurrentCulture.DateTimeFormat.CalendarWeekRule
-                    , CultureInfo.CurrentCulture.DateTimeFormat.FirstDayOfWeek)
-                    != week);
-                return d;
-            };
+            // Calculate the start of the current week
+            int daysToSubtract = ((int)today.DayOfWeek - (int)firstDayOfWeek + 7) % 7;
+            var startOfThisWeek = today.AddDays(-daysToSubtract);
 
-            var ct1 = new Contact() { Id = Guid.NewGuid(), Anniversary = getRandomDateOfWeek(nextWeek) }; //Should be returned
-            var ct2 = new Contact() { Id = Guid.NewGuid(), Anniversary = getRandomDateOfWeek(weekOfYear) }; //Shouldnt
+            // Use a date guaranteed to be in next week (middle of next week)
+            var nextWeekDate = startOfThisWeek.AddDays(10);
+
+            // Use a date guaranteed to be in this week
+            var thisWeekDate = startOfThisWeek.AddDays(2);
+
+            var ct1 = new Contact() { Id = Guid.NewGuid(), Anniversary = nextWeekDate }; //Should be returned
+            var ct2 = new Contact() { Id = Guid.NewGuid(), Anniversary = thisWeekDate }; //Shouldnt
             ctx.Initialize(new[] { ct1, ct2 });
             var service = ctx.GetOrganizationService();
 

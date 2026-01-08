@@ -45,17 +45,25 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 
 ## Quick Summary
 
-| Category | Total | Fixed | Remaining | Won't Fix |
-|----------|-------|-------|-----------|-----------|
-| Plugin/Pipeline | 12 | 5 | 0 | 0 |
-| Query Engine | 21 | 19 | 0 | 0 |
-| Date/Time | 9 | 12 | 0 | 0 |
-| Message Executors | 15 | 12 | 0 | 0 |
-| Metadata | 10 | 7 | 0 | 2 |
-| CRUD/Core | 13 | 10 | 0 | 0 |
-| Other | 5 | 0 | 0 | 4 |
+| Status | Count | Issues |
+|--------|-------|--------|
+| **Fixed** | 34 | See "Fixed Issues" section below |
+| **Custom Additions** | 18 | See "Custom Additions" section below |
+| **Needs Evaluation** | 34 | See "Needs Evaluation" section below |
+| **Won't Fix** | 3 | #414, #453, #523 |
+| **TOTAL (Upstream)** | **71** | All open issues from archived upstream repo |
+| **TOTAL (All Work)** | **89** | Upstream issues (71) + Custom additions (18) |
+
+**Fixed Issues (34 total):**
+- **Plugin/Pipeline:** #451, #500, #573
+- **Query Engine:** #485, #506, #509, #514, #545, #547, #569, #607, #608, #612
+- **Date/Time:** #458, #491, #539, #543, #551, #587
+- **Message Executors:** #610, #615
+- **CRUD/Core:** #255, #470, #472, #476, #479, #482, #508, #521, #524, #553, #555, #562, #566
 
 **P0-P3 Roadmap Status: COMPLETE** - All prioritized items resolved
+
+**Needs Evaluation:** 34 open issues from the archived repository require triage. See the "Needs Evaluation" section below for the complete list.
 
 ---
 
@@ -424,12 +432,75 @@ Other: Assign, SetState, WhoAmI, InitializeFrom, BulkDelete, CalculateRollupFiel
 
 | # | Title | Reason |
 |---|-------|--------|
-| 523 | Microsoft.CrmSdk.Extensions | Xrm.Client namespace deprecated |
-| 453 | VS2019 unit test hang | We target VS2022+ |
 | 414 | Assembly version error | Version-specific, not applicable |
-| 513 | Release config constants (PR) | SDK-style projects handle this |
-| 448 | Cleanup deprecated methods (PR) | We already removed deprecations |
-| 459 | Test cleanup (PR) | Low value, test-only changes |
+| 453 | VS2019 unit test hang | We target VS2022+ |
+| 523 | Microsoft.CrmSdk.Extensions | Xrm.Client namespace deprecated |
+
+---
+
+## Custom Additions (Community Enhancements)
+
+The following features were developed independently by the community and are NOT fixes for upstream issues. These represent new capabilities added to enhance the testing framework beyond the original FakeXrmEasy.
+
+**Total Custom Additions: 18**
+
+### Message Executors (7)
+
+| Feature | Version | Description |
+|---------|---------|-------------|
+| ExecuteAsync | v1.0.3 | Request executor with AsyncOperation entity tracking |
+| CreateOptionSetRequest | v1.1.0 | Creates global OptionSets in metadata repository |
+| UpdateOptionSetRequest | v1.1.0 | Updates OptionSet DisplayName, Description properties |
+| DeleteOptionSetRequest | v1.1.0 | Deletes global OptionSets with validation |
+| CreateEntityRequest | Planned | Entity metadata creation |
+| UpdateEntityRequest | Planned | Entity metadata updates |
+| DeleteEntityRequest | Planned | Entity metadata deletion |
+
+### Query Engine (1)
+
+| Feature | Version | Description |
+|---------|---------|-------------|
+| Any/All Filter Operators | v1.1.0 | JoinOperator.Any/NotAny/All/NotAll support with constraint validation |
+
+### Validation & Constraints (1)
+
+| Feature | Version | Description |
+|---------|---------|-------------|
+| Alternate Key Constraints | v1.1.0 | 10 keys max per entity, 16 attrs max per key, type validation |
+
+### Bug Fixes (1)
+
+| Feature | Version | Description |
+|---------|---------|-------------|
+| ExecuteMultiple ContinueOnError | v1.0.3 | Response key fix + proper fault extraction |
+
+### Core Framework (8)
+
+| Feature | Version | Description |
+|---------|---------|-------------|
+| IPluginExecutionContext4 | v1.0.0 | Full interface hierarchy with Azure AD object IDs |
+| SDK-Style Projects | v1.0.0 | Modern project format, automatic binding redirects |
+| CalculateRollupFieldRequest | v1.0.1 | New executor for rollup field testing |
+| Auto-Populate Entity Images | v1.0.2 | ExecutePluginWithTarget auto-retrieves pre/post images |
+| Filtering Attributes Validation | v1.0.2 | Plugins only execute when filtering attrs present |
+| CreateMultiple/UpdateMultiple/DeleteMultiple/UpsertMultiple | v1.0.2 | Bulk operation executors |
+| Auto-Register Relationships | v1.0.2 | InitializeMetadata auto-registers N:N, 1:N, N:1 relationships |
+
+---
+
+## Needs Evaluation
+
+The following 34 open issues from the archived repository have not yet been evaluated for inclusion.
+
+**Open Issues (sorted by issue number):**
+
+#74, #183, #218, #220, #258, #279, #287, #288, #293, #332, #340, #342, #354, #359, #372, #407, #415, #439, #444, #445, #449, #462, #467, #473, #490, #497, #501, #505, #516, #532, #550, #560, #579, #584
+
+**Notes:**
+- Issue #293 is documented as a Known Limitation (see above) but remains open upstream
+- All closed issues have been removed from this list
+- Issues we've fixed (#255, #451, #458, #470, #472, #476, #479, #482, #485, #491, #500, #506, #508, #509, #514, #521, #524, #539, #543, #545, #547, #551, #553, #555, #562, #566, #569, #573, #587, #607, #608, #610, #612, #615) are tracked in the "Fixed Issues" section above
+- Issues marked Won't Fix (#414, #453, #523) are tracked in the "Won't Fix" section above
 
 ---
 

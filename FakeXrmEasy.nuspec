@@ -18,7 +18,7 @@
     </description>
     <summary>Unit testing framework for Dynamics 365 plugins, workflows, and custom code with in-memory mocking</summary>
     <releaseNotes>
-      Version 1.1.0 - P0-P3 Roadmap Complete
+      Version 1.1.0 - P0-P4 Roadmap Complete
       - ExecuteAsync request executor with asyncoperation tracking
       - MetadataGenerator public API (FromEarlyBoundEntity, CreateAttributeMetadataByType)
       - PicklistAttributeMetadata OptionSet population from context
@@ -30,7 +30,10 @@
       - LIKE wildcards with character ranges [A-Z], sets [abc], negation [^abc]
       - DateTime.Kind handling for DateOnly/TimeZoneIndependent fields
       - Min date validation (01/01/1753)
-      - SDK message coverage: 23/61 (38%)
+      - CreateEntityRequest executor for entity metadata creation
+      - UpdateEntityRequest executor for entity metadata updates
+      - DeleteEntityRequest executor for entity metadata deletion
+      - SDK message coverage: 29/61 (48%)
 
       Version 1.0.1 - CalculateRollupFieldRequest Support
       - Added CalculateRollupFieldRequestExecutor for testing rollup field calculations
