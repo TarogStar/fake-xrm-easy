@@ -1,7 +1,10 @@
+using FakeXrmEasy.Extensions;
 using FakeXrmEasy.Metadata;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -307,6 +310,220 @@ namespace FakeXrmEasy.Tests.Metadata
             // Assert
             Assert.NotNull(accountMetadata);
             Assert.Equal("accountid", accountMetadata.PrimaryIdAttribute);
+        }
+
+        #endregion
+
+        #region IsPrimaryName Preservation Tests (GitHub Issue #505)
+
+        /// <summary>
+        /// Tests that IsPrimaryName property is preserved when initializing metadata.
+        /// GitHub Issue #505: IsPrimaryName unpopulated in RetrieveEntityRequest
+        /// </summary>
+        [Fact]
+        public void InitializeMetadata_Should_Preserve_IsPrimaryName_Property()
+        {
+            // Arrange
+            var context = new XrmFakedContext();
+
+            var entityMetadata = new EntityMetadata
+            {
+                LogicalName = "account"
+            };
+
+            var nameAttribute = new StringAttributeMetadata
+            {
+                LogicalName = "name",
+                SchemaName = "Name"
+            };
+            // Set IsPrimaryName to true using reflection (it's a sealed property)
+            nameAttribute.SetSealedPropertyValue("IsPrimaryName", true);
+
+            var otherAttribute = new StringAttributeMetadata
+            {
+                LogicalName = "description",
+                SchemaName = "Description"
+            };
+            // Explicitly set IsPrimaryName to false
+            otherAttribute.SetSealedPropertyValue("IsPrimaryName", false);
+
+            entityMetadata.SetAttributeCollection(new AttributeMetadata[] { nameAttribute, otherAttribute });
+
+            // Act
+            context.InitializeMetadata(entityMetadata);
+            var retrievedMetadata = context.GetEntityMetadataByName("account");
+
+            // Assert
+            Assert.NotNull(retrievedMetadata);
+            Assert.NotNull(retrievedMetadata.Attributes);
+
+            var retrievedNameAttribute = retrievedMetadata.Attributes.FirstOrDefault(a => a.LogicalName == "name");
+            var retrievedOtherAttribute = retrievedMetadata.Attributes.FirstOrDefault(a => a.LogicalName == "description");
+
+            Assert.NotNull(retrievedNameAttribute);
+            Assert.NotNull(retrievedOtherAttribute);
+
+            // The IsPrimaryName property should be preserved
+            Assert.True(retrievedNameAttribute.IsPrimaryName, "IsPrimaryName should be true for the 'name' attribute");
+            Assert.False(retrievedOtherAttribute.IsPrimaryName, "IsPrimaryName should be false for the 'description' attribute");
+        }
+
+        /// <summary>
+        /// Tests that IsPrimaryName property is returned correctly via RetrieveEntityRequest.
+        /// This is the exact scenario described in GitHub Issue #505.
+        /// </summary>
+        [Fact]
+        public void RetrieveEntityRequest_Should_Return_IsPrimaryName_Property()
+        {
+            // Arrange
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            var entityMetadata = new EntityMetadata
+            {
+                LogicalName = "contact"
+            };
+
+            // Create an attribute with IsPrimaryName = true
+            var fullnameAttribute = new StringAttributeMetadata
+            {
+                LogicalName = "fullname",
+                SchemaName = "FullName",
+                MaxLength = 500
+            };
+            fullnameAttribute.SetSealedPropertyValue("IsPrimaryName", true);
+
+            // Create an attribute with IsPrimaryName = false
+            var emailAttribute = new StringAttributeMetadata
+            {
+                LogicalName = "emailaddress1",
+                SchemaName = "EMailAddress1",
+                MaxLength = 100
+            };
+            emailAttribute.SetSealedPropertyValue("IsPrimaryName", false);
+
+            // Create an attribute without explicitly setting IsPrimaryName (should default to false/null)
+            var phoneAttribute = new StringAttributeMetadata
+            {
+                LogicalName = "telephone1",
+                SchemaName = "Telephone1"
+            };
+
+            entityMetadata.SetAttributeCollection(new AttributeMetadata[] { fullnameAttribute, emailAttribute, phoneAttribute });
+
+            context.InitializeMetadata(entityMetadata);
+
+            // Act - Use RetrieveEntityRequest to get the metadata
+            var request = new RetrieveEntityRequest
+            {
+                EntityFilters = EntityFilters.Attributes,
+                LogicalName = "contact"
+            };
+            var response = (RetrieveEntityResponse)service.Execute(request);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.NotNull(response.EntityMetadata);
+            Assert.NotNull(response.EntityMetadata.Attributes);
+
+            var retrievedFullnameAttr = response.EntityMetadata.Attributes.FirstOrDefault(a => a.LogicalName == "fullname");
+            var retrievedEmailAttr = response.EntityMetadata.Attributes.FirstOrDefault(a => a.LogicalName == "emailaddress1");
+            var retrievedPhoneAttr = response.EntityMetadata.Attributes.FirstOrDefault(a => a.LogicalName == "telephone1");
+
+            Assert.NotNull(retrievedFullnameAttr);
+            Assert.NotNull(retrievedEmailAttr);
+            Assert.NotNull(retrievedPhoneAttr);
+
+            // Verify IsPrimaryName values are preserved
+            Assert.True(retrievedFullnameAttr.IsPrimaryName, "IsPrimaryName should be true for 'fullname' attribute after RetrieveEntityRequest");
+            Assert.False(retrievedEmailAttr.IsPrimaryName, "IsPrimaryName should be false for 'emailaddress1' attribute after RetrieveEntityRequest");
+            // Note: IsPrimaryName defaults to null/false when not explicitly set
+            Assert.True(retrievedPhoneAttr.IsPrimaryName == null || retrievedPhoneAttr.IsPrimaryName == false,
+                "IsPrimaryName should be null or false for 'telephone1' attribute (default value)");
+        }
+
+        /// <summary>
+        /// Tests that multiple attributes can be queried for IsPrimaryName property.
+        /// Simulates the scenario from GitHub Issue #505 where user loops through all attribute metadata.
+        /// </summary>
+        [Fact]
+        public void RetrieveEntityRequest_Should_Allow_Querying_IsPrimaryName_On_All_Attributes()
+        {
+            // Arrange
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            var entityMetadata = new EntityMetadata
+            {
+                LogicalName = "opportunity"
+            };
+
+            // Create multiple attributes with various IsPrimaryName values
+            var attributes = new List<AttributeMetadata>();
+
+            var nameAttribute = new StringAttributeMetadata { LogicalName = "name" };
+            nameAttribute.SetSealedPropertyValue("IsPrimaryName", true);
+            attributes.Add(nameAttribute);
+
+            for (int i = 1; i <= 5; i++)
+            {
+                var attr = new StringAttributeMetadata { LogicalName = $"field{i}" };
+                attr.SetSealedPropertyValue("IsPrimaryName", false);
+                attributes.Add(attr);
+            }
+
+            entityMetadata.SetAttributeCollection(attributes.ToArray());
+            context.InitializeMetadata(entityMetadata);
+
+            // Act
+            var request = new RetrieveEntityRequest
+            {
+                EntityFilters = EntityFilters.Attributes,
+                LogicalName = "opportunity"
+            };
+            var response = (RetrieveEntityResponse)service.Execute(request);
+
+            // Assert - Query all attributes for IsPrimaryName (the scenario from the issue)
+            var primaryNameAttributes = response.EntityMetadata.Attributes
+                .Where(a => a.IsPrimaryName == true)
+                .ToList();
+
+            Assert.Single(primaryNameAttributes);
+            Assert.Equal("name", primaryNameAttributes[0].LogicalName);
+        }
+
+        /// <summary>
+        /// Tests that IsPrimaryName property is preserved when SetEntityMetadata is used.
+        /// </summary>
+        [Fact]
+        public void SetEntityMetadata_Should_Preserve_IsPrimaryName_Property()
+        {
+            // Arrange
+            var context = new XrmFakedContext();
+
+            var entityMetadata = new EntityMetadata
+            {
+                LogicalName = "lead"
+            };
+
+            var subjectAttribute = new StringAttributeMetadata
+            {
+                LogicalName = "subject",
+                SchemaName = "Subject"
+            };
+            subjectAttribute.SetSealedPropertyValue("IsPrimaryName", true);
+
+            entityMetadata.SetAttributeCollection(new AttributeMetadata[] { subjectAttribute });
+
+            // Act
+            context.SetEntityMetadata(entityMetadata);
+            var retrievedMetadata = context.GetEntityMetadataByName("lead");
+
+            // Assert
+            Assert.NotNull(retrievedMetadata);
+            var retrievedSubjectAttr = retrievedMetadata.Attributes.FirstOrDefault(a => a.LogicalName == "subject");
+            Assert.NotNull(retrievedSubjectAttr);
+            Assert.True(retrievedSubjectAttr.IsPrimaryName, "IsPrimaryName should be preserved when using SetEntityMetadata");
         }
 
         #endregion

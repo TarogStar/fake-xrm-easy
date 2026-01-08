@@ -251,6 +251,13 @@ namespace FakeXrmEasy
         /// <param name="entities">The collection of entities to add to the fake CRM context as initial data.</param>
         /// <exception cref="Exception">Thrown if Initialize has already been called on this context instance.</exception>
         /// <exception cref="InvalidOperationException">Thrown if the entities parameter is null.</exception>
+        /// <remarks>
+        /// When ProxyTypesAssembly is set, Initialize() allows both early-bound and late-bound entities
+        /// to be added to the context. Late-bound entities (entities whose types are not found in the
+        /// ProxyTypesAssembly) will have their attribute metadata inferred from their attributes.
+        /// This supports scenarios where test data includes entities not present in the early-bound assembly.
+        /// Fix for GitHub issue #462.
+        /// </remarks>
         public virtual void Initialize(IEnumerable<Entity> entities)
         {
             if (Initialised)
@@ -265,7 +272,9 @@ namespace FakeXrmEasy
 
             foreach (var e in entities)
             {
-                AddEntityWithDefaults(e, true);
+                // Pass validateEntityType=false to allow late-bound entities alongside early-bound entities
+                // when ProxyTypesAssembly is set. Fix for GitHub issue #462.
+                AddEntityWithDefaults(e, clone: true, usePluginPipeline: false, validateEntityType: false);
             }
 
             Initialised = true;
@@ -637,16 +646,138 @@ namespace FakeXrmEasy
         }
 #if FAKE_XRM_EASY_9
         /// <summary>
+        /// Gets or sets the entity logical name for which the entity data source should be retrieved.
+        /// This is used by <see cref="GetFakedEntityDataSourceRetrieverService"/> when auto-lookup is performed.
+        /// Set this before calling GetFakedEntityDataSourceRetrieverService() to enable automatic lookup
+        /// of the entity data source from EntityMetadata's DataSourceId property.
+        /// </summary>
+        /// <remarks>
+        /// This property is typically set automatically when resolving IEntityDataSourceRetrieverService
+        /// from the service provider during plugin execution. It is populated from either:
+        /// <list type="bullet">
+        /// <item><description>The plugin context's PrimaryEntityName</description></item>
+        /// <item><description>The EntityName from a QueryExpression in the Query input parameter</description></item>
+        /// </list>
+        /// You can also set this property manually before calling <see cref="GetFakedEntityDataSourceRetrieverService"/>
+        /// for direct testing scenarios.
+        /// </remarks>
+        public string CurrentVirtualEntityLogicalName { get; set; }
+
+        /// <summary>
         /// Gets a faked <see cref="IEntityDataSourceRetrieverService"/> instance for testing
         /// virtual entity data providers in Dynamics 365 v9.x and later.
         /// </summary>
         /// <returns>A faked <see cref="IEntityDataSourceRetrieverService"/> instance configured with the current context's entity data source retriever.</returns>
+        /// <remarks>
+        /// This method supports two modes of operation:
+        /// <list type="number">
+        /// <item>
+        /// <description>
+        /// <b>Manual configuration</b>: If <see cref="EntityDataSourceRetriever"/> is set, it is returned directly.
+        /// This preserves backward compatibility with existing code.
+        /// </description>
+        /// </item>
+        /// <item>
+        /// <description>
+        /// <b>Automatic lookup (GitHub issue #579)</b>: If <see cref="EntityDataSourceRetriever"/> is null,
+        /// the method attempts to auto-lookup the entity data source by:
+        /// <list type="bullet">
+        /// <item><description>Getting the EntityMetadata for the virtual entity (from <see cref="CurrentVirtualEntityLogicalName"/>)</description></item>
+        /// <item><description>Reading the DataSourceId from the EntityMetadata using reflection (since it's a sealed property)</description></item>
+        /// <item><description>Looking up an "entitydatasource" entity in the Data dictionary with that ID</description></item>
+        /// </list>
+        /// </description>
+        /// </item>
+        /// </list>
+        /// </remarks>
         public IEntityDataSourceRetrieverService GetFakedEntityDataSourceRetrieverService()
         {
             var service = A.Fake<IEntityDataSourceRetrieverService>();
             A.CallTo(() => service.RetrieveEntityDataSource())
-                .ReturnsLazily(() => EntityDataSourceRetriever);
+                .ReturnsLazily(() =>
+                {
+                    // If EntityDataSourceRetriever is explicitly set, use it (backward compatibility)
+                    if (EntityDataSourceRetriever != null)
+                    {
+                        return EntityDataSourceRetriever;
+                    }
+
+                    // Auto-lookup: try to find entity data source from metadata
+                    return GetEntityDataSourceFromMetadata(CurrentVirtualEntityLogicalName);
+                });
             return service;
+        }
+
+        /// <summary>
+        /// Gets the entity data source for a virtual entity by looking up its DataSourceId from EntityMetadata.
+        /// </summary>
+        /// <param name="entityLogicalName">The logical name of the virtual entity to look up the data source for.</param>
+        /// <returns>The entitydatasource entity if found; otherwise, null.</returns>
+        /// <remarks>
+        /// This method uses reflection to access the DataSourceId property from EntityMetadata since it's a sealed property.
+        /// The entitydatasource entity is looked up in the Data dictionary by matching the DataSourceId.
+        /// </remarks>
+        protected internal Entity GetEntityDataSourceFromMetadata(string entityLogicalName)
+        {
+            if (string.IsNullOrWhiteSpace(entityLogicalName))
+            {
+                return null;
+            }
+
+            // Check if we have metadata for this entity
+            if (!EntityMetadata.ContainsKey(entityLogicalName))
+            {
+                return null;
+            }
+
+            var entityMetadata = EntityMetadata[entityLogicalName];
+
+            // Use reflection to get the DataSourceId property (it's a sealed property)
+            var dataSourceIdProperty = typeof(EntityMetadata).GetProperty("DataSourceId",
+                BindingFlags.Public | BindingFlags.Instance);
+
+            if (dataSourceIdProperty == null)
+            {
+                return null;
+            }
+
+            var dataSourceIdValue = dataSourceIdProperty.GetValue(entityMetadata);
+            if (dataSourceIdValue == null)
+            {
+                return null;
+            }
+
+            Guid dataSourceId;
+            if (dataSourceIdValue is Guid?)
+            {
+                var nullableGuid = (Guid?)dataSourceIdValue;
+                if (!nullableGuid.HasValue || nullableGuid.Value == Guid.Empty)
+                {
+                    return null;
+                }
+                dataSourceId = nullableGuid.Value;
+            }
+            else if (dataSourceIdValue is Guid)
+            {
+                dataSourceId = (Guid)dataSourceIdValue;
+                if (dataSourceId == Guid.Empty)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                return null;
+            }
+
+            // Look up the entitydatasource entity in the Data dictionary
+            if (Data.TryGetValue("entitydatasource", out var entityDataSourceDict) &&
+                entityDataSourceDict.TryGetValue(dataSourceId, out var entityDataSource))
+            {
+                return entityDataSource;
+            }
+
+            return null;
         }
 #endif
     }

@@ -4,6 +4,7 @@ using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.ServiceModel;
 using System.Xml.Linq;
@@ -138,7 +139,14 @@ namespace FakeXrmEasy.FakeMessageExecutors
                 return null;
             if (entAtt.Value is DateTime?)
             {
-                attributeValueElement = XElement.Parse(String.Format("<{0} date=\"{1:yyyy-MM-dd}\" time=\"{1:hh:mm tt}\">{1:yyyy-MM-ddTHH:mm:sszz:00}</{0}>", entAtt.Key, entAtt.Value));
+                // Issue #439: DateTime culture formatting
+                // - date and time ATTRIBUTES should use the user's culture to match real D365 behavior
+                // - ISO 8601 timestamp INSIDE the element must use InvariantCulture
+                var dateTimeValue = (DateTime)entAtt.Value;
+                var dateAttr = dateTimeValue.ToString("d", CultureInfo.CurrentCulture); // Short date pattern in user's culture
+                var timeAttr = dateTimeValue.ToString("t", CultureInfo.CurrentCulture); // Short time pattern in user's culture
+                var isoTimestamp = dateTimeValue.ToString("yyyy-MM-ddTHH:mm:sszz':00'", CultureInfo.InvariantCulture); // ISO 8601 format
+                attributeValueElement = XElement.Parse(String.Format("<{0} date=\"{1}\" time=\"{2}\">{3}</{0}>", entAtt.Key, dateAttr, timeAttr, isoTimestamp));
             }
             else if (entAtt.Value is EntityReference)
             {

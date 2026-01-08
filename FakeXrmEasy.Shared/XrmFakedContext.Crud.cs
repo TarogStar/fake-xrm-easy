@@ -542,7 +542,8 @@ namespace FakeXrmEasy
 
         /// <summary>
         /// Ensures that the specified entity name exists in the metadata cache.
-        /// This method validates the entity name against relationships, proxy types assembly, or existing data.
+        /// This method validates the entity name against relationships, the in-memory Data dictionary,
+        /// or the proxy types assembly.
         /// </summary>
         /// <param name="sEntityName">The logical name of the entity to validate.</param>
         /// <exception cref="Exception">
@@ -552,12 +553,24 @@ namespace FakeXrmEasy
         /// The method performs validation in the following order:
         /// <list type="number">
         /// <item><description>Checks if the entity name is part of any defined relationship (as entity1, entity2, or intersect entity)</description></item>
+        /// <item><description>Checks if the entity exists in the Data dictionary (supports late-bound entities initialized before query)</description></item>
         /// <item><description>If a proxy types assembly is set, attempts to find the entity type via reflection</description></item>
         /// </list>
+        /// This order ensures that late-bound entities can be used alongside early-bound entities when ProxyTypesAssembly is set.
+        /// Fix for GitHub issue #462.
         /// </remarks>
         protected void EnsureEntityNameExistsInMetadata(string sEntityName)
         {
+            // Check relationships first
             if (Relationships.Values.Any(value => new[] { value.Entity1LogicalName, value.Entity2LogicalName, value.IntersectEntity }.Contains(sEntityName, StringComparer.InvariantCultureIgnoreCase)))
+            {
+                return;
+            }
+
+            // Check if entity exists in Data dictionary (supports late-bound entities initialized before proxy types)
+            // This allows mixing early-bound and late-bound entities when ProxyTypesAssembly is set
+            // Fix for GitHub issue #462
+            if (Data.ContainsKey(sEntityName))
             {
                 return;
             }
@@ -571,11 +584,6 @@ namespace FakeXrmEasy
                     throw new Exception($"Entity {sEntityName} does not exist in the metadata cache");
                 }
             }
-            //else if (!Data.ContainsKey(sEntityName))
-            //{
-            //    //No Proxy Types Assembly
-            //    throw new Exception(string.Format("Entity {0} does not exist in the metadata cache", sEntityName));
-            //};
         }
 
         /// <summary>
@@ -792,6 +800,12 @@ namespace FakeXrmEasy
         /// When set to <c>true</c>, the plugin pipeline stages (pre-operation and post-operation) are executed.
         /// Defaults to <c>false</c>.
         /// </param>
+        /// <param name="validateEntityType">
+        /// When set to <c>true</c>, the method will throw an exception if ProxyTypesAssembly is set and the entity
+        /// type cannot be found via reflection. When set to <c>false</c>, late-bound entities are allowed alongside
+        /// early-bound entities. Defaults to <c>true</c>.
+        /// Fix for GitHub issue #462.
+        /// </param>
         /// <remarks>
         /// This method is typically called during entity creation and performs:
         /// <list type="bullet">
@@ -801,7 +815,7 @@ namespace FakeXrmEasy
         /// <item><description>Execution of post-operation synchronous and asynchronous plugins if pipeline simulation is enabled</description></item>
         /// </list>
         /// </remarks>
-        protected internal void AddEntityWithDefaults(Entity e, bool clone = false, bool usePluginPipeline = false)
+        protected internal void AddEntityWithDefaults(Entity e, bool clone = false, bool usePluginPipeline = false, bool validateEntityType = true)
         {
             // Create the entity with defaults
             AddEntityDefaultAttributes(e);
@@ -812,7 +826,7 @@ namespace FakeXrmEasy
             }
 
             // Store
-            AddEntity(clone ? e.Clone(e.GetType()) : e);
+            AddEntity(clone ? e.Clone(e.GetType()) : e, validateEntityType);
 
             if (usePluginPipeline)
             {
@@ -826,11 +840,18 @@ namespace FakeXrmEasy
         /// This method handles validation, DateTime conversion, entity reference resolution, and metadata updates.
         /// </summary>
         /// <param name="e">The entity to add to the data store. Must have a valid logical name and ID.</param>
+        /// <param name="validateEntityType">
+        /// When set to <c>true</c>, the method will throw an exception if ProxyTypesAssembly is set and the entity
+        /// type cannot be found via reflection. When set to <c>false</c>, late-bound entities are allowed alongside
+        /// early-bound entities, and attribute metadata will be inferred from the entity's attributes.
+        /// Defaults to <c>true</c>.
+        /// Fix for GitHub issue #462.
+        /// </param>
         /// <exception cref="InvalidOperationException">
         /// Thrown when the entity is null, has no logical name, or has an empty ID.
         /// </exception>
         /// <exception cref="Exception">
-        /// Thrown when using early-bound types and the entity type cannot be found via reflection.
+        /// Thrown when validateEntityType is true, using early-bound types, and the entity type cannot be found via reflection.
         /// </exception>
         /// <remarks>
         /// This method performs the following operations:
@@ -843,7 +864,7 @@ namespace FakeXrmEasy
         /// <item><description>Updates the AttributeMetadataNames dictionary with attribute information</description></item>
         /// </list>
         /// </remarks>
-        protected internal void AddEntity(Entity e)
+        protected internal void AddEntity(Entity e, bool validateEntityType = true)
         {
             //Automatically detect proxy types assembly if an early bound type was used.
             if (ProxyTypesAssembly == null &&
@@ -890,9 +911,22 @@ namespace FakeXrmEasy
                         attributeDict.TryAdd(p.Name, p.Name);
                     }
                 }
-                else
+                else if (validateEntityType)
+                {
+                    // When validateEntityType is true (e.g., service.Create()), throw for unknown entity types
+                    // This matches real CRM behavior where unknown entities are rejected
                     throw new Exception(string.Format("Couldnt find reflected type for {0}", e.LogicalName));
-
+                }
+                else
+                {
+                    // When validateEntityType is false (e.g., Initialize()), allow late-bound entities
+                    // alongside early-bound entities by inferring metadata from the entity's attributes.
+                    // Fix for GitHub issue #462.
+                    foreach (var attKey in e.Attributes.Keys)
+                    {
+                        attributeDict.TryAdd(attKey, attKey);
+                    }
+                }
             }
             else
             {

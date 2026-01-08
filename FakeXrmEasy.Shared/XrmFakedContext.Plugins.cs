@@ -595,10 +595,25 @@ namespace FakeXrmEasy
 #if FAKE_XRM_EASY_9
                    if (t == typeof(IEntityDataSourceRetrieverService))
                    {
+                       // Set the current virtual entity logical name for auto-lookup (GitHub issue #579)
+                       // Try to get it from the plugin context
+                       if (!string.IsNullOrEmpty(plugCtx.PrimaryEntityName))
+                       {
+                           CurrentVirtualEntityLogicalName = plugCtx.PrimaryEntityName;
+                       }
+                       else if (plugCtx.InputParameters != null && plugCtx.InputParameters.ContainsKey("Query"))
+                       {
+                           // For RetrieveMultiple, try to get entity name from the query
+                           var query = plugCtx.InputParameters["Query"];
+                           if (query is QueryExpression queryExpression)
+                           {
+                               CurrentVirtualEntityLogicalName = queryExpression.EntityName;
+                           }
+                       }
                        return GetFakedEntityDataSourceRetrieverService();
                    }
 #endif
-                   throw new PullRequestException("The specified service type is not supported");
+                   throw new PullRequestException($"The service type '{t.FullName}' is not supported");
                });
 
             return fakedServiceProvider;

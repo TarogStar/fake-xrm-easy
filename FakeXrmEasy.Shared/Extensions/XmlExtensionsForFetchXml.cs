@@ -1018,7 +1018,8 @@ namespace FakeXrmEasy.Extensions.FetchXml
                 || t == typeof(DateTime?))
             {
                 DateTime dtValue = DateTime.MinValue;
-                if (DateTime.TryParse(value, out dtValue))
+                // Issue #439: FetchXML values are always in ISO format, so use InvariantCulture for parsing
+                if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out dtValue))
                 {
                     return dtValue;
                 }
@@ -1134,8 +1135,9 @@ namespace FakeXrmEasy.Extensions.FetchXml
                 return dblValue;
 
             // Try parsing as DateTime (for date fields)
+            // Issue #439: FetchXML values are always in ISO format, so use InvariantCulture for parsing
             DateTime dtValue = DateTime.MinValue;
-            if (DateTime.TryParse(value, out dtValue))
+            if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out dtValue))
                 return dtValue;
 
             //Default value - return as string

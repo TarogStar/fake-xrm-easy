@@ -47,19 +47,19 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 
 | Status | Count | Issues |
 |--------|-------|--------|
-| **Fixed (v1.1.0+)** | 50 | See "Fixed Issues" section below |
+| **Fixed (v1.1.0+)** | 55 | See "Fixed Issues" section below |
 | **Custom Additions** | 18 | See "Custom Additions" section below |
-| **v1.1.1 Roadmap** | 16 | Categorized below (P0: 0, P1: 3, P2: 13) |
+| **v1.1.1 Roadmap** | 11 | Categorized below (P0: 0, P1: 0, P2: 11) |
 | **Won't Fix** | 5 | #414, #453, #523, #372, #444 |
 | **TOTAL (Upstream)** | **71** | All open issues from archived upstream repo |
 | **TOTAL (All Work)** | **89** | Upstream issues (71) + Custom additions (18) |
 
-**Fixed Issues (50 total):**
+**Fixed Issues (55 total):**
 - **Plugin/Pipeline:** #279, #451, #500, #573
 - **Query Engine:** #258, #287, #340, #415, #445, #467, #485, #490, #506, #509, #514, #545, #547, #560, #569, #584, #607, #608, #612
-- **Date/Time:** #458, #491, #539, #543, #551, #587
-- **Message Executors:** #407, #516, #610, #615
-- **CRUD/Core:** #74, #255, #332, #449, #470, #472, #476, #479, #482, #508, #521, #524, #532, #553, #555, #562, #566
+- **Date/Time:** #439, #458, #491, #539, #543, #551, #587
+- **Message Executors:** #407, #516, #579, #610, #615
+- **CRUD/Core:** #74, #255, #332, #449, #462, #470, #472, #476, #479, #482, #505, #508, #521, #524, #532, #550, #553, #555, #562, #566
 
 **v1.1.0 Roadmap Status: COMPLETE** - All P0-P3 items resolved
 
@@ -69,7 +69,9 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 
 **v1.1.1 Phase 3 Status: COMPLETE** - 5 message executor parity fixes (#332, #407, #449, #516, #532)
 
-**v1.1.1 Roadmap:** 16 remaining issues categorized and prioritized. See "v1.1.1 Roadmap" section below.
+**v1.1.1 Phase 4 Status: COMPLETE** - 5 metadata/DX improvements (#439, #462, #505, #550, #579)
+
+**v1.1.1 Roadmap:** 11 remaining P2 issues. See "v1.1.1 Roadmap" section below.
 
 ---
 
@@ -178,6 +180,16 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 | 467 | ContainValues with multi-select NRE | **FIXED** | Now handles late-bound entities and null attribute values |
 | 560 | FindReflectedAttributeType NRE on nested linked entities | **FIXED** | `GetEntityNameFromAlias` now recursively searches nested LinkEntities |
 | 584 | Complex filters on nested entities | **FIXED** | Already fixed via #545/#547 nested filter implementation |
+
+### v1.1.1 Phase 4 — Metadata & Developer Experience
+
+| # | Title | Status | Implementation |
+|---|-------|--------|----------------|
+| 439 | DateTime culture formatting | **FIXED** | ISO timestamps use InvariantCulture; date/time attributes use CurrentCulture |
+| 462 | FetchExpression with late-bound entities | **FIXED** | Initialize() allows late-bound with `validateEntityType=false`; Create() validates |
+| 505 | IsPrimaryName metadata property | **FIXED** | Deep cloning preserves IsPrimaryName; use SetSealedPropertyValue to set |
+| 550 | Exception messages missing context | **FIXED** | Exception messages now include entity/attribute type names |
+| 579 | EntityDataSourceRetriever returns null | **FIXED** | Auto-lookup from EntityMetadata.DataSourceId when EntityDataSourceRetriever is null |
 
 ---
 
@@ -656,6 +668,32 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 - v1.1.1 Phase 4 Complete
+
+- Fixed: #439 - DateTime culture formatting in ExecuteFetchRequest
+  - ISO 8601 timestamps inside XML elements use InvariantCulture (colons: 14:30:00)
+  - Date/time XML attributes use CurrentCulture (matches real D365 behavior)
+  - Added 4 tests in DateTimeCultureTests.cs
+- Fixed: #462 - FetchExpression with late-bound entities
+  - Initialize() now allows late-bound entities alongside early-bound when ProxyTypesAssembly is set
+  - service.Create() still validates against ProxyTypesAssembly (matches real CRM)
+  - Added `validateEntityType` parameter to AddEntity/AddEntityWithDefaults
+  - Added 11 tests in FetchXmlLateBoundEntityTests.cs
+- Fixed: #505 - IsPrimaryName metadata property not populated
+  - Framework already preserves IsPrimaryName through deep cloning
+  - Users can set via SetSealedPropertyValue("IsPrimaryName", true)
+  - Added 4 tests documenting correct behavior in MetadataGeneratorTests.cs
+- Fixed: #550 - Exception messages don't include entity/attribute names
+  - Updated exception messages to include type names for debugging
+  - ServiceProviderExceptionTests updated for new error format
+- Fixed: #579 - EntityDataSourceRetriever returns null
+  - Added auto-lookup from EntityMetadata.DataSourceId when EntityDataSourceRetriever is null
+  - Gets virtual entity name from plugin context (PrimaryEntityName or Query)
+  - Looks up DataSourceId from EntityMetadata using reflection
+  - Finds entitydatasource entity in Data dictionary with matching ID
+  - Added 7 tests in RetrieveMultipleDataProviderTesting.cs
+- v1.1.1 Phase 4 status: COMPLETE - 5 metadata/DX improvements
 
 ### 2026-01-07 - v1.1.1 Phase 1 Complete
 

@@ -1714,8 +1714,9 @@ namespace FakeXrmEasy
         {
             var defaultStringExpression = GetCaseInsensitiveExpression(GetAppropiateCastExpressionDefault(input, value));
 
+            // Issue #439: Use InvariantCulture for DateTime parsing since FetchXML values are in ISO format
             DateTime dtDateTimeConversion;
-            if (DateTime.TryParse(value.ToString(), out dtDateTimeConversion))
+            if (DateTime.TryParse(value.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out dtDateTimeConversion))
             {
                 return Expression.Convert(input, typeof(DateTime));
             }
@@ -1764,8 +1765,9 @@ namespace FakeXrmEasy
         protected static Expression GetAppropiateCastExpressionBasedOnDateTime(Expression input, object value)
         {
             // Convert to DateTime if string
+            // Issue #439: Use InvariantCulture for DateTime parsing since FetchXML values are in ISO format
             DateTime _;
-            if (value is DateTime || value is string && DateTime.TryParse(value.ToString(), out _))
+            if (value is DateTime || value is string && DateTime.TryParse(value.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
             {
                 return Expression.Convert(input, typeof(DateTime));
             }
