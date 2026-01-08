@@ -3427,8 +3427,21 @@ namespace FakeXrmEasy
         /// <returns>The translated expression</returns>
         protected static Expression TranslateConditionExpressionContainValues(TypedConditionExpression tc, Expression getAttributeValueExpr, Expression containsAttributeExpr)
         {
-            var leftHandSideExpression = GetAppropiateCastExpressionBasedOnType(tc.AttributeType, getAttributeValueExpr, null);
             var rightHandSideExpression = Expression.Constant(ConvertToHashSetOfInt(tc.CondExpression.Values, isOptionSetValueCollectionAccepted: false));
+
+            // For late-bound entities (tc.AttributeType is null), we need to handle the type check at runtime
+            // The leftHandSideExpression needs to convert the attribute value to a HashSet<int> via ConvertToHashSetOfInt
+            Expression leftHandSideExpression;
+            if (tc.AttributeType != null)
+            {
+                leftHandSideExpression = GetAppropiateCastExpressionBasedOnType(tc.AttributeType, getAttributeValueExpr, null);
+            }
+            else
+            {
+                // For late-bound: dynamically call ConvertToHashSetOfInt on the attribute value at runtime
+                // This handles OptionSetValueCollection when the type is not known at compile time
+                leftHandSideExpression = GetAppropiateCastExpressionBasedOnOptionSetValueCollection(getAttributeValueExpr);
+            }
 
             return Expression.AndAlso(
                        containsAttributeExpr,

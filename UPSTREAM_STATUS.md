@@ -47,23 +47,25 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 
 | Status | Count | Issues |
 |--------|-------|--------|
-| **Fixed (v1.1.0)** | 36 | See "Fixed Issues" section below |
+| **Fixed (v1.1.0+)** | 40 | See "Fixed Issues" section below |
 | **Custom Additions** | 18 | See "Custom Additions" section below |
-| **v1.1.1 Roadmap** | 30 | Categorized below (P0: 4, P1: 13, P2: 13) |
+| **v1.1.1 Roadmap** | 26 | Categorized below (P0: 0, P1: 13, P2: 13) |
 | **Won't Fix** | 5 | #414, #453, #523, #372, #444 |
 | **TOTAL (Upstream)** | **71** | All open issues from archived upstream repo |
 | **TOTAL (All Work)** | **89** | Upstream issues (71) + Custom additions (18) |
 
-**Fixed Issues (36 total):**
-- **Plugin/Pipeline:** #451, #500, #573
-- **Query Engine:** #340, #445, #485, #506, #509, #514, #545, #547, #569, #607, #608, #612
+**Fixed Issues (40 total):**
+- **Plugin/Pipeline:** #279, #451, #500, #573
+- **Query Engine:** #340, #445, #467, #485, #506, #509, #514, #545, #547, #560, #569, #584, #607, #608, #612
 - **Date/Time:** #458, #491, #539, #543, #551, #587
 - **Message Executors:** #610, #615
 - **CRUD/Core:** #255, #470, #472, #476, #479, #482, #508, #521, #524, #553, #555, #562, #566
 
 **v1.1.0 Roadmap Status: COMPLETE** - All P0-P3 items resolved
 
-**v1.1.1 Roadmap:** 30 remaining issues categorized and prioritized. See "v1.1.1 Roadmap" section below.
+**v1.1.1 Phase 1 Status: COMPLETE** - 4 critical query engine bugs fixed (#279, #467, #560, #584)
+
+**v1.1.1 Roadmap:** 26 remaining issues categorized and prioritized. See "v1.1.1 Roadmap" section below.
 
 ---
 
@@ -163,6 +165,15 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 | # | Title | Status | Implementation |
 |---|-------|--------|----------------|
 | 514 | FetchXml valueof column comparison | **FIXED** | `TranslateColumnComparisonExpression` supports valueof attribute and SDK CompareColumns property |
+
+### v1.1.1 Phase 1 — Query Engine Stability
+
+| # | Title | Status | Implementation |
+|---|-------|--------|----------------|
+| 279 | Entity.LogicalName vs EntityTypeCode | **FIXED** | Pipeline now supports late-bound entities via ObjectTypeCode fallback from EntityMetadata |
+| 467 | ContainValues with multi-select NRE | **FIXED** | Now handles late-bound entities and null attribute values |
+| 560 | FindReflectedAttributeType NRE on nested linked entities | **FIXED** | `GetEntityNameFromAlias` now recursively searches nested LinkEntities |
+| 584 | Complex filters on nested entities | **FIXED** | Already fixed via #545/#547 nested filter implementation |
 
 ---
 
@@ -492,18 +503,20 @@ The following features were developed independently by the community and are NOT
 
 ## v1.1.1 Roadmap
 
-The remaining 30 open issues have been analyzed and categorized by priority.
+The remaining 26 open issues have been analyzed and categorized by priority. Phase 1 (P0) is complete with 4 critical bugs fixed.
 
-### Phase 1 — Query Engine Stability (P0)
+### Phase 1 — Query Engine Stability (P0) - COMPLETE
 
 *Critical bugs causing NullReferenceExceptions or breaking common test scenarios*
 
-| # | Title | Category | Complexity | Description |
-|---|-------|----------|------------|-------------|
-| 560 | FindReflectedAttributeType NRE | Query | High | NRE when filtering on linked entity attributes - uses main entity type instead of linked |
-| 584 | Complex filters on nested entities | Query | High | FetchXML filters work on main entity but fail on linked/nested entities |
-| 467 | ContainValues with multi-select NRE | Query | High | NRE when using ContainValues operator with OptionSetValueCollection |
-| 279 | Entity.LogicalName vs EntityTypeCode | Plugin | Low | Pipeline fails with generic Entity - should use LogicalName not EntityTypeCode |
+All 4 issues fixed in v1.1.1 Phase 1. See "Fixed Issues - v1.1.1 Phase 1" section below.
+
+| # | Title | Status |
+|---|-------|--------|
+| 279 | Entity.LogicalName vs EntityTypeCode | **FIXED** |
+| 467 | ContainValues with multi-select NRE | **FIXED** |
+| 560 | FindReflectedAttributeType NRE | **FIXED** |
+| 584 | Complex filters on nested entities | **FIXED** |
 
 ### Phase 2 — Thread Safety & Validation (P1 batch 1)
 
@@ -562,12 +575,12 @@ The remaining 30 open issues have been analyzed and categorized by priority.
 
 | Category | P0 | P1 | P2 | Total |
 |----------|----|----|----|----|
-| Query | 3 | 6 | 1 | 10 |
-| Plugin | 1 | 1 | 6 | 8 |
+| Query | 0 | 6 | 1 | 7 |
+| Plugin | 0 | 1 | 6 | 7 |
 | CRUD | 0 | 4 | 0 | 4 |
 | Message | 0 | 2 | 1 | 3 |
 | Metadata | 0 | 3 | 2 | 5 |
-| **Total** | **4** | **16** | **10** | **30** |
+| **Total** | **0** | **16** | **10** | **26** |
 
 ### Notes
 
@@ -639,6 +652,23 @@ When integrating a PR:
 ---
 
 ## Changelog
+
+### 2026-01-07 - v1.1.1 Phase 1 Complete
+
+- Fixed: #279 - Entity.LogicalName vs EntityTypeCode
+  - Pipeline now supports late-bound entities via ObjectTypeCode fallback from EntityMetadata
+  - Uses entity logical name when EntityTypeCode is not available
+- Fixed: #467 - ContainValues with multi-select NRE
+  - Now handles late-bound entities properly
+  - Null attribute values handled gracefully without throwing NRE
+- Fixed: #560 - FindReflectedAttributeType NRE on nested linked entities
+  - `GetEntityNameFromAlias` now recursively searches nested LinkEntities
+  - Correctly resolves attribute types for deeply nested query conditions
+- Fixed: #584 - Complex filters on nested entities
+  - Already fixed via #545/#547 nested filter implementation
+  - Recursive filter processing handles all nesting levels
+- Updated statistics: 40 issues fixed (was 36), 26 remaining (was 30)
+- Phase 1 (P0) status: COMPLETE - All 4 critical query engine bugs resolved
 
 ### 2026-01-07 - v1.1.1 Roadmap Analysis
 

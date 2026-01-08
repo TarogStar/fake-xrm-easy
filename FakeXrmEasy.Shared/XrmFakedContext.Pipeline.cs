@@ -38,26 +38,64 @@ namespace FakeXrmEasy
             where TEntity : Entity, new()
         {
             var entity = new TEntity();
-            var entityTypeCodeField = entity.GetType().GetField("EntityTypeCode");
-            if (entityTypeCodeField == null)
-            {
-                throw new InvalidOperationException(
-                    $"The entity type '{typeof(TEntity).Name}' does not have an EntityTypeCode field. " +
-                    "Please regenerate your early-bound classes with EntityTypeCode generation enabled, " +
-                    "or use the RegisterPluginStep<TPlugin> overload with an explicit primaryEntityTypeCode parameter.");
-            }
-
-            var entityTypeCodeValue = entityTypeCodeField.GetValue(entity);
-            if (entityTypeCodeValue == null)
-            {
-                throw new InvalidOperationException(
-                    $"The EntityTypeCode for entity type '{typeof(TEntity).Name}' is null. " +
-                    "Please use the RegisterPluginStep<TPlugin> overload with an explicit primaryEntityTypeCode parameter.");
-            }
-
-            var entityTypeCode = (int)entityTypeCodeValue;
+            var entityTypeCode = GetEntityTypeCodeForRegistration(entity);
 
             RegisterPluginStep<TPlugin>(message, stage, mode, rank, filteringAttributes, entityTypeCode);
+        }
+
+        /// <summary>
+        /// Gets the entity type code for plugin registration.
+        /// First tries reflection on EntityTypeCode field (early-bound entities),
+        /// then falls back to looking up ObjectTypeCode from EntityMetadata using LogicalName.
+        /// Throws a helpful exception if neither approach works.
+        /// </summary>
+        /// <param name="entity">The entity to get the type code for.</param>
+        /// <returns>The entity type code.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the entity type code cannot be determined.</exception>
+        private int GetEntityTypeCodeForRegistration(Entity entity)
+        {
+            // First, try to get EntityTypeCode from early-bound entities via reflection
+            var entityTypeCodeField = entity.GetType().GetField("EntityTypeCode");
+            if (entityTypeCodeField != null)
+            {
+                var entityTypeCodeValue = entityTypeCodeField.GetValue(entity);
+                if (entityTypeCodeValue != null)
+                {
+                    return (int)entityTypeCodeValue;
+                }
+            }
+
+            // Fallback: For late-bound Entity class, try to look up ObjectTypeCode from EntityMetadata
+            if (!string.IsNullOrEmpty(entity.LogicalName) && EntityMetadata.ContainsKey(entity.LogicalName))
+            {
+                var metadata = EntityMetadata[entity.LogicalName];
+                if (metadata.ObjectTypeCode.HasValue)
+                {
+                    return metadata.ObjectTypeCode.Value;
+                }
+            }
+
+            // Neither approach worked - provide a helpful error message
+            var entityTypeName = entity.GetType().Name;
+            var logicalName = entity.LogicalName;
+
+            if (entityTypeName == "Entity" || string.IsNullOrEmpty(logicalName))
+            {
+                throw new InvalidOperationException(
+                    "Cannot determine entity type code for late-bound Entity class. " +
+                    "Either use early-bound entity types with EntityTypeCode, " +
+                    "initialize EntityMetadata with ObjectTypeCode for the entity, " +
+                    "or use the RegisterPluginStep<TPlugin> overload with an explicit primaryEntityTypeCode parameter.");
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"Cannot determine entity type code for entity type '{entityTypeName}' (LogicalName: '{logicalName}'). " +
+                    "The entity type does not have an EntityTypeCode field and no EntityMetadata with ObjectTypeCode was found. " +
+                    "Either regenerate your early-bound classes with EntityTypeCode generation enabled, " +
+                    "initialize EntityMetadata with ObjectTypeCode for this entity, " +
+                    "or use the RegisterPluginStep<TPlugin> overload with an explicit primaryEntityTypeCode parameter.");
+            }
         }
 
         /// <summary>
@@ -255,7 +293,7 @@ namespace FakeXrmEasy
                 }
             };
 
-            var entityTypeCode = (int?)entity.GetType().GetField("EntityTypeCode")?.GetValue(entity);
+            var entityTypeCode = GetEntityTypeCode(entity);
 
             var plugins = this.Service.RetrieveMultiple(query).Entities.AsEnumerable();
             plugins = plugins.Where(p =>
@@ -268,6 +306,41 @@ namespace FakeXrmEasy
             // Note: Filtering on attributes is handled in ExecutePipelinePlugins where we have access to the target entity
 
             return plugins;
+        }
+
+        /// <summary>
+        /// Gets the entity type code (ObjectTypeCode) for an entity.
+        /// First tries to get EntityTypeCode from early-bound entities via reflection.
+        /// If not available (late-bound Entity class), falls back to looking up the ObjectTypeCode
+        /// from EntityMetadata using the entity's LogicalName.
+        /// </summary>
+        /// <param name="entity">The entity to get the type code for.</param>
+        /// <returns>The entity type code, or null if it cannot be determined.</returns>
+        private int? GetEntityTypeCode(Entity entity)
+        {
+            // First, try to get EntityTypeCode from early-bound entities via reflection
+            var entityTypeCodeField = entity.GetType().GetField("EntityTypeCode");
+            if (entityTypeCodeField != null)
+            {
+                var value = entityTypeCodeField.GetValue(entity);
+                if (value != null)
+                {
+                    return (int)value;
+                }
+            }
+
+            // Fallback: For late-bound Entity class, try to look up ObjectTypeCode from EntityMetadata
+            if (!string.IsNullOrEmpty(entity.LogicalName) && EntityMetadata.ContainsKey(entity.LogicalName))
+            {
+                var metadata = EntityMetadata[entity.LogicalName];
+                if (metadata.ObjectTypeCode.HasValue)
+                {
+                    return metadata.ObjectTypeCode.Value;
+                }
+            }
+
+            // Could not determine entity type code - this is acceptable for plugins registered without entity filtering
+            return null;
         }
     }
 }
