@@ -176,7 +176,13 @@ namespace FakeXrmEasy.Extensions
                     //Check if attribute really exists in metadata
                     if (!context.AttributeExistsInMetadata(e.LogicalName, attKey))
                     {
-                        FakeOrganizationServiceFault.Throw(ErrorCodes.QueryBuilderNoAttribute, string.Format("The attribute {0} does not exist on this entity.", attKey));
+                        // Dataverse special-case: calendar can return calendarrules even though it is not present
+                        // as a normal attribute in early-bound metadata.
+                        if (!(string.Equals(e.LogicalName, "calendar", StringComparison.OrdinalIgnoreCase) &&
+                              string.Equals(attKey, "calendarrules", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            FakeOrganizationServiceFault.Throw(ErrorCodes.QueryBuilderNoAttribute, string.Format("The attribute {0} does not exist on this entity.", attKey));
+                        }
                     }
 
                     if (e.Attributes.ContainsKey(attKey) && e.Attributes[attKey] != null)

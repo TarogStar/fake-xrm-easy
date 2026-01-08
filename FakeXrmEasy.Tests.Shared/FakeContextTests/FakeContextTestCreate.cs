@@ -183,6 +183,72 @@ namespace FakeXrmEasy.Tests
         }
 
         [Fact]
+        public void When_Creating_With_StateCode_Set_To_Null_It_Defaults_To_Active()
+        {
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            var account = new Entity("account")
+            {
+                Id = Guid.NewGuid(),
+                ["name"] = "Test Account",
+                ["statecode"] = null
+            };
+
+            var id = service.Create(account);
+            var retrieved = service.Retrieve("account", id, new ColumnSet(true));
+
+            Assert.Equal(0, retrieved.GetAttributeValue<OptionSetValue>("statecode").Value);
+        }
+
+        [Fact]
+        public void When_Creating_Using_ExecuteMultiple_With_StateCode_Set_To_Null_All_Records_Are_Created_And_Response_Is_Not_Faulted()
+        {
+            var context = new XrmFakedContext();
+            var service = context.GetOrganizationService();
+
+            var account1 = new Entity("account")
+            {
+                Id = Guid.NewGuid(),
+                ["name"] = "Acc1",
+                ["statecode"] = null
+            };
+
+            var account2 = new Entity("account")
+            {
+                Id = Guid.NewGuid(),
+                ["name"] = "Acc2",
+                ["statecode"] = null
+            };
+
+            var executeMultipleRequest = new ExecuteMultipleRequest
+            {
+                Settings = new ExecuteMultipleSettings
+                {
+                    ReturnResponses = true,
+                    ContinueOnError = false
+                },
+                Requests = new OrganizationRequestCollection
+                {
+                    new CreateRequest { Target = account1 },
+                    new CreateRequest { Target = account2 }
+                }
+            };
+
+            var response = (ExecuteMultipleResponse)service.Execute(executeMultipleRequest);
+
+            Assert.False(response.IsFaulted);
+            Assert.Equal(2, response.Responses.Count);
+            Assert.All(response.Responses, r => Assert.Null(r.Fault));
+
+            var created1 = service.Retrieve("account", account1.Id, new ColumnSet(true));
+            var created2 = service.Retrieve("account", account2.Id, new ColumnSet(true));
+
+            Assert.Equal(0, created1.GetAttributeValue<OptionSetValue>("statecode").Value);
+            Assert.Equal(0, created2.GetAttributeValue<OptionSetValue>("statecode").Value);
+        }
+
+        [Fact]
         public void When_Creating_Using_Organization_Context_Record_Should_Be_Created()
         {
       var context = new XrmFakedContext

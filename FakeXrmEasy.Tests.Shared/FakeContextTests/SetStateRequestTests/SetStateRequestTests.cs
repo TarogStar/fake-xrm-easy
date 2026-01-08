@@ -91,5 +91,43 @@ namespace FakeXrmEasy.Tests.FakeContextTests.SetStateRequestTests
 
             Assert.Equal(69, (int)contact.StateCode.Value); //Set
         }
+
+        [Fact]
+        public void When_disabling_a_systemuser_via_setstate_request_isdisabled_is_updated()
+        {
+      var context = new XrmFakedContext
+      {
+        ProxyTypesAssembly = Assembly.GetExecutingAssembly()
+      };
+      var service = context.GetOrganizationService();
+
+            var userId = Guid.NewGuid();
+            var user = new Entity("systemuser") { Id = userId };
+            user["fullname"] = "Test User";
+            user["statecode"] = new OptionSetValue(0);
+            user["statuscode"] = new OptionSetValue(1);
+            user["isdisabled"] = false;
+            context.Initialize(new[] { user });
+
+            service.Execute(new SetStateRequest
+            {
+                EntityMoniker = new EntityReference("systemuser", userId),
+                State = new OptionSetValue(1),
+                Status = new OptionSetValue(-1)
+            });
+
+            var updated = service.Retrieve("systemuser", userId, new Microsoft.Xrm.Sdk.Query.ColumnSet("isdisabled", "statecode"));
+            Assert.True(updated.GetAttributeValue<bool>("isdisabled"));
+
+            service.Execute(new SetStateRequest
+            {
+                EntityMoniker = new EntityReference("systemuser", userId),
+                State = new OptionSetValue(0),
+                Status = new OptionSetValue(-1)
+            });
+
+            updated = service.Retrieve("systemuser", userId, new Microsoft.Xrm.Sdk.Query.ColumnSet("isdisabled", "statecode"));
+            Assert.False(updated.GetAttributeValue<bool>("isdisabled"));
+        }
     }
 }

@@ -721,16 +721,25 @@ namespace FakeXrmEasy
             // See: https://github.com/DynamicsValue/fake-xrm-easy/issues/479
             if (clone.Attributes.ContainsKey("statecode"))
             {
-                var stateValue = clone.GetAttributeValue<OptionSetValue>("statecode")?.Value
-                    ?? (clone["statecode"] is int ? (int)clone["statecode"] : 0);
-
-                if (stateValue != 0)
+                // Dataverse behavior: explicitly passing statecode = null is treated as "not provided",
+                // and the platform defaults it to Active (0) on Create.
+                if (clone["statecode"] == null)
                 {
-                    throw new FaultException<OrganizationServiceFault>(
-                        new OrganizationServiceFault(),
-                        $"Cannot create entity '{clone.LogicalName}' with statecode {stateValue}. " +
-                        "Dataverse requires records to be created in Active state. " +
-                        "To create inactive records, first create with Active state then update the statecode.");
+                    clone.Attributes.Remove("statecode");
+                }
+                else
+                {
+                    var stateValue = clone.GetAttributeValue<OptionSetValue>("statecode")?.Value
+                        ?? (clone["statecode"] is int ? (int)clone["statecode"] : 0);
+
+                    if (stateValue != 0)
+                    {
+                        throw new FaultException<OrganizationServiceFault>(
+                            new OrganizationServiceFault(),
+                            $"Cannot create entity '{clone.LogicalName}' with statecode {stateValue}. " +
+                            "Dataverse requires records to be created in Active state. " +
+                            "To create inactive records, first create with Active state then update the statecode.");
+                    }
                 }
             }
 
@@ -951,8 +960,21 @@ namespace FakeXrmEasy
                         return false;
                     }
                 }
-                //Try with metadata
-                return false;
+                // No early-bound type exists for this logical name in the proxy assembly.
+                // In that case we can't use proxy type reflection as a source of truth for attribute existence.
+                // Fall back to injected metadata if present; otherwise treat as a dynamic entity (allow attributes).
+                if (EntityMetadata.ContainsKey(sEntityName))
+                {
+                    var metadata = EntityMetadata[sEntityName];
+                    if (metadata.Attributes == null || metadata.Attributes.Length == 0)
+                    {
+                        return true;
+                    }
+
+                    return AttributeExistsInInjectedMetadata(sEntityName, sAttributeName);
+                }
+
+                return true;
             }
 
             if (EntityMetadata.ContainsKey(sEntityName))

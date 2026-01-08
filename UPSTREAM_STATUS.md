@@ -47,19 +47,19 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 
 | Status | Count | Issues |
 |--------|-------|--------|
-| **Fixed (v1.1.0+)** | 45 | See "Fixed Issues" section below |
+| **Fixed (v1.1.0+)** | 50 | See "Fixed Issues" section below |
 | **Custom Additions** | 18 | See "Custom Additions" section below |
-| **v1.1.1 Roadmap** | 21 | Categorized below (P0: 0, P1: 8, P2: 13) |
+| **v1.1.1 Roadmap** | 16 | Categorized below (P0: 0, P1: 3, P2: 13) |
 | **Won't Fix** | 5 | #414, #453, #523, #372, #444 |
 | **TOTAL (Upstream)** | **71** | All open issues from archived upstream repo |
 | **TOTAL (All Work)** | **89** | Upstream issues (71) + Custom additions (18) |
 
-**Fixed Issues (45 total):**
+**Fixed Issues (50 total):**
 - **Plugin/Pipeline:** #279, #451, #500, #573
 - **Query Engine:** #258, #287, #340, #415, #445, #467, #485, #490, #506, #509, #514, #545, #547, #560, #569, #584, #607, #608, #612
 - **Date/Time:** #458, #491, #539, #543, #551, #587
-- **Message Executors:** #610, #615
-- **CRUD/Core:** #74, #255, #470, #472, #476, #479, #482, #508, #521, #524, #553, #555, #562, #566
+- **Message Executors:** #407, #516, #610, #615
+- **CRUD/Core:** #74, #255, #332, #449, #470, #472, #476, #479, #482, #508, #521, #524, #532, #553, #555, #562, #566
 
 **v1.1.0 Roadmap Status: COMPLETE** - All P0-P3 items resolved
 
@@ -67,7 +67,9 @@ var result = pluginContext.OutputParameters["MyOutput"]; // ✓ Accessible
 
 **v1.1.1 Phase 2 Status: COMPLETE** - 5 thread safety and validation fixes (#74, #258, #287, #415, #490)
 
-**v1.1.1 Roadmap:** 21 remaining issues categorized and prioritized. See "v1.1.1 Roadmap" section below.
+**v1.1.1 Phase 3 Status: COMPLETE** - 5 message executor parity fixes (#332, #407, #449, #516, #532)
+
+**v1.1.1 Roadmap:** 16 remaining issues categorized and prioritized. See "v1.1.1 Roadmap" section below.
 
 ---
 
@@ -532,29 +534,29 @@ All 4 issues fixed in v1.1.1 Phase 1. See "Fixed Issues - v1.1.1 Phase 1" sectio
 | 415 | AddLink attribute validation | Query | **FIXED** | Validates LinkFromAttributeName exists on source entity |
 | 490 | no-attrs node support | Query | **FIXED** | `<no-attrs>` returns empty ColumnSet only if no explicit attributes present |
 
-### Phase 3 — Message Executor Parity (P1 batch 2)
+### Phase 3 — Message Executor Parity (P1 batch 2) ✓ COMPLETE
 
 *Entity-specific behaviors and message executor fixes*
 
-| # | Title | Category | Complexity | Description |
-|---|-------|----------|------------|-------------|
-| 332 | activityparty retrieve validation | CRUD | Medium | Should throw when retrieving activityparty directly |
-| 407 | SetState systemuser isdisabled | Message | Medium | SetState for systemuser doesn't populate isdisabled field |
-| 516 | CloseIncidentRequest error | Message | Medium | Throws "not yet supported" despite test files suggesting implementation |
-| 532 | Calendar/CalendarRules auto-include | CRUD | Medium | Doesn't return CalendarRules when retrieving Calendar entity |
+| # | Title | Category | Status | Implementation |
+|---|-------|----------|--------|----------------|
+| 332 | activityparty retrieve validation | CRUD | **FIXED** | RetrieveRequestExecutor throws FaultException for activityparty |
+| 407 | SetState systemuser isdisabled | Message | **FIXED** | SetStateRequestExecutor syncs isdisabled field with state |
+| 516 | CloseIncidentRequest error | Message | **FIXED** | Fixed GetResponsibleRequestType returning wrong type |
+| 532 | Calendar/CalendarRules auto-include | CRUD | **FIXED** | RetrieveRequestExecutor auto-includes calendarrules for calendar entity |
 
 ### Phase 4 — Metadata & Developer Experience (P1 batch 3)
 
 *Metadata properties, culture handling, error messages*
 
-| # | Title | Category | Complexity | Description |
-|---|-------|----------|------------|-------------|
-| 439 | DateTime culture formatting | Query | Medium | DateTime formatting in FetchXML breaks with non-English cultures |
-| 449 | Statecode null on CreateRequest | CRUD | Medium | Setting statecode to null in ExecuteMultiple causes faulted responses |
-| 462 | FetchExpression initialization | Query | Medium | Cannot initialize RetrieveMultiple with FetchExpression parameter |
-| 505 | IsPrimaryName metadata property | Metadata | Low | IsPrimaryName unpopulated in RetrieveEntityRequest |
-| 550 | Better exception messages | Plugin | Low | Exception messages don't identify which service is missing |
-| 579 | EntityDataSource returning null | Metadata | Medium | RetrieveEntityDataSource returns null despite proper configuration |
+| # | Title | Category | Status | Implementation |
+|---|-------|----------|--------|----------------|
+| 449 | Statecode null on CreateRequest | CRUD | **FIXED** | Null statecode treated as "not provided", defaults to Active |
+| 439 | DateTime culture formatting | Query | Pending | DateTime formatting in FetchXML breaks with non-English cultures |
+| 462 | FetchExpression initialization | Query | Pending | Cannot initialize RetrieveMultiple with FetchExpression parameter |
+| 505 | IsPrimaryName metadata property | Metadata | Pending | IsPrimaryName unpopulated in RetrieveEntityRequest |
+| 550 | Better exception messages | Plugin | Pending | Exception messages don't identify which service is missing |
+| 579 | EntityDataSource returning null | Metadata | Pending | RetrieveEntityDataSource returns null despite proper configuration |
 
 ### Phase 5+ — Advanced Features (P2)
 

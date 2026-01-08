@@ -73,6 +73,22 @@ namespace FakeXrmEasy.FakeMessageExecutors
             }
 
             var entityName = request.Target.LogicalName;
+
+            // Dataverse special-case behavior: retrieving a calendar record automatically returns
+            // the calendarrules attribute (EntityCollection) even when not explicitly requested.
+            // Also, calendarrules can be requested in the ColumnSet without triggering
+            // "attribute does not exist" validation.
+            var isCalendar = string.Equals(entityName, "calendar", StringComparison.OrdinalIgnoreCase);
+
+            // Dataverse behavior: activityparty is not a retrievable entity.
+            // Parties are only accessible through activity party-list attributes (e.g. to/from) on activity entities.
+            if (string.Equals(entityName, "activityparty", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new FaultException<OrganizationServiceFault>(
+                    new OrganizationServiceFault(),
+                    "The 'Retrieve' method does not support entities of type 'activityparty'.");
+            }
+
             var columnSet = request.ColumnSet;
             if (columnSet == null)
             {
@@ -95,6 +111,16 @@ namespace FakeXrmEasy.FakeMessageExecutors
                 if (!columnSet.AllColumns)
                 {
                     resultEntity = resultEntity.ProjectAttributes(columnSet, context);
+                }
+
+                if (isCalendar)
+                {
+                    // Always include calendarrules when present on the stored calendar entity.
+                    // (Some environments also expose it via FetchXML even when not selected.)
+                    if (foundEntity.Attributes.ContainsKey("calendarrules") && foundEntity["calendarrules"] != null)
+                    {
+                        resultEntity["calendarrules"] = foundEntity["calendarrules"];
+                    }
                 }
                 resultEntity.ApplyDateBehaviour(context);
                 PopulateEntityReferenceNames(resultEntity, context);

@@ -40,6 +40,13 @@ namespace FakeXrmEasy.FakeMessageExecutors
             entityToUpdate["statecode"] = req.State;
             entityToUpdate["statuscode"] = req.Status;
 
+            // Dataverse maintains system-managed fields for certain entities.
+            // For systemuser, isdisabled is kept in sync with the active/inactive state.
+            if (string.Equals(entityName, "systemuser", StringComparison.OrdinalIgnoreCase) && req.State != null)
+            {
+                entityToUpdate["isdisabled"] = req.State.Value != 0;
+            }
+
             var fakedService = ctx.GetOrganizationService();
             fakedService.Update(entityToUpdate);
 
